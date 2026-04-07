@@ -16,11 +16,11 @@
         android:layout_marginTop="354dp"
         android:layout_marginEnd="179dp"
         android:layout_marginBottom="358dp"
-        android:text="TextView"
+        android:text="Thariq"
+        android:textSize="40sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-
         />
 </androidx.constraintlayout.widget.ConstraintLayout>
