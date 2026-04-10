@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1040473569185:android:03331d6d0fa2bdddd6bde0",
+        "mobilesdk_app_id": "1:1040473569185:android:4b03b4eac3ddcc42d6bde0",
         "android_client_info": {
-          "package_name": "com.nutripanda.care"
+          "package_name": "com.example.nutripandacare"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1040473569185-9qbk8drc01eptbhro55s38mi2m8tes15.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB53A9luVv0ZRmboPC1iCcE2jelmU5RaNM"
@@ -20,7 +25,41 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1040473569185-9qbk8drc01eptbhro55s38mi2m8tes15.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040473569185:android:03331d6d0fa2bdddd6bde0",
+        "android_client_info": {
+          "package_name": "com.nutripanda.care"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1040473569185-9qbk8drc01eptbhro55s38mi2m8tes15.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB53A9luVv0ZRmboPC1iCcE2jelmU5RaNM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1040473569185-9qbk8drc01eptbhro55s38mi2m8tes15.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
