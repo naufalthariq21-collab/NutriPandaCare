@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Base App Theme -->
+    <!-- ================================================================
+         Base Widget (WAJIB ADA - jangan dihapus)
+    ================================================================ -->
+    <style name="Widget.NutriPandaCare" parent="Widget.MaterialComponents.Button">
+    </style>
+
+    <!-- ================================================================
+         Base App Theme
+         AndroidManifest.xml → android:theme="@style/Theme.NutriPandaCare"
+    ================================================================ -->
     <style name="Theme.NutriPandaCare" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/green_primary</item>
         <item name="colorPrimaryVariant">@color/green_dark</item>
@@ -15,5 +24,72 @@
         <item name="android:navigationBarColor">@color/cream_primary</item>
     </style>
 
+    <!-- ================================================================
+         Splash Screen Theme
+    ================================================================ -->
+    <style name="Theme.NutriPandaCare.Splash" parent="Theme.NutriPandaCare">
+        <item name="android:statusBarColor">@color/cream_primary</item>
+        <item name="android:navigationBarColor">@color/cream_primary</item>
+    </style>
+
+    <!-- ================================================================
+         TextInputLayout
+         Cara pakai: style="@style/Widget.NutriPandaCare.TextInputLayout"
+    ================================================================ -->
+    <style name="Widget.NutriPandaCare.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/input_bg</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">1.5dp</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="hintTextColor">@color/text_hint</item>
+        <item name="errorTextColor">@color/pending_text</item>
+        <item name="errorIconDrawable">@null</item>
+        <item name="android:minHeight">52dp</item>
+    </style>
+
+    <!-- ================================================================
+         Field Label
+         Cara pakai: style="@style/Widget.NutriPandaCare.FieldLabel"
+    ================================================================ -->
+    <style name="Widget.NutriPandaCare.FieldLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- ================================================================
+         Button Solid
+         Cara pakai: style="@style/Widget.NutriPandaCare.Button"
+    ================================================================ -->
+    <style name="Widget.NutriPandaCare.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:textColor">@color/white</item>
+        <item name="backgroundTint">@color/green_primary</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="rippleColor">@color/green_dark</item>
+    </style>
+
+    <!-- ================================================================
+         Button Outlined
+         Cara pakai: style="@style/Widget.NutriPandaCare.Button.Outlined"
+    ================================================================ -->
+    <style name="Widget.NutriPandaCare.Button.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textColor">@color/green_primary</item>
+        <item name="strokeColor">@color/green_primary</item>
+        <item name="strokeWidth">1.5dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="rippleColor">@color/green_pale</item>
+    </style>
 
 </resources>
