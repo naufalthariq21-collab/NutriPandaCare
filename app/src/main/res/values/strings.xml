@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">NutriPanda Care</string>
     <string name="app_tagline">Nutrisi Terbaik untuk Si Kecil</string>
     <!-- web client -->
@@ -50,7 +50,7 @@
 
     <!-- Waiting Verification -->
     <string name="menunggu_verifikasi">Menunggu Verifikasi</string>
-    <string name="verifikasi_desc">Akun Anda sedang dalam proses verifikasi. Tim admin akan meninjau pendaftaran Anda dalam 1-2 hari kerja.</string>
+    <string name="verifikasi_desc" tools:ignore="TypographyDashes">Akun Anda sedang dalam proses verifikasi. Tim admin akan meninjau pendaftaran Anda dalam 1-2 hari kerja.</string>
     <string name="status_label">Status</string>
     <string name="peran_label">Peran</string>
     <string name="pending">Pending</string>
