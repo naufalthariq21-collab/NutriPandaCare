@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_orang_tua"
+    app:startDestination="@id/homeOrangTuaFragment">
+
+    <fragment
+        android:id="@+id/homeOrangTuaFragment"
+        android:name="com.example.nutripandacare.fragment.orangtua.HomeOrangTuaFragment"
+        android:label="Home"/>
+
+    <fragment
+        android:id="@+id/edukasiFragment"
+        android:name="com.example.nutripandacare.fragment.orangtua.EdukasiFragment"
+        android:label="Edukasi"/>
+
+    <fragment
+        android:id="@+id/giziFragment"
+        android:name="com.example.nutripandacare.fragment.orangtua.GiziFragment"
+        android:label="Cek Gizi"/>
+
+    <fragment
+        android:id="@+id/menuMbgFragment"
+        android:name="com.example.nutripandacare.fragment.orangtua.MenuMbgFragment"
+        android:label="Kalender Menu"/>
+
+</navigation>

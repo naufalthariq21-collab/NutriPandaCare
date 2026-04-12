@@ -12,6 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NutriPandaCare">
         <activity
+            android:name=".DashboardGuruActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DashboardOrangTuaActivity"
+            android:exported="false" />
+        <activity
             android:name=".SuccessActivity"
             android:exported="false" />
         <activity
@@ -25,12 +31,18 @@
             android:exported="false" />
         <activity
             android:name=".SplashActivity"
-            android:exported="false" />
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".LoginActivity"
             android:exported="false" /> <!-- Dashboard Activity -->
         <activity
-            android:name=".DashboardActivity"
+            android:name=".DashboardPengelolaActivity"
             android:exported="false" /> <!-- Main Activity -->
         <activity
             android:name=".MainActivity"

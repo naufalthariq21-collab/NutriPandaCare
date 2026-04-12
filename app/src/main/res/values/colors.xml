@@ -1,5 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Primary Green Palette -->
+    <color name="green_primary">#2D6A4F</color>
+    <color name="green_dark">#1B4332</color>
+    <color name="green_medium">#40916C</color>
+    <color name="green_light">#74C69D</color>
+    <color name="green_pale">#D8F3DC</color>
+    <color name="green_accent">#52B788</color>
+
+    <!-- Cream Palette -->
+    <color name="cream_primary">#FDF8F0</color>
+    <color name="cream_medium">#F5EDD9</color>
+    <color name="cream_dark">#E8D5B0</color>
+    <color name="cream_warm">#FAF3E4</color>
+
+    <!-- White & Neutral -->
+    <color name="white">#FFFFFF</color>
+    <color name="off_white">#FAFAFA</color>
+    <color name="text_primary">#1A1A1A</color>
+    <color name="text_secondary">#5C5C5C</color>
+    <color name="text_hint">#A0A0A0</color>
+    <color name="divider">#E8E8E8</color>
+
+    <!-- Status Colors -->
+    <color name="pending_bg">#FFF3CD</color>
+    <color name="pending_text">#856404</color>
+    <color name="success_green">#2D6A4F</color>
+
+    <!-- Input Fields -->
+    <color name="input_bg">#FFFFFF</color>
+    <color name="input_border">#D4C9B5</color>
+    <color name="input_border_focus">#2D6A4F</color>
+
+    <!-- Social Buttons -->
+    <color name="google_bg">#FFFFFF</color>
+    <color name="facebook_bg">#1877F2</color>
+    <color name="overlay_dark">#CC1B4332</color>
+
+    <color name="text_body">#4A4A4A</color>
 </resources>
