@@ -47,6 +47,7 @@
     <string name="pengelola_mbg">Pengelola MBG</string>
     <string name="pengelola_mbg_desc">Akses admin untuk mengelola seluruh sistem dan laporan</string>
     <string name="lanjutkan">Lanjutkan</string>
+    <string name="back_button">Kembali</string>
 
     <!-- Waiting Verification -->
     <string name="menunggu_verifikasi">Menunggu Verifikasi</string>
