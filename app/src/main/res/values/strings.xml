@@ -1,78 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">NutriPanda Care</string>
-    <string name="app_tagline">Nutrisi Terbaik untuk Si Kecil</string>
-
-    <!-- Splash -->
-    <string name="panda_logo">Panda Logo</string>
-
-    <!-- Login -->
-    <string name="selamat_datang_kembali">Selamat Datang Kembali!</string>
-    <string name="masuk_ke_akun">Masuk ke akun NutriPanda Care Anda</string>
-    <string name="email_label">Email</string>
-    <string name="email_hint">nama@email.com</string>
-    <string name="password_label">Password</string>
-    <string name="password_hint">••••••••</string>
-    <string name="lupa_password">Lupa Password?</string>
-    <string name="masuk">Masuk</string>
-    <string name="atau_masuk_dengan">atau masuk dengan</string>
-    <string name="google">Google</string>
-    <string name="facebook">Facebook</string>
-    <string name="belum_punya_akun">Belum punya akun?</string>
-    <string name="daftar_sekarang">Daftar sekarang</string>
-
-    <!-- Registration -->
-    <string name="daftar_akun">Daftar Akun</string>
-    <string name="buat_akun_baru">Buat akun baru untuk memulai</string>
-    <string name="nama_lengkap_label">Nama Lengkap</string>
-    <string name="nama_lengkap_hint">Masukkan nama lengkap</string>
-    <string name="nomor_whatsapp_label">Nomor WhatsApp</string>
-    <string name="nomor_whatsapp_hint">+62 8*********</string>
-    <string name="konfirmasi_password_label">Konfirmasi Password</string>
-    <string name="konfirmasi_password_hint">Ulangi password</string>
-    <string name="password_min">Minimal 8 karakter</string>
-    <string name="daftar">Daftar</string>
-    <string name="sudah_punya_akun">Sudah punya akun?</string>
-    <string name="masuk_link">Masuk</string>
-
-    <!-- Role Selection -->
-    <string name="pilih_peran">Pilih Peran Pengguna</string>
-    <string name="pilih_peran_subtitle">Pilih peran yang sesuai dengan Anda</string>
-    <string name="orang_tua">Orang Tua</string>
-    <string name="orang_tua_desc">Akses penuh untuk memantau nutrisi anak dan berkomunikasi dengan guru</string>
-    <string name="guru">Guru</string>
-    <string name="guru_desc">Mengelola data nutrisi siswa dan berkomunikasi dengan orang tua</string>
-    <string name="pengelola_mbg">Pengelola MBG</string>
-    <string name="pengelola_mbg_desc">Akses admin untuk mengelola seluruh sistem dan laporan</string>
-    <string name="lanjutkan">Lanjutkan</string>
-
-    <!-- Waiting Verification -->
-    <string name="menunggu_verifikasi">Menunggu Verifikasi</string>
-    <string name="verifikasi_desc">Akun Anda sedang dalam proses verifikasi. Tim admin akan meninjau pendaftaran Anda dalam 1-2 hari kerja.</string>
-    <string name="status_label">Status</string>
-    <string name="peran_label">Peran</string>
-    <string name="pending">Pending</string>
-    <string name="kembali_ke_login">Kembali ke Login</string>
-
-    <!-- Success -->
-    <string name="selamat_datang">Selamat Datang!</string>
-    <string name="akun_berhasil">Akun Anda telah berhasil dibuat. Mulai pantau nutrisi dan perkembangan anak Anda bersama NutriPanda Care.</string>
-    <string name="user_name">Ayu Ningtias</string>
-    <string name="user_role">Orang Tua</string>
-    <string name="user_email">ayu.ningtias@email.com</string>
-    <string name="user_phone">+62 812 3456 7890</string>
-    <string name="mulai_sekarang">Mulai Sekarang</string>
-
-    <!-- Accessibility -->
-    <string name="toggle_password_visibility">Tampilkan/Sembunyikan password</string>
-    <string name="back_button">Kembali</string>
-    <string name="logo_description">Logo NutriPanda Care</string>
-
-    <!-- Info messages -->
-    <string name="verifikasi_info_text">Tim admin akan memproses verifikasi dalam 1-2 hari kerja</string>
-    <string name="akun_sukses_info">Akun berhasil dibuat! Silakan mulai menggunakan NutriPanda Care</string>
-    <string name="memproses">Memproses&#8230;</string>
-    <string name="mendaftar">Mendaftar&#8230;</string>
-    <string name="google_login">G  Google</string>
-    <string name="facebook_login">f  Facebook</string>
+    <string name="dashboard">Dashboard Pengelola</string>
+    <string name="kelola_menu_mbg">Kelola Menu MBG</string>
+    <string name="tambah_menu_baru">Tambah Menu Baru</string>
+    <string name="aduan_guru">Aduan Guru</string>
+    <string name="aduan">Aduan</string>
+    <string name="buat_notifikasi">Buat Notifikasi</string>
+    <string name="kelola_data_pengguna">Kelola Data Pengguna</string>
+    <string name="verifikasi_menunggu">Verifikasi Menunggu</string>
+    <string name="menu_aktif_hari_ini">Menu Aktif Hari Ini</string>
+    <string name="aduan_masuk">Aduan Masuk</string>
+    <string name="distribusi_nutrisi">Distribusi Nutrisi</string>
+    <string name="tambah_menu">+ Tambah Menu</string>
+    <string name="simpan_perubahan">Simpan Perubahan</string>
+    <string name="kirim_notifikasi">🔔 Kirim Notifikasi</string>
+    <string name="verifikasi">✓ Verifikasi</string>
+    <string name="tolak">✕ Tolak</string>
+    <string name="tandai_selesai">Tandai Selesai</string>
+    <string name="tulis_balasan">Tulis balasan...</string>
+    <string name="ubah">✏ Ubah</string>
+    <string name="hapus">🗑 Hapus</string>
+    <string name="nama_menu">Nama Menu</string>
+    <string name="pilih_tanggal">Pilih Tanggal</string>
+    <string name="upload_media">Upload Media</string>
+    <string name="rincian_gizi">Rincian Gizi</string>
+    <string name="calories">Calories (kcal)</string>
+    <string name="protein">Protein (g)</string>
+    <string name="fat">Fat (g)</string>
+    <string name="carbs">Carbs (g)</string>
+    <string name="target_audience">Target Audience</string>
+    <string name="pesan_notifikasi">Pesan Notifikasi</string>
+    <string name="preview_notifikasi">Preview Notifikasi</string>
+    <string name="smartphone_preview">Smartphone Preview</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_aduan_guru">Aduan Guru</string>
+    <string name="nav_aduan">Aduan</string>
+    <string name="nav_kelola">Kelola Menu</string>
+    <string name="nav_calendar">Calendar</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
