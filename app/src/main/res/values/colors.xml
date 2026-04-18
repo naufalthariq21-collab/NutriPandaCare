@@ -1,41 +1,181 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Green Palette -->
-    <color name="green_primary">#2D6A4F</color>
-    <color name="green_dark">#1B4332</color>
-    <color name="green_medium">#40916C</color>
-    <color name="green_light">#74C69D</color>
-    <color name="green_pale">#D8F3DC</color>
-    <color name="green_accent">#52B788</color>
 
-    <!-- Cream Palette -->
-    <color name="cream_primary">#FDF8F0</color>
-    <color name="cream_medium">#F5EDD9</color>
-    <color name="cream_dark">#E8D5B0</color>
-    <color name="cream_warm">#FAF3E4</color>
+    <!-- ════════════════════════════════════════════ -->
+    <!-- PRIMARY GREEN PALETTE                        -->
+    <!-- Warna utama app — hijau natural/earthy       -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="green_darkest">#0D2B1F</color>  <!-- Sangat gelap, untuk shadow / border tebal -->
+    <color name="green_dark">#1B4332</color>      <!-- Header utama, appbar background -->
+    <color name="green_primary">#2D6A4F</color>   <!-- Warna brand utama, button primary -->
+    <color name="green_medium">#40916C</color>    <!-- Icon aktif, progress bar, accent -->
+    <color name="green_accent">#52B788</color>    <!-- Highlight, badge sukses, chip aktif -->
+    <color name="green_light">#74C69D</color>     <!-- Teks di atas background hijau gelap -->
+    <color name="green_pale">#B7E4C7</color>      <!-- Progress bar track, sub-label di header -->
+    <color name="green_pastel">#D8F3DC</color>    <!-- Background card info ringan -->
+    <color name="green_surface">#F0FAF3</color>   <!-- Background section / surface hijau sangat muda -->
 
-    <!-- White & Neutral -->
+    <!-- ════════════════════════════════════════════ -->
+    <!-- CREAM PALETTE                               -->
+    <!-- Background halaman, card, input             -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="cream_primary">#FDF8F0</color>   <!-- Background utama halaman -->
+    <color name="cream_warm">#FAF3E4</color>      <!-- Background section alternatif -->
+    <color name="cream_medium">#F5EDD9</color>    <!-- Card cream, divider lembut -->
+    <color name="cream_dark">#E8D5B0</color>      <!-- Border card cream, separator -->
+    <color name="cream_deep">#D4BC8A</color>      <!-- Accent cream gelap, border tegas -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- WHITE & NEUTRAL                             -->
+    <!-- Card, input field, background bersih        -->
+    <!-- ════════════════════════════════════════════ -->
     <color name="white">#FFFFFF</color>
     <color name="off_white">#FAFAFA</color>
-    <color name="text_primary">#1A1A1A</color>
-    <color name="text_secondary">#5C5C5C</color>
-    <color name="text_hint">#A0A0A0</color>
-    <color name="divider">#E8E8E8</color>
+    <color name="surface_light">#F5F5F5</color>   <!-- Background abu sangat muda -->
+    <color name="surface_medium">#EEEEEE</color>  <!-- Skeleton loader, placeholder -->
 
-    <!-- Status Colors -->
-    <color name="pending_bg">#FFF3CD</color>
-    <color name="pending_text">#856404</color>
-    <color name="success_green">#2D6A4F</color>
+    <!-- ════════════════════════════════════════════ -->
+    <!-- TEXT COLORS                                 -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="text_primary">#1A1A1A</color>    <!-- Judul, teks utama -->
+    <color name="text_body">#4A4A4A</color>       <!-- Paragraf, deskripsi -->
+    <color name="text_secondary">#5C5C5C</color>  <!-- Label sekunder, sub-judul -->
+    <color name="text_hint">#A0A0A0</color>       <!-- Placeholder, teks info ringan -->
+    <color name="text_disabled">#C8C8C8</color>   <!-- Teks nonaktif -->
+    <color name="text_on_green">#FFFFFF</color>   <!-- Teks di atas background hijau gelap -->
+    <color name="text_on_cream">#1B4332</color>   <!-- Teks di atas background cream -->
+    <color name="text_link">#2D6A4F</color>       <!-- Teks link / action -->
 
-    <!-- Input Fields -->
+    <!-- ════════════════════════════════════════════ -->
+    <!-- DIVIDER & BORDER                            -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="divider">#E8E8E8</color>         <!-- Garis pemisah antar section -->
+    <color name="border_light">#F0F0F0</color>    <!-- Border card sangat tipis -->
+    <color name="border_medium">#D4C9B5</color>   <!-- Border input field normal -->
+    <color name="border_strong">#B0A898</color>   <!-- Border card cream tegas -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- INPUT FIELD                                 -->
+    <!-- ════════════════════════════════════════════ -->
     <color name="input_bg">#FFFFFF</color>
     <color name="input_border">#D4C9B5</color>
-    <color name="input_border_focus">#2D6A4F</color>
+    <color name="input_border_focus">#2D6A4F</color>  <!-- Border saat input aktif -->
+    <color name="input_border_error">#D32F2F</color>  <!-- Border saat ada error -->
 
-    <!-- Social Buttons -->
+    <!-- ════════════════════════════════════════════ -->
+    <!-- STATUS — SUKSES                             -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="success_bg">#D8F3DC</color>      <!-- Background chip/toast sukses -->
+    <color name="success_border">#52B788</color>  <!-- Border sukses -->
+    <color name="success_text">#1B4332</color>    <!-- Teks di dalam chip sukses -->
+    <color name="success_icon">#2D6A4F</color>    <!-- Icon centang, sukses -->
+    <color name="success_green">#2D6A4F</color>   <!-- Alias untuk kompabilitas -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- STATUS — PERINGATAN (WARNING)               -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="warning_bg">#FFF3CD</color>      <!-- Background chip peringatan -->
+    <color name="warning_border">#FFC107</color>  <!-- Border peringatan -->
+    <color name="warning_text">#856404</color>    <!-- Teks di dalam chip peringatan -->
+    <color name="warning_icon">#F9A825</color>    <!-- Icon warning -->
+    <!-- Alias lama agar tidak error -->
+    <color name="pending_bg">#FFF3CD</color>
+    <color name="pending_text">#856404</color>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- STATUS — ERROR / BAHAYA                     -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="error_bg">#FFEBEE</color>        <!-- Background chip error -->
+    <color name="error_border">#EF9A9A</color>    <!-- Border error -->
+    <color name="error_text">#C62828</color>      <!-- Teks error -->
+    <color name="error_icon">#D32F2F</color>      <!-- Icon error -->
+    <color name="badge_red">#E53935</color>       <!-- Badge notifikasi merah -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- STATUS — INFO                               -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="info_bg">#E3F2FD</color>         <!-- Background chip info -->
+    <color name="info_border">#90CAF9</color>     <!-- Border info -->
+    <color name="info_text">#0D47A1</color>       <!-- Teks info -->
+    <color name="info_icon">#1976D2</color>       <!-- Icon info -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- NUTRISI / PROGRESS                          -->
+    <!-- Khusus indikator nutrisi anak               -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="nutrisi_rendah">#E53935</color>       <!-- 0–30%: merah bahaya -->
+    <color name="nutrisi_cukup">#FFA726</color>        <!-- 31–60%: oranye perlu perhatian -->
+    <color name="nutrisi_baik">#52B788</color>         <!-- 61–85%: hijau aksen, baik -->
+    <color name="nutrisi_optimal">#2D6A4F</color>      <!-- 86–100%: hijau primary, optimal -->
+    <color name="nutrisi_track_bg">#40916C</color>     <!-- Background track progress bar -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- CARD VARIANTS                               -->
+    <!-- Berbagai tipe card di app                   -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="card_white">#FFFFFF</color>           <!-- Card standar putih bersih -->
+    <color name="card_cream">#FDF8F0</color>           <!-- Card dengan nuansa cream -->
+    <color name="card_green_soft">#F0FAF3</color>      <!-- Card hijau sangat muda -->
+    <color name="card_green_medium">#D8F3DC</color>    <!-- Card hijau pastel -->
+    <color name="card_header">#2D6A4F</color>          <!-- Card header section -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- BUTTON VARIANTS                             -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="btn_primary_bg">#2D6A4F</color>       <!-- Background button utama -->
+    <color name="btn_primary_text">#FFFFFF</color>     <!-- Teks button utama -->
+    <color name="btn_primary_pressed">#1B4332</color>  <!-- Background saat ditekan -->
+    <color name="btn_outline_border">#2D6A4F</color>   <!-- Border button outline -->
+    <color name="btn_outline_text">#2D6A4F</color>     <!-- Teks button outline -->
+    <color name="btn_disabled_bg">#C8C8C8</color>      <!-- Background button nonaktif -->
+    <color name="btn_disabled_text">#F5F5F5</color>    <!-- Teks button nonaktif -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- ICON TINT                                   -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="icon_primary">#2D6A4F</color>         <!-- Icon aktif / on light bg -->
+    <color name="icon_secondary">#5C5C5C</color>       <!-- Icon sekunder -->
+    <color name="icon_disabled">#C8C8C8</color>        <!-- Icon nonaktif -->
+    <color name="icon_on_dark">#FFFFFF</color>         <!-- Icon di atas background gelap -->
+    <color name="icon_on_green">#FFFFFF</color>        <!-- Icon di atas background hijau -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- CHIP / TAG / BADGE                          -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="chip_green_bg">#D8F3DC</color>        <!-- Background chip hijau -->
+    <color name="chip_green_text">#1B4332</color>      <!-- Teks chip hijau -->
+    <color name="chip_cream_bg">#F5EDD9</color>        <!-- Background chip cream -->
+    <color name="chip_cream_text">#5C3D11</color>      <!-- Teks chip cream -->
+    <color name="chip_gray_bg">#EEEEEE</color>         <!-- Background chip abu netral -->
+    <color name="chip_gray_text">#5C5C5C</color>       <!-- Teks chip abu -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- OVERLAY & SCRIM                             -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="overlay_dark">#CC1B4332</color>       <!-- Overlay gelap (dialog, bottom sheet) -->
+    <color name="overlay_light">#80FFFFFF</color>      <!-- Overlay terang -->
+    <color name="scrim">#99000000</color>              <!-- Scrim modal penuh -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SOCIAL BUTTON                               -->
+    <!-- ════════════════════════════════════════════ -->
     <color name="google_bg">#FFFFFF</color>
+    <color name="google_text">#4A4A4A</color>
     <color name="facebook_bg">#1877F2</color>
-    <color name="overlay_dark">#CC1B4332</color>
+    <color name="facebook_text">#FFFFFF</color>
 
-    <color name="text_body">#4A4A4A</color>
+    <!-- ════════════════════════════════════════════ -->
+    <!-- BOTTOM NAVIGATION                           -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="nav_active">#2D6A4F</color>           <!-- Icon & label tab aktif -->
+    <color name="nav_inactive">#A0A0A0</color>         <!-- Icon & label tab tidak aktif -->
+    <color name="nav_bg">#FFFFFF</color>               <!-- Background bottom nav -->
+    <color name="nav_indicator">#D8F3DC</color>        <!-- Indikator lingkaran tab aktif -->
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SHIMMER / SKELETON LOADER                   -->
+    <!-- ════════════════════════════════════════════ -->
+    <color name="shimmer_base">#EEEEEE</color>
+    <color name="shimmer_highlight">#F5F5F5</color>
+
 </resources>
