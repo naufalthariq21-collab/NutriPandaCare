@@ -24,7 +24,7 @@
             android:name=".RoleSelectionActivity"
             android:exported="false" />
         <activity
-            android:name=".RoleActivity"
+            android:name=".WaitingVerificationActivity"
             android:exported="false" />
         <activity
             android:name=".RegistrationActivity"

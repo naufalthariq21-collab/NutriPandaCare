@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="app_name">NutriPanda Care</string>
     <string name="app_tagline">Nutrisi Terbaik untuk Si Kecil</string>
-    <!-- web client -->
-    <string name="default_web_client_id">1040473569185-9qbk8drc01eptbhro55s38mi2m8tes15.apps.googleusercontent.com</string>
 
     <!-- Splash -->
     <string name="panda_logo">Panda Logo</string>
@@ -29,7 +27,7 @@
     <string name="nama_lengkap_label">Nama Lengkap</string>
     <string name="nama_lengkap_hint">Masukkan nama lengkap</string>
     <string name="nomor_whatsapp_label">Nomor WhatsApp</string>
-    <string name="nomor_whatsapp_hint">+62 8   *********</string>
+    <string name="nomor_whatsapp_hint">+62 812 3456 7890</string>
     <string name="konfirmasi_password_label">Konfirmasi Password</string>
     <string name="konfirmasi_password_hint">Ulangi password</string>
     <string name="password_min">Minimal 8 karakter</string>
@@ -47,11 +45,10 @@
     <string name="pengelola_mbg">Pengelola MBG</string>
     <string name="pengelola_mbg_desc">Akses admin untuk mengelola seluruh sistem dan laporan</string>
     <string name="lanjutkan">Lanjutkan</string>
-    <string name="back_button">Kembali</string>
 
     <!-- Waiting Verification -->
     <string name="menunggu_verifikasi">Menunggu Verifikasi</string>
-    <string name="verifikasi_desc" tools:ignore="TypographyDashes">Akun Anda sedang dalam proses verifikasi. Tim admin akan meninjau pendaftaran Anda dalam 1-2 hari kerja.</string>
+    <string name="verifikasi_desc">Akun Anda sedang dalam proses verifikasi. Tim admin akan meninjau pendaftaran Anda dalam 1-2 hari kerja.</string>
     <string name="status_label">Status</string>
     <string name="peran_label">Peran</string>
     <string name="pending">Pending</string>
@@ -63,6 +60,43 @@
     <string name="user_name">Ayu Ningtias</string>
     <string name="user_role">Orang Tua</string>
     <string name="user_email">ayu.ningtias@email.com</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="user_phone">+62 812 3456 7890</string>
+    <string name="mulai_sekarang">Mulai Sekarang</string>
+
+    <!-- Accessibility -->
+    <string name="toggle_password_visibility">Tampilkan/Sembunyikan password</string>
+    <string name="back_button">Kembali</string>
+    <string name="logo_description">Logo NutriPanda Care</string>
+
+    <!-- Info messages -->
+    <string name="verifikasi_info_text">Tim admin akan memproses verifikasi dalam 1-2 hari kerja</string>
+    <string name="akun_sukses_info">Akun berhasil dibuat! Silakan mulai menggunakan NutriPanda Care</string>
+    <string name="memproses">Memproses&#8230;</string>
+    <string name="mendaftar">Mendaftar&#8230;</string>
+    <string name="google_login">G  Google</string>
+    <string name="facebook_login">f  Facebook</string>
+
+    <!-- Fragment default (dibutuhkan oleh fragment template Android Studio) -->
+    <string name="hello_blank_fragment">Halaman ini sedang dalam pengembangan</string>
+
+    <!-- Bottom Navigation Labels -->
+    <string name="nav_home">Beranda</string>
+    <string name="nav_gizi">Gizi</string>
+    <string name="nav_edukasi">Edukasi</string>
+    <string name="nav_notifikasi">Notifikasi</string>
+    <string name="nav_profil">Profil</string>
+    <string name="nav_laporan">Laporan</string>
+    <string name="nav_pengumuman">Pengumuman</string>
+    <string name="nav_menu">Menu</string>
+    <string name="nav_aduan">Aduan</string>
+    <string name="nav_rekap">Rekap</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_orang_tua">Dashboard Orang Tua</string>
+    <string name="dashboard_guru">Dashboard Guru</string>
+    <string name="dashboard_pengelola">Dashboard Pengelola</string>
+    <string name="selamat_pagi">Selamat Pagi</string>
+    <string name="selamat_siang">Selamat Siang</string>
+    <string name="selamat_sore">Selamat Sore</string>
+    <string name="pantau_nutrisi">Pantau nutrisi anak Anda hari ini</string>
 </resources>
