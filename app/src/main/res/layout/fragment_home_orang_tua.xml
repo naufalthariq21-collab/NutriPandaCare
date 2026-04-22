@@ -1,400 +1,371 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/cream_primary"
-    android:fillViewport="true">
+    android:background="#FDF8F0">
 
-    <LinearLayout
+    <!-- APP BAR -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:background="#1B4332"
+        app:elevation="0dp">
 
-        <!-- ══════════════════════════════════ -->
-        <!-- HEADER HIJAU GELAP                -->
-        <!-- ══════════════════════════════════ -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/green_dark"
-            app:cardCornerRadius="0dp"
-            app:cardElevation="4dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <!-- Baris: Salam + Tombol Notifikasi -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
-
-                    <!-- Teks salam -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Halo,"
-                            android:textColor="@color/green_light"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:id="@+id/tv_nama_bunda"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Bunda!"
-                            android:textColor="@color/white"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
-
-                    </LinearLayout>
-
-                    <!-- Tombol Notifikasi -->
-                    <!-- bg_user_avatar = oval shape, warna gelap -->
-                    <FrameLayout
-                        android:id="@+id/btn_notifikasi"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_user_avatar"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@android:drawable/ic_popup_reminder"
-                            app:tint="@color/white" />
-
-                        <!-- Badge merah: bg_pending_badge = oval merah -->
-                        <TextView
-                            android:id="@+id/tv_badge_notif"
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:layout_gravity="top|end"
-                            android:background="@drawable/bg_pending_badge"
-                            android:gravity="center"
-                            android:text="3"
-                            android:textColor="@color/white"
-                            android:textSize="9sp"
-                            android:visibility="visible" />
-
-                    </FrameLayout>
-
-                </LinearLayout>
-
-                <!-- Latest Activity Card -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardBackgroundColor="@color/green_primary"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <!-- Latest Activity + Today -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginBottom="6dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Latest Activity"
-                                android:textColor="@color/green_light"
-                                android:textSize="11sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Today"
-                                android:textColor="@color/green_light"
-                                android:textSize="11sp" />
-
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Menu Hari Ini"
-                            android:textColor="@color/white"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:layout_marginBottom="4dp" />
-
-                        <TextView
-                            android:id="@+id/tv_menu_hari_ini"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Nasi + Ayam tersedia untuk Anak"
-                            android:textColor="@color/green_pale"
-                            android:textSize="13sp"
-                            android:layout_marginBottom="12dp" />
-
-                        <!-- Progress Nutrisi -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="6dp">
-
-                            <!-- ic_clock sudah ada di drawable project -->
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:src="@drawable/ic_clock"
-                                app:tint="@color/green_light"
-                                android:layout_marginEnd="8dp" />
-
-                            <ProgressBar
-                                android:id="@+id/progress_nutrisi"
-                                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                                android:layout_width="0dp"
-                                android:layout_height="6dp"
-                                android:layout_weight="1"
-                                android:max="100"
-                                android:progress="75"
-                                android:progressTint="@color/green_pale"
-                                android:progressBackgroundTint="@color/green_medium" />
-
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Nutrisi terpenuhi 75%"
-                            android:textColor="@color/green_light"
-                            android:textSize="11sp" />
-
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
-
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- ══════════════════════════════════ -->
-        <!-- KONTEN BAWAH                      -->
-        <!-- ══════════════════════════════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp">
 
-            <!-- ── Quick Actions ── -->
+            <!-- Row: Avatar + Greeting + Bell -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/ivAvatar"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_avatar_default"
+                    app:civ_border_color="#52B788"
+                    app:civ_border_width="2dp"/>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Halo, Bunda!"
+                        android:textColor="#B7E4C7"
+                        android:textSize="13sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Selamat datang kembali"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/btnNotifikasi"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_circle_green_medium"
+                    android:src="@drawable/ic_notification"
+                    android:tint="#FFFFFF"
+                    android:padding="8dp"/>
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- SCROLLABLE CONTENT -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="90dp">
+
+            <!-- LATEST ACTIVITY CARD -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Latest Activity"
+                            android:textColor="#A0A0A0"
+                            android:textSize="12sp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Today"
+                            android:textColor="#A0A0A0"
+                            android:textSize="12sp"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Menu Hari Ini"
+                        android:textColor="#1A1A1A"
+                        android:textSize="16sp"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Nasi + Ayam tersedia untuk Anak"
+                        android:textColor="#5C5C5C"
+                        android:textSize="13sp"/>
+
+                    <!-- Nutrition Progress -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="#F0FAF3"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="10dp"
+                        android:backgroundTint="#F0FAF3">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_nutrition"
+                            android:tint="#2D6A4F"/>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Nutrisi terpenuhi 75%"
+                                android:textColor="#2D6A4F"
+                                android:textSize="12sp"
+                                android:textStyle="bold"/>
+
+                            <com.google.android.material.progressindicator.LinearProgressIndicator
+                                android:id="@+id/progressNutrisi"
+                                android:layout_width="match_parent"
+                                android:layout_height="6dp"
+                                android:layout_marginTop="4dp"
+                                android:progress="75"
+                                app:trackColor="#B7E4C7"
+                                app:indicatorColor="#52B788"
+                                app:trackCornerRadius="4dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- QUICK ACTIONS -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="12dp"
                 android:text="Quick Actions"
+                android:textColor="#1A1A1A"
                 android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="12dp" />
+                android:textStyle="bold"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="24dp">
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:weightSum="3">
 
                 <!-- Jadwal Menu -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btn_jadwal_menu"
+                <LinearLayout
+                    android:id="@+id/btnJadwalMenu"
                     android:layout_width="0dp"
-                    android:layout_height="80dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardCornerRadius="12dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardElevation="2dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_card_action_green"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_calendar"
+                        android:tint="#FFFFFF"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:gravity="center"
-                        android:orientation="vertical">
-                        <ImageView
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:src="@android:drawable/ic_menu_agenda"
-                            app:tint="@color/green_primary" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Jadwal Menu"
-                            android:textSize="11sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center"
-                            android:layout_marginTop="6dp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                        android:text="Jadwal\nMenu"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
 
                 <!-- Cek Gizi -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btn_cek_gizi"
+                <LinearLayout
+                    android:id="@+id/btnCekGizi"
                     android:layout_width="0dp"
-                    android:layout_height="80dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardCornerRadius="12dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardElevation="2dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_card_action_green"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_gizi"
+                        android:tint="#FFFFFF"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:gravity="center"
-                        android:orientation="vertical">
-                        <ImageView
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:src="@android:drawable/ic_menu_recent_history"
-                            app:tint="@color/green_primary" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Cek Gizi"
-                            android:textSize="11sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center"
-                            android:layout_marginTop="6dp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                        android:text="Cek Gizi"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
 
                 <!-- Edukasi Gizi -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btn_edukasi_gizi"
+                <LinearLayout
+                    android:id="@+id/btnEdukasiGizi"
                     android:layout_width="0dp"
-                    android:layout_height="80dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardCornerRadius="12dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardElevation="2dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical">
-                        <ImageView
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:src="@android:drawable/ic_menu_help"
-                            app:tint="@color/green_primary" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Edukasi Gizi"
-                            android:textSize="11sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center"
-                            android:layout_marginTop="6dp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_card_action_green"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_education"
+                        android:tint="#FFFFFF"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:text="Edukasi\nGizi"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
             </LinearLayout>
 
-            <!-- ── Profil Anak ── -->
+            <!-- PROFIL ANAK -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="12dp"
                 android:text="Profil Anak"
+                android:textColor="#1A1A1A"
                 android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="12dp" />
+                android:textStyle="bold"/>
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/card_profil_anak"
+                android:id="@+id/cardProfilAnak"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardCornerRadius="12dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardElevation="2dp">
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
 
-                    <!-- Avatar: bg_user_avatar (oval) sudah ada di project -->
-                    <FrameLayout
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:background="@drawable/bg_user_avatar"
-                        android:layout_marginEnd="14dp">
-                        <ImageView
-                            android:id="@+id/iv_foto_anak"
-                            android:layout_width="52dp"
-                            android:layout_height="52dp"
-                            android:src="@android:drawable/ic_menu_myplaces"
-                            app:tint="@color/green_light"
-                            android:scaleType="centerCrop" />
-                    </FrameLayout>
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_child_avatar"
+                        app:civ_border_color="#D8F3DC"
+                        app:civ_border_width="2dp"/>
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:layout_marginStart="12dp"
                         android:orientation="vertical">
 
                         <TextView
-                            android:id="@+id/tv_nama_anak"
+                            android:id="@+id/tvNamaAnak"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Zainal"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary" />
+                            android:textColor="#1A1A1A"
+                            android:textSize="15sp"
+                            android:textStyle="bold"/>
 
                         <TextView
-                            android:id="@+id/tv_info_anak"
+                            android:id="@+id/tvInfoAnak"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="11 Tahun • Laki Laki"
-                            android:textSize="13sp"
-                            android:textColor="@color/text_hint" />
-
+                            android:text="11 Tahun • Laki-Laki"
+                            android:textColor="#5C5C5C"
+                            android:textSize="13sp"/>
                     </LinearLayout>
 
-                    <!-- Panah kanan: ic_back_arrow dirotasi 180° (ic_back_arrow ada di project) -->
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:src="@drawable/ic_back_arrow"
-                        android:rotation="180"
-                        app:tint="@color/divider" />
-
+                        android:src="@drawable/ic_chevron_right"
+                        android:tint="#2D6A4F"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
         </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
