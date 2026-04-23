@@ -1,41 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- res/layout/fragment_home_orang_tua.xml -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/cream_primary"
-    android:fillViewport="true">
+    android:background="@color/cream_primary">
 
-    <LinearLayout
+    <!-- ══════════════════════════════════════ -->
+    <!-- HEADER / APP BAR                       -->
+    <!-- ══════════════════════════════════════ -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:background="@color/green_dark"
+        app:elevation="0dp">
 
-        <!-- ══════════════════════════════════ -->
-        <!-- HEADER HIJAU GELAP                -->
-        <!-- ══════════════════════════════════ -->
-        <androidx.cardview.widget.CardView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/green_dark"
-            app:cardCornerRadius="0dp"
-            app:cardElevation="4dp">
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="48dp"
+            android:paddingBottom="20dp"
+            android:gravity="center_vertical">
 
+            <!-- Foto Profil User (dari Firebase, default pakai placeholder) -->
+            <ImageView
+                android:id="@+id/iv_foto_profil"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_placeholder_avatar"
+                android:background="@drawable/bg_circle_green_medium"
+                android:scaleType="centerCrop"
+                android:padding="2dp"
+                android:contentDescription="Foto profil" />
+
+            <!-- Sapaan & Nama -->
             <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Halo,"
+                    android:textColor="@color/green_pale"
+                    android:textSize="13sp" />
+
+                <!-- Diisi dari Firebase: field "nama" -->
+                <TextView
+                    android:id="@+id/tv_nama_user"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bunda!"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
+
+            <!-- Tombol Notifikasi -->
+            <ImageButton
+                android:id="@+id/btn_notifikasi"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_bell"
+                android:background="@drawable/bg_circle_green_medium"
+                android:tint="@color/white"
+                android:contentDescription="Notifikasi" />
+
+        </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- KONTEN SCROLL                          -->
+    <!-- ══════════════════════════════════════ -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true"
+        android:padding="16dp"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- ══════════════════════════════ -->
+            <!-- KARTU STATUS NUTRISI ANAK      -->
+            <!-- ══════════════════════════════ -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_status_nutrisi"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="@color/green_primary">
 
-                <!-- Baris: Salam + Tombol Notifikasi -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
+                    android:padding="18dp"
+                    android:gravity="center_vertical">
 
-                    <!-- Teks salam -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -45,297 +123,401 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Halo,"
-                            android:textColor="@color/green_light"
-                            android:textSize="14sp" />
+                            android:text="Status Nutrisi"
+                            android:textColor="@color/green_pale"
+                            android:textSize="12sp" />
 
+                        <!-- Diisi dari Firebase: field "status_gizi" -->
                         <TextView
-                            android:id="@+id/tv_nama_bunda"
+                            android:id="@+id/tv_status_nutrisi"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Bunda!"
+                            android:text="Normal"
                             android:textColor="@color/white"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="2dp" />
 
+                        <!-- Diisi dari Firebase: field "nama_anak" -->
+                        <TextView
+                            android:id="@+id/tv_nama_anak_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Zainal • 11 Tahun"
+                            android:textColor="@color/green_pale"
+                            android:textSize="12sp"
+                            android:layout_marginTop="4dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_lihat_detail_gizi"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="Lihat Detail"
+                            android:textSize="12sp"
+                            android:textColor="@color/green_dark"
+                            app:backgroundTint="@color/white"
+                            app:cornerRadius="20dp"
+                            android:layout_marginTop="12dp" />
                     </LinearLayout>
 
-                    <!-- Tombol Notifikasi -->
-                    <!-- bg_user_avatar = oval shape, warna gelap -->
-                    <FrameLayout
-                        android:id="@+id/btn_notifikasi"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_user_avatar"
-                        android:clickable="true"
-                        android:focusable="true">
+                    <!-- Ilustrasi / Icon Status -->
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/ic_child_healthy"
+                        android:contentDescription="Ilustrasi nutrisi"
+                        android:layout_marginStart="8dp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ══════════════════════════════ -->
+            <!-- LATEST ACTIVITY / MENU HARI INI -->
+            <!-- ══════════════════════════════ -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_menu_hari_ini"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Header Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Menu Hari Ini"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_tanggal_menu"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hari ini"
+                            android:textColor="@color/green_primary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <!-- Nama Menu - dari Firebase -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/bg_menu_today_chip"
+                        android:padding="12dp">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_food_plate"
+                            android:background="@drawable/bg_circle_green_pastel"
+                            android:padding="8dp"
+                            android:contentDescription="Ikon makanan" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp">
+
+                            <!-- dari Firebase: field "nama_menu" -->
+                            <TextView
+                                android:id="@+id/tv_nama_menu"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Nasi + Ayam Bumbu"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginTop="6dp">
+
+                                <!-- dari Firebase: field "kalori" -->
+                                <TextView
+                                    android:id="@+id/tv_kalori_menu"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="450 Kkal"
+                                    android:textColor="@color/green_primary"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="  •  "
+                                    android:textColor="@color/text_hint"
+                                    android:textSize="12sp" />
+
+                                <!-- dari Firebase: field "protein" -->
+                                <TextView
+                                    android:id="@+id/tv_protein_menu"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="25g Protein"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
 
                         <ImageView
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@android:drawable/ic_popup_reminder"
-                            app:tint="@color/white" />
+                            android:src="@drawable/ic_arrow_right"
+                            android:tint="@color/green_primary"
+                            android:contentDescription="Detail menu" />
+                    </LinearLayout>
 
-                        <!-- Badge merah: bg_pending_badge = oval merah -->
-                        <TextView
-                            android:id="@+id/tv_badge_notif"
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:layout_gravity="top|end"
-                            android:background="@drawable/bg_pending_badge"
-                            android:gravity="center"
-                            android:text="3"
-                            android:textColor="@color/white"
-                            android:textSize="9sp"
-                            android:visibility="visible" />
-
-                    </FrameLayout>
-
-                </LinearLayout>
-
-                <!-- Latest Activity Card -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardBackgroundColor="@color/green_primary"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp">
-
+                    <!-- Progress Nutrisi -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:layout_marginTop="12dp">
 
-                        <!-- Latest Activity + Today -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:layout_marginBottom="6dp">
+                            android:gravity="center_vertical">
 
                             <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Latest Activity"
-                                android:textColor="@color/green_light"
-                                android:textSize="11sp" />
+                                android:text="Nutrisi Terpenuhi"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
 
+                            <!-- dari Firebase: field "persentase_nutrisi" -->
                             <TextView
+                                android:id="@+id/tv_persentase_nutrisi"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Today"
-                                android:textColor="@color/green_light"
-                                android:textSize="11sp" />
-
+                                android:text="75%"
+                                android:textColor="@color/green_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
                         </LinearLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Menu Hari Ini"
-                            android:textColor="@color/white"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:layout_marginBottom="4dp" />
-
-                        <TextView
-                            android:id="@+id/tv_menu_hari_ini"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Nasi + Ayam tersedia untuk Anak"
-                            android:textColor="@color/green_pale"
-                            android:textSize="13sp"
-                            android:layout_marginBottom="12dp" />
-
-                        <!-- Progress Nutrisi -->
-                        <LinearLayout
+                        <ProgressBar
+                            android:id="@+id/progress_nutrisi"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="6dp">
-
-                            <!-- ic_clock sudah ada di drawable project -->
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:src="@drawable/ic_clock"
-                                app:tint="@color/green_light"
-                                android:layout_marginEnd="8dp" />
-
-                            <ProgressBar
-                                android:id="@+id/progress_nutrisi"
-                                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                                android:layout_width="0dp"
-                                android:layout_height="6dp"
-                                android:layout_weight="1"
-                                android:max="100"
-                                android:progress="75"
-                                android:progressTint="@color/green_pale"
-                                android:progressBackgroundTint="@color/green_medium" />
-
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Nutrisi terpenuhi 75%"
-                            android:textColor="@color/green_light"
-                            android:textSize="11sp" />
-
+                            android:layout_height="8dp"
+                            android:layout_marginTop="6dp"
+                            android:max="100"
+                            android:progress="75"
+                            android:progressTint="@color/green_accent"
+                            android:progressBackgroundTint="@color/green_pale" />
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
 
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-        <!-- ══════════════════════════════════ -->
-        <!-- KONTEN BAWAH                      -->
-        <!-- ══════════════════════════════════ -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- ── Quick Actions ── -->
+            <!-- ══════════════════════════════ -->
+            <!-- QUICK ACTIONS                  -->
+            <!-- ══════════════════════════════ -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Quick Actions"
-                android:textSize="16sp"
-                android:textStyle="bold"
                 android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
                 android:layout_marginBottom="12dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="24dp">
-
-                <!-- Jadwal Menu -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btn_jadwal_menu"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardCornerRadius="12dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardElevation="2dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical">
-                        <ImageView
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:src="@android:drawable/ic_menu_agenda"
-                            app:tint="@color/green_primary" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Jadwal Menu"
-                            android:textSize="11sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center"
-                            android:layout_marginTop="6dp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                android:weightSum="4"
+                android:layout_marginBottom="20dp">
 
                 <!-- Cek Gizi -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btn_cek_gizi"
+                <LinearLayout
+                    android:id="@+id/btn_qa_cek_gizi"
                     android:layout_width="0dp"
-                    android:layout_height="80dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardCornerRadius="12dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardElevation="2dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical">
-                        <ImageView
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:src="@android:drawable/ic_menu_recent_history"
-                            app:tint="@color/green_primary" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Cek Gizi"
-                            android:textSize="11sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center"
-                            android:layout_marginTop="6dp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/bg_quick_action"
+                    android:layout_marginEnd="6dp"
+                    android:padding="12dp">
 
-                <!-- Edukasi Gizi -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btn_edukasi_gizi"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardCornerRadius="12dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardElevation="2dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_gizi"
+                        android:background="@drawable/bg_circle_green_dark"
+                        android:padding="7dp"
+                        android:tint="@color/white"
+                        android:contentDescription="Cek Gizi" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cek Gizi"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
                         android:gravity="center"
-                        android:orientation="vertical">
-                        <ImageView
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:src="@android:drawable/ic_menu_help"
-                            app:tint="@color/green_primary" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Edukasi Gizi"
-                            android:textSize="11sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center"
-                            android:layout_marginTop="6dp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Menu MBG -->
+                <LinearLayout
+                    android:id="@+id/btn_qa_menu_mbg"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/bg_quick_action"
+                    android:layout_marginEnd="6dp"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_menu_mbg"
+                        android:background="@drawable/bg_circle_green_dark"
+                        android:padding="7dp"
+                        android:tint="@color/white"
+                        android:contentDescription="Menu MBG" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Menu MBG"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:gravity="center"
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Edukasi -->
+                <LinearLayout
+                    android:id="@+id/btn_qa_edukasi"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/bg_quick_action"
+                    android:layout_marginEnd="6dp"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_edukasi"
+                        android:background="@drawable/bg_circle_green_dark"
+                        android:padding="7dp"
+                        android:tint="@color/white"
+                        android:contentDescription="Edukasi" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Edukasi"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:gravity="center"
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Notifikasi -->
+                <LinearLayout
+                    android:id="@+id/btn_qa_notifikasi"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/bg_quick_action"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_notifikasi"
+                        android:background="@drawable/bg_circle_green_dark"
+                        android:padding="7dp"
+                        android:tint="@color/white"
+                        android:contentDescription="Notifikasi" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Notifikasi"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:gravity="center"
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
 
             </LinearLayout>
 
-            <!-- ── Profil Anak ── -->
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- ══════════════════════════════ -->
+            <!-- PROFIL ANAK                    -->
+            <!-- ══════════════════════════════ -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Profil Anak"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="12dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Profil Anak"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_edit_profil_anak"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Edit"
+                    android:textColor="@color/green_primary"
+                    android:textSize="13sp" />
+            </LinearLayout>
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_profil_anak"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardCornerRadius="12dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardElevation="2dp">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -344,57 +526,161 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <!-- Avatar: bg_user_avatar (oval) sudah ada di project -->
-                    <FrameLayout
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:background="@drawable/bg_user_avatar"
-                        android:layout_marginEnd="14dp">
-                        <ImageView
-                            android:id="@+id/iv_foto_anak"
-                            android:layout_width="52dp"
-                            android:layout_height="52dp"
-                            android:src="@android:drawable/ic_menu_myplaces"
-                            app:tint="@color/green_light"
-                            android:scaleType="centerCrop" />
-                    </FrameLayout>
+                    <!-- Foto Anak - dari Firebase field "foto_anak" -->
+                    <ImageView
+                        android:id="@+id/iv_foto_anak"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:src="@drawable/ic_placeholder_child"
+                        android:background="@drawable/bg_circle_green_pastel"
+                        android:padding="10dp"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Foto anak" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:layout_marginStart="14dp">
 
+                        <!-- dari Firebase: field "nama_anak" -->
                         <TextView
                             android:id="@+id/tv_nama_anak"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Zainal"
+                            android:textColor="@color/text_primary"
                             android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary" />
+                            android:textStyle="bold" />
 
+                        <!-- dari Firebase: field "usia_anak" & "jenis_kelamin" -->
                         <TextView
                             android:id="@+id/tv_info_anak"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="11 Tahun • Laki Laki"
+                            android:text="11 Tahun • Laki-laki"
+                            android:textColor="@color/text_secondary"
                             android:textSize="13sp"
-                            android:textColor="@color/text_hint" />
+                            android:layout_marginTop="2dp" />
 
+                        <!-- dari Firebase: field "sekolah_anak" -->
+                        <TextView
+                            android:id="@+id/tv_sekolah_anak"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="SDN 01 Jakarta"
+                            android:textColor="@color/text_hint"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
                     </LinearLayout>
 
-                    <!-- Panah kanan: ic_back_arrow dirotasi 180° (ic_back_arrow ada di project) -->
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_back_arrow"
-                        android:rotation="180"
-                        app:tint="@color/divider" />
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow_right"
+                        android:tint="@color/green_primary"
+                        android:contentDescription="Detail anak" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
+            <!-- ══════════════════════════════ -->
+            <!-- PENGUMUMAN TERBARU             -->
+            <!-- ══════════════════════════════ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Pengumuman Terbaru"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_lihat_semua_pengumuman"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lihat Semua"
+                    android:textColor="@color/green_primary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Item Pengumuman - dari Firebase collection "pengumuman" -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_pengumuman"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="80dp"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="14dp"
+                    android:gravity="top">
+
+                    <!-- Icon pengumuman -->
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_announcement"
+                        android:background="@drawable/bg_circle_green_pastel"
+                        android:padding="10dp"
+                        android:contentDescription="Pengumuman" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="12dp">
+
+                        <!-- dari Firebase: field "judul_pengumuman" -->
+                        <TextView
+                            android:id="@+id/tv_judul_pengumuman"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Jadwal MBG Minggu Ini"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <!-- dari Firebase: field "isi_pengumuman" -->
+                        <TextView
+                            android:id="@+id/tv_isi_pengumuman"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Menu minggu ini sudah diperbarui. Silakan cek menu MBG terbaru."
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:maxLines="2"
+                            android:ellipsize="end"
+                            android:layout_marginTop="4dp" />
+
+                        <!-- dari Firebase: field "waktu_pengumuman" -->
+                        <TextView
+                            android:id="@+id/tv_waktu_pengumuman"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="2 jam yang lalu"
+                            android:textColor="@color/text_hint"
+                            android:textSize="11sp"
+                            android:layout_marginTop="6dp" />
+                    </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
         </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
