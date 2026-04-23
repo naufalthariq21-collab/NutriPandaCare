@@ -1,34 +1,686 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<!-- res/layout/fragment_home_orang_tua.xml -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/cream_primary">
 
-    <!-- Tempat Fragment Tampil -->
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/fragment_container"
-        android:name="androidx.navigation.fragment.NavHostFragment"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:defaultNavHost="true"
-        app:navGraph="@navigation/nav_orang_tua"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"/>
-
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
+    <!-- ══════════════════════════════════════ -->
+    <!-- HEADER / APP BAR                       -->
+    <!-- ══════════════════════════════════════ -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
-        app:itemIconTint="@color/green_primary"
-        app:itemTextColor="@color/green_primary"
-        app:activeIndicatorColor="@color/green_pale"
-        app:menu="@menu/bottom_nav_orang_tua"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:background="@color/green_dark"
+        app:elevation="0dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="48dp"
+            android:paddingBottom="20dp"
+            android:gravity="center_vertical">
+
+            <!-- Foto Profil User (dari Firebase, default pakai placeholder) -->
+            <ImageView
+                android:id="@+id/iv_foto_profil"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_placeholder_avatar"
+                android:background="@drawable/bg_circle_green_medium"
+                android:scaleType="centerCrop"
+                android:padding="2dp"
+                android:contentDescription="Foto profil" />
+
+            <!-- Sapaan & Nama -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Halo,"
+                    android:textColor="@color/green_pale"
+                    android:textSize="13sp" />
+
+                <!-- Diisi dari Firebase: field "nama" -->
+                <TextView
+                    android:id="@+id/tv_nama_user"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bunda!"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
+
+            <!-- Tombol Notifikasi -->
+            <ImageButton
+                android:id="@+id/btn_notifikasi"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_bell"
+                android:background="@drawable/bg_circle_green_medium"
+                android:tint="@color/white"
+                android:contentDescription="Notifikasi" />
+
+        </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- KONTEN SCROLL                          -->
+    <!-- ══════════════════════════════════════ -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true"
+        android:padding="16dp"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- ══════════════════════════════ -->
+            <!-- KARTU STATUS NUTRISI ANAK      -->
+            <!-- ══════════════════════════════ -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_status_nutrisi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="@color/green_primary">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="18dp"
+                    android:gravity="center_vertical">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Status Nutrisi"
+                            android:textColor="@color/green_pale"
+                            android:textSize="12sp" />
+
+                        <!-- Diisi dari Firebase: field "status_gizi" -->
+                        <TextView
+                            android:id="@+id/tv_status_nutrisi"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Normal"
+                            android:textColor="@color/white"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="2dp" />
+
+                        <!-- Diisi dari Firebase: field "nama_anak" -->
+                        <TextView
+                            android:id="@+id/tv_nama_anak_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Zainal • 11 Tahun"
+                            android:textColor="@color/green_pale"
+                            android:textSize="12sp"
+                            android:layout_marginTop="4dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_lihat_detail_gizi"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="Lihat Detail"
+                            android:textSize="12sp"
+                            android:textColor="@color/green_dark"
+                            app:backgroundTint="@color/white"
+                            app:cornerRadius="20dp"
+                            android:layout_marginTop="12dp" />
+                    </LinearLayout>
+
+                    <!-- Ilustrasi / Icon Status -->
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/ic_child_healthy"
+                        android:contentDescription="Ilustrasi nutrisi"
+                        android:layout_marginStart="8dp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ══════════════════════════════ -->
+            <!-- LATEST ACTIVITY / MENU HARI INI -->
+            <!-- ══════════════════════════════ -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_menu_hari_ini"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Header Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Menu Hari Ini"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_tanggal_menu"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hari ini"
+                            android:textColor="@color/green_primary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <!-- Nama Menu - dari Firebase -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/bg_menu_today_chip"
+                        android:padding="12dp">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_food_plate"
+                            android:background="@drawable/bg_circle_green_pastel"
+                            android:padding="8dp"
+                            android:contentDescription="Ikon makanan" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp">
+
+                            <!-- dari Firebase: field "nama_menu" -->
+                            <TextView
+                                android:id="@+id/tv_nama_menu"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Nasi + Ayam Bumbu"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginTop="6dp">
+
+                                <!-- dari Firebase: field "kalori" -->
+                                <TextView
+                                    android:id="@+id/tv_kalori_menu"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="450 Kkal"
+                                    android:textColor="@color/green_primary"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="  •  "
+                                    android:textColor="@color/text_hint"
+                                    android:textSize="12sp" />
+
+                                <!-- dari Firebase: field "protein" -->
+                                <TextView
+                                    android:id="@+id/tv_protein_menu"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="25g Protein"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_arrow_right"
+                            android:tint="@color/green_primary"
+                            android:contentDescription="Detail menu" />
+                    </LinearLayout>
+
+                    <!-- Progress Nutrisi -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="12dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Nutrisi Terpenuhi"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+
+                            <!-- dari Firebase: field "persentase_nutrisi" -->
+                            <TextView
+                                android:id="@+id/tv_persentase_nutrisi"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="75%"
+                                android:textColor="@color/green_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <ProgressBar
+                            android:id="@+id/progress_nutrisi"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:layout_marginTop="6dp"
+                            android:max="100"
+                            android:progress="75"
+                            android:progressTint="@color/green_accent"
+                            android:progressBackgroundTint="@color/green_pale" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ══════════════════════════════ -->
+            <!-- QUICK ACTIONS                  -->
+            <!-- ══════════════════════════════ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Quick Actions"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="4"
+                android:layout_marginBottom="20dp">
+
+                <!-- Cek Gizi -->
+                <LinearLayout
+                    android:id="@+id/btn_qa_cek_gizi"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/bg_quick_action"
+                    android:layout_marginEnd="6dp"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_gizi"
+                        android:background="@drawable/bg_circle_green_dark"
+                        android:padding="7dp"
+                        android:tint="@color/white"
+                        android:contentDescription="Cek Gizi" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cek Gizi"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:gravity="center"
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Menu MBG -->
+                <LinearLayout
+                    android:id="@+id/btn_qa_menu_mbg"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/bg_quick_action"
+                    android:layout_marginEnd="6dp"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_menu_mbg"
+                        android:background="@drawable/bg_circle_green_dark"
+                        android:padding="7dp"
+                        android:tint="@color/white"
+                        android:contentDescription="Menu MBG" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Menu MBG"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:gravity="center"
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Edukasi -->
+                <LinearLayout
+                    android:id="@+id/btn_qa_edukasi"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/bg_quick_action"
+                    android:layout_marginEnd="6dp"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_edukasi"
+                        android:background="@drawable/bg_circle_green_dark"
+                        android:padding="7dp"
+                        android:tint="@color/white"
+                        android:contentDescription="Edukasi" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Edukasi"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:gravity="center"
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Notifikasi -->
+                <LinearLayout
+                    android:id="@+id/btn_qa_notifikasi"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/bg_quick_action"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_notifikasi"
+                        android:background="@drawable/bg_circle_green_dark"
+                        android:padding="7dp"
+                        android:tint="@color/white"
+                        android:contentDescription="Notifikasi" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Notifikasi"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:gravity="center"
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- ══════════════════════════════ -->
+            <!-- PROFIL ANAK                    -->
+            <!-- ══════════════════════════════ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Profil Anak"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_edit_profil_anak"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Edit"
+                    android:textColor="@color/green_primary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_profil_anak"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Foto Anak - dari Firebase field "foto_anak" -->
+                    <ImageView
+                        android:id="@+id/iv_foto_anak"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:src="@drawable/ic_placeholder_child"
+                        android:background="@drawable/bg_circle_green_pastel"
+                        android:padding="10dp"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Foto anak" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="14dp">
+
+                        <!-- dari Firebase: field "nama_anak" -->
+                        <TextView
+                            android:id="@+id/tv_nama_anak"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Zainal"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <!-- dari Firebase: field "usia_anak" & "jenis_kelamin" -->
+                        <TextView
+                            android:id="@+id/tv_info_anak"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="11 Tahun • Laki-laki"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp"
+                            android:layout_marginTop="2dp" />
+
+                        <!-- dari Firebase: field "sekolah_anak" -->
+                        <TextView
+                            android:id="@+id/tv_sekolah_anak"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="SDN 01 Jakarta"
+                            android:textColor="@color/text_hint"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow_right"
+                        android:tint="@color/green_primary"
+                        android:contentDescription="Detail anak" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ══════════════════════════════ -->
+            <!-- PENGUMUMAN TERBARU             -->
+            <!-- ══════════════════════════════ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Pengumuman Terbaru"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_lihat_semua_pengumuman"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lihat Semua"
+                    android:textColor="@color/green_primary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Item Pengumuman - dari Firebase collection "pengumuman" -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_pengumuman"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="80dp"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="14dp"
+                    android:gravity="top">
+
+                    <!-- Icon pengumuman -->
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_announcement"
+                        android:background="@drawable/bg_circle_green_pastel"
+                        android:padding="10dp"
+                        android:contentDescription="Pengumuman" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="12dp">
+
+                        <!-- dari Firebase: field "judul_pengumuman" -->
+                        <TextView
+                            android:id="@+id/tv_judul_pengumuman"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Jadwal MBG Minggu Ini"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <!-- dari Firebase: field "isi_pengumuman" -->
+                        <TextView
+                            android:id="@+id/tv_isi_pengumuman"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Menu minggu ini sudah diperbarui. Silakan cek menu MBG terbaru."
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:maxLines="2"
+                            android:ellipsize="end"
+                            android:layout_marginTop="4dp" />
+
+                        <!-- dari Firebase: field "waktu_pengumuman" -->
+                        <TextView
+                            android:id="@+id/tv_waktu_pengumuman"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="2 jam yang lalu"
+                            android:textColor="@color/text_hint"
+                            android:textSize="11sp"
+                            android:layout_marginTop="6dp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
