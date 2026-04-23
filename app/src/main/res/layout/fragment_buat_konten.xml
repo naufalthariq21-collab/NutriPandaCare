@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- activity_laporan_mbg.xml — Frame 2: Laporan MBG -->
+<!-- activity_buat_konten.xml — Frame 4: Buat Konten Baru -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -8,7 +8,7 @@
     android:orientation="vertical"
     android:background="@color/cream_primary">
 
-    <!-- Header / Toolbar -->
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -33,14 +33,33 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Laporan MBG"
+            android:text="Buat Konten Baru"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginStart="12dp"/>
     </LinearLayout>
 
-    <!-- Scrollable Form Content -->
+    <!-- Stepper (edit proses sebelumnya) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/green_primary"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit proses sebelumnya"
+            android:textColor="@color/green_pale"
+            android:textSize="11sp"/>
+    </LinearLayout>
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -52,17 +71,51 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Kategori Keluhan Label -->
+            <!-- Judul Konten Label -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Kategori Keluhan"
+                android:text="Judul Konten"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
 
-            <!-- Kategori Input (Spinner-style card) -->
+            <!-- Judul Input -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/white"
+                app:cardElevation="1dp"
+                app:cardCornerRadius="10dp"
+                android:layout_marginBottom="16dp">
+
+                <EditText
+                    android:id="@+id/etJudulKonten"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:hint="Pentingnya Protein Hewani"
+                    android:textColorHint="@color/text_hint"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:gravity="center_vertical"
+                    android:background="@null"
+                    android:inputType="textCapSentences"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Pilih Kategori Label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pilih Kategori"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Kategori Spinner -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -80,30 +133,83 @@
                     android:background="@null"/>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Deskripsi Masalah Label -->
+            <!-- Upload Media Label -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Deskripsi Masalah"
+                android:text="Upload Media"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
 
-            <!-- Deskripsi Input -->
+            <!-- Drag & Drop Upload Area -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/green_surface"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="12dp"
+                app:strokeColor="@color/green_light"
+                app:strokeWidth="1dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:id="@+id/layoutUploadMedia"
+                    android:layout_width="match_parent"
+                    android:layout_height="140dp"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📁"
+                        android:textSize="36sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Drag &amp; Drop"
+                        android:textColor="@color/green_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="8dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="atau klik untuk upload"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Isi Artikel / Tips Label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Isi Artikel/Tips"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Isi Artikel -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardBackgroundColor="@color/white"
                 app:cardElevation="1dp"
                 app:cardCornerRadius="10dp"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="24dp">
 
                 <EditText
-                    android:id="@+id/etDeskripsi"
+                    android:id="@+id/etIsiArtikel"
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:hint="Jelaskan detail masalah yang ditemukan..."
+                    android:layout_height="140dp"
+                    android:hint="Tulis konten edukasi Anda di sini..."
                     android:textColorHint="@color/text_hint"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
@@ -113,64 +219,12 @@
                     android:inputType="textMultiLine"/>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Upload Foto/Video Label -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Upload Foto/Video"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
-
-            <!-- Upload Media Area -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/green_surface"
-                app:cardElevation="0dp"
-                app:cardCornerRadius="12dp"
-                app:strokeColor="@color/green_pale"
-                app:strokeWidth="1dp"
-                android:layout_marginBottom="24dp">
-
-                <LinearLayout
-                    android:id="@+id/layoutUploadMedia"
-                    android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="📷"
-                        android:textSize="32sp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Tap untuk upload media"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp"
-                        android:layout_marginTop="8dp"/>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Uploaded Preview (hidden by default) -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvMediaPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:layout_marginBottom="16dp"/>
-
-            <!-- Kirim Button -->
+            <!-- Lanjut ke Preview Button -->
             <Button
-                android:id="@+id/btnKirimLaporan"
+                android:id="@+id/btnLanjutPreview"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="Kirim Laporan"
+                android:text="Lanjut ke Preview →"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold"
