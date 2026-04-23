@@ -38,4 +38,10 @@
     <color name="overlay_dark">#CC1B4332</color>
 
     <color name="text_body">#4A4A4A</color>
+    <!-- Navigation -->
+    <color name="nav_inactive">#3A5A40</color>       <!-- Ijo tua, sedikit lebih soft dari green_dark -->
+
+    <!-- Pastel & Surface -->
+    <color name="green_pastel">#B7E4C7</color>        <!-- Ijo pastel, antara green_light & green_pale -->
+    <color name="green_surface">#1A6B4A</color>       <!-- Ijo zamrud / emerald -->
 </resources>
