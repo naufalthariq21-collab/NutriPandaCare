@@ -1,14 +1,150 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".fragment.guru.RekapGiziFragment">
-
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
-
-</FrameLayout>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#FDF8F0">
+    <!--  ══════════════════════════════════════════  -->
+    <!--  APP BAR                                     -->
+    <!--  ══════════════════════════════════════════  -->
+    <com.google.android.material.appbar.AppBarLayout android:id="@+id/appBarLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#1B4332" app:elevation="0dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="20dp" android:paddingEnd="20dp" android:paddingTop="16dp" android:paddingBottom="16dp">
+            <!--  Row: Back + Title  -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <ImageButton android:id="@+id/btnBack" android:layout_width="36dp" android:layout_height="36dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_arrow_back" android:padding="6dp"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rekap Gizi Kelas 5A" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="35 Siswa Terdaftar" android:textColor="#74C69D" android:textSize="12sp"/>
+                </LinearLayout>
+                <!--  Stats badge  -->
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:background="#40916C" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="6dp" android:paddingBottom="6dp" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Update" android:textColor="#B7E4C7" android:textSize="9sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="15 Mei 2025" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold"/>
+                </LinearLayout>
+            </LinearLayout>
+            <!--  Summary Stats Row  -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="14dp" android:background="#2D6A4F" android:padding="12dp">
+                <!--  Normal  -->
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="28" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Normal" android:textColor="#74C69D" android:textSize="11sp"/>
+                </LinearLayout>
+                <View android:layout_width="1dp" android:layout_height="36dp" android:background="#40916C"/>
+                <!--  Resiko  -->
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="4" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Resiko" android:textColor="#FFC107" android:textSize="11sp"/>
+                </LinearLayout>
+                <View android:layout_width="1dp" android:layout_height="36dp" android:background="#40916C"/>
+                <!--  Stunting  -->
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Stunting" android:textColor="#EF9A9A" android:textSize="11sp"/>
+                </LinearLayout>
+                <View android:layout_width="1dp" android:layout_height="36dp" android:background="#40916C"/>
+                <!--  Tidak Hadir  -->
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="32/35" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hadir" android:textColor="#74C69D" android:textSize="11sp"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+    <!--  ══════════════════════════════════════════  -->
+    <!--  MAIN CONTENT                                -->
+    <!--  ══════════════════════════════════════════  -->
+    <androidx.core.widget.NestedScrollView android:layout_width="match_parent" android:layout_height="match_parent" app:layout_behavior="@string/appbar_scrolling_view_behavior" android:fillViewport="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="100dp">
+            <!--  ── SEARCH BAR ──  -->
+            <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginTop="16dp" android:layout_marginBottom="12dp" app:boxBackgroundColor="#FFFFFF" app:boxStrokeColor="#D4C9B5" app:boxStrokeWidth="1dp" app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp" app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp" app:startIconDrawable="@drawable/ic_search" app:startIconTint="#A0A0A0" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etCariSiswa" android:layout_width="match_parent" android:layout_height="48dp" android:hint="Cari nama siswa..." android:textColor="#1A1A1A" android:textColorHint="#A0A0A0" android:textSize="14sp" android:inputType="text" android:imeOptions="actionSearch" android:background="@null"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <!--  ── FILTER CHIPS ──  -->
+            <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none" android:paddingStart="16dp" android:paddingEnd="16dp" android:layout_marginBottom="14dp">
+                <com.google.android.material.chip.ChipGroup android:id="@+id/chipGroupFilter" android:layout_width="wrap_content" android:layout_height="wrap_content" app:singleSelection="true" app:selectionRequired="true" app:chipSpacingHorizontal="8dp">
+                    <com.google.android.material.chip.Chip android:id="@+id/chipSemua" android:layout_width="wrap_content" android:layout_height="36dp" android:text="Semua" android:textSize="13sp" android:textColor="#FFFFFF" android:checked="true" app:chipBackgroundColor="#2D6A4F" app:chipCornerRadius="18dp" app:chipStrokeWidth="0dp" style="@style/Widget.MaterialComponents.Chip.Filter"/>
+                    <com.google.android.material.chip.Chip android:id="@+id/chipNormal" android:layout_width="wrap_content" android:layout_height="36dp" android:text="Normal" android:textSize="13sp" android:textColor="#2D6A4F" app:chipBackgroundColor="#F0FAF3" app:chipCornerRadius="18dp" app:chipStrokeColor="#52B788" app:chipStrokeWidth="1dp" style="@style/Widget.MaterialComponents.Chip.Filter"/>
+                    <com.google.android.material.chip.Chip android:id="@+id/chipStunting" android:layout_width="wrap_content" android:layout_height="36dp" android:text="Stunting" android:textSize="13sp" android:textColor="#C62828" app:chipBackgroundColor="#FFEBEE" app:chipCornerRadius="18dp" app:chipStrokeColor="#EF9A9A" app:chipStrokeWidth="1dp" style="@style/Widget.MaterialComponents.Chip.Filter"/>
+                    <com.google.android.material.chip.Chip android:id="@+id/chipResiko" android:layout_width="wrap_content" android:layout_height="36dp" android:text="Resiko" android:textSize="13sp" android:textColor="#856404" app:chipBackgroundColor="#FFF3CD" app:chipCornerRadius="18dp" app:chipStrokeColor="#FFC107" app:chipStrokeWidth="1dp" style="@style/Widget.MaterialComponents.Chip.Filter"/>
+                </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
+            <!--  ══════════════════════════════════════════  -->
+            <!--  LIST SISWA                                  -->
+            <!--  ══════════════════════════════════════════  -->
+            <!--  Section Header  -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="20dp" android:paddingEnd="16dp" android:layout_marginBottom="8dp" android:gravity="center_vertical">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Daftar Siswa" android:textColor="#1A1A1A" android:textSize="15sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="35 siswa" android:textColor="#A0A0A0" android:textSize="12sp"/>
+            </LinearLayout>
+            <!--  ── SISWA 1: Normal ──  -->
+            <androidx.cardview.widget.CardView android:id="@+id/cardSiswa1" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginBottom="10dp" app:cardCornerRadius="14dp" app:cardElevation="2dp" app:cardBackgroundColor="#FFFFFF">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="14dp" android:gravity="center_vertical">
+                    <de.hdodenhof.circleimageview.CircleImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_child_avatar" app:civ_border_color="#D8F3DC" app:civ_border_width="2dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="12dp" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ahmad Rizki" android:textColor="#1A1A1A" android:textSize="14sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Laki-laki • 10 tahun" android:textColor="#A0A0A0" android:textSize="12sp" android:layout_marginTop="2dp"/>
+                        <!--  Mini progress  -->
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="5dp">
+                            <ImageView android:layout_width="12dp" android:layout_height="12dp" android:src="@drawable/ic_nutrition" android:tint="#52B788"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="4dp" android:text="Nutrisi 82%" android:textColor="#5C5C5C" android:textSize="11sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <!--  Status Badge  -->
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Normal" android:textColor="#1B4332" android:textSize="11sp" android:textStyle="bold" android:background="#D8F3DC" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="4dp" android:paddingBottom="4dp"/>
+                    <ImageView android:layout_width="16dp" android:layout_height="16dp" android:layout_marginStart="8dp" android:src="@drawable/ic_chevron_right" android:tint="#2D6A4F"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            <!--  ── SISWA 2: Stunting ──  -->
+            <androidx.cardview.widget.CardView android:id="@+id/cardSiswa2" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginBottom="10dp" app:cardCornerRadius="14dp" app:cardElevation="2dp" app:cardBackgroundColor="#FFFFFF">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="14dp" android:gravity="center_vertical">
+                    <!--  Left accent bar (stunting)  -->
+                    <View android:layout_width="4dp" android:layout_height="match_parent" android:background="#E53935" android:layout_marginEnd="10dp"/>
+                    <de.hdodenhof.circleimageview.CircleImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_child_avatar_girl" app:civ_border_color="#EF9A9A" app:civ_border_width="2dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="12dp" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Siti Nurhaliza" android:textColor="#1A1A1A" android:textSize="14sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Perempuan • 9 tahun" android:textColor="#A0A0A0" android:textSize="12sp" android:layout_marginTop="2dp"/>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="5dp">
+                            <ImageView android:layout_width="12dp" android:layout_height="12dp" android:src="@drawable/ic_warning" android:tint="#E53935"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="4dp" android:text="Perlu perhatian segera" android:textColor="#C62828" android:textSize="11sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <!--  Status Badge: Stunting  -->
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Stunting" android:textColor="#C62828" android:textSize="11sp" android:textStyle="bold" android:background="#FFEBEE" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="4dp" android:paddingBottom="4dp"/>
+                    <ImageView android:layout_width="16dp" android:layout_height="16dp" android:layout_marginStart="8dp" android:src="@drawable/ic_chevron_right" android:tint="#E53935"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            <!--  ── SISWA 3: Resiko ──  -->
+            <androidx.cardview.widget.CardView android:id="@+id/cardSiswa3" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginBottom="10dp" app:cardCornerRadius="14dp" app:cardElevation="2dp" app:cardBackgroundColor="#FFFFFF">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="14dp" android:gravity="center_vertical">
+                    <!--  Left accent bar (resiko)  -->
+                    <View android:layout_width="4dp" android:layout_height="match_parent" android:background="#FFA726" android:layout_marginEnd="10dp"/>
+                    <de.hdodenhof.circleimageview.CircleImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_child_avatar" app:civ_border_color="#FFC107" app:civ_border_width="2dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="12dp" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Budi Santoso" android:textColor="#1A1A1A" android:textSize="14sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Laki-laki • 10 tahun" android:textColor="#A0A0A0" android:textSize="12sp" android:layout_marginTop="2dp"/>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="5dp">
+                            <ImageView android:layout_width="12dp" android:layout_height="12dp" android:src="@drawable/ic_warning" android:tint="#FFA726"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="4dp" android:text="Perlu pemantauan" android:textColor="#856404" android:textSize="11sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <!--  Status Badge: Resiko  -->
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Resiko" android:textColor="#856404" android:textSize="11sp" android:textStyle="bold" android:background="#FFF3CD" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="4dp" android:paddingBottom="4dp"/>
+                    <ImageView android:layout_width="16dp" android:layout_height="16dp" android:layout_marginStart="8dp" android:src="@drawable/ic_chevron_right" android:tint="#FFA726"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            <!--  ── SISWA 4: Normal ──  -->
+            <androidx.cardview.widget.CardView android:id="@+id/cardSiswa4" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginBottom="10dp" app:cardCornerRadius="14dp" app:cardElevation="2dp" app:cardBackgroundColor="#FFFFFF">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="14dp" android:gravity="center_vertical">
+                    <de.hdodenhof.circleimageview.CircleImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/ic_child_avatar_girl" app:civ_border_color="#D8F3DC" app:civ_border_width="2dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="12dp" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dewi Rahayu" android:textColor="#1A1A1A" android:textSize="14sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Perempuan • 10 tahun" android:textColor="#A0A0A0" android:textSize="12sp" android:layout_marginTop="2dp"/>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="5dp">
+                            <ImageView android:layout_width="12dp" android:layout_height="12dp" android:src="@drawable/ic_nutrition" android:tint="#52B788"/>
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="4dp" android:text="Nutrisi 90%" android:textColor="#5C5C5C" android:textSize="11sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Normal" android:textColor="#1B4332" android:textSize="11sp" android:textStyle="bold" android:background="#D8F3DC" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="4dp" android:paddingBottom="4dp"/>
+                    <ImageView android:layout_width="16dp" android:layout_height="16dp" android:layout_marginStart="8dp" android:src="@drawable/ic_chevron_right" android:tint="#2D6A4F"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            <!--  RecyclerView untuk list dinamis  -->
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvDaftarSiswa" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="16dp" android:paddingEnd="16dp" android:clipToPadding="false" android:nestedScrollingEnabled="false"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
