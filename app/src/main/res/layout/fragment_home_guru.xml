@@ -86,7 +86,7 @@
                         android:layout_width="10dp"
                         android:layout_height="10dp"
                         android:layout_gravity="top|end"
-                        android:background="@color/badge_red"
+                        android:background="@color/cream_medium"
                         android:layout_marginTop="2dp"
                         android:layout_marginEnd="2dp"/>
                 </FrameLayout>
@@ -299,7 +299,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Aduan\nMBG"
-                            android:textColor="@color/text_on_cream"
+                            android:textColor="@color/coklat"
                             android:textSize="13sp"
                             android:textStyle="bold"
                             android:gravity="center"
@@ -335,7 +335,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Kirim\nPengumuman"
-                            android:textColor="@color/text_on_cream"
+                            android:textColor="@color/coklat"
                             android:textSize="13sp"
                             android:textStyle="bold"
                             android:gravity="center"
