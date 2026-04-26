@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation("de.hdodenhof:circleimageview:3.1.0")
 
     // Firebase
     implementation(libs.firebase.auth)
