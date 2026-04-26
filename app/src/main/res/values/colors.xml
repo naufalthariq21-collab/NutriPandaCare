@@ -48,4 +48,8 @@
     <!-- Surface & Border -->
     <color name="surface_light">#F8F9FA</color>
     <color name="border_medium">#C8BEA8</color>
+
+    <!-- Chip Green -->
+    <color name="chip_green_text">#2E7D32</color>
+    <color name="chip_green_bg">#E8F5E9</color>
 </resources>
