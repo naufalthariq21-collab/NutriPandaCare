@@ -73,8 +73,8 @@
                 android:layout_height="40dp"
                 android:src="@drawable/ic_bell"
                 android:background="@drawable/bg_circle_green_medium"
-                android:tint="@color/white"
-                android:contentDescription="Notifikasi" />
+                android:contentDescription="Notifikasi"
+                app:tint="@color/white" />
 
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
@@ -287,8 +287,8 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:src="@drawable/ic_arrow_right"
-                            android:tint="@color/green_primary"
-                            android:contentDescription="Detail menu" />
+                            android:contentDescription="Detail menu"
+                            app:tint="@color/green_primary" />
                     </LinearLayout>
 
                     <!-- Progress Nutrisi -->
@@ -375,8 +375,8 @@
                         android:src="@drawable/ic_gizi"
                         android:background="@drawable/bg_circle_green_dark"
                         android:padding="7dp"
-                        android:tint="@color/white"
-                        android:contentDescription="Cek Gizi" />
+                        android:contentDescription="Cek Gizi"
+                        app:tint="@color/white" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -406,8 +406,8 @@
                         android:src="@drawable/ic_menu_mbg"
                         android:background="@drawable/bg_circle_green_dark"
                         android:padding="7dp"
-                        android:tint="@color/white"
-                        android:contentDescription="Menu MBG" />
+                        android:contentDescription="Menu MBG"
+                        app:tint="@color/white" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -437,8 +437,8 @@
                         android:src="@drawable/ic_edukasi"
                         android:background="@drawable/bg_circle_green_dark"
                         android:padding="7dp"
-                        android:tint="@color/white"
-                        android:contentDescription="Edukasi" />
+                        android:contentDescription="Edukasi"
+                        app:tint="@color/white" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -467,8 +467,8 @@
                         android:src="@drawable/ic_notifikasi"
                         android:background="@drawable/bg_circle_green_dark"
                         android:padding="7dp"
-                        android:tint="@color/white"
-                        android:contentDescription="Notifikasi" />
+                        android:contentDescription="Notifikasi"
+                        app:tint="@color/white" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -579,8 +579,8 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_arrow_right"
-                        android:tint="@color/green_primary"
-                        android:contentDescription="Detail anak" />
+                        android:contentDescription="Detail anak"
+                        app:tint="@color/green_primary" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

@@ -34,9 +34,9 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_menu_sort_by_size"
-                android:tint="@color/white"
                 android:layout_gravity="end"
-                android:contentDescription="Menu"/>
+                android:contentDescription="Menu"
+                app:tint="@color/white" />
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
