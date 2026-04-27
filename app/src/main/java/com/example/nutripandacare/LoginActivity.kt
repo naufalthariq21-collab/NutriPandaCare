@@ -1,6 +1,5 @@
 package com.example.nutripandacare
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.text.method.HideReturnsTransformationMethod
@@ -14,6 +13,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
 
 class LoginActivity : AppCompatActivity() {
 
@@ -22,29 +22,25 @@ class LoginActivity : AppCompatActivity() {
     private var isPasswordVisible = false
 
     // ─────────────────────────────────────────────
-    // Launcher ActivityResult untuk Google Sign-In
+    // Google Sign-In result launcher
     // ─────────────────────────────────────────────
-    private val googleLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                try {
-                    val account = task.getResult(ApiException::class.java)
-                    val idToken = account?.idToken
-                    if (idToken != null) {
-                        prosesGoogleLogin(idToken)
-                    } else {
-                        setLoading(false)
-                        Toast.makeText(this, "Gagal mendapatkan token Google.", Toast.LENGTH_SHORT).show()
-                    }
-                } catch (e: ApiException) {
-                    setLoading(false)
-                    Toast.makeText(this, "Google Sign-In dibatalkan.", Toast.LENGTH_SHORT).show()
-                }
-            } else {
+    private val googleLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            val idToken = account.idToken ?: run {
                 setLoading(false)
+                Toast.makeText(this, "Google Sign-In gagal. Coba lagi.", Toast.LENGTH_SHORT).show()
+                return@registerForActivityResult
             }
+            firebaseAuthWithGoogle(idToken)
+        } catch (e: ApiException) {
+            setLoading(false)
+            Toast.makeText(this, "Google Sign-In dibatalkan.", Toast.LENGTH_SHORT).show()
         }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,19 +51,20 @@ class LoginActivity : AppCompatActivity() {
         setupTogglePassword()
         setupTombolMasuk()
         setupLupaPassword()
+        setupTombolGoogle()
         setupDaftarLink()
         setupTombolBack()
-        setupTombolGoogle()
     }
 
     // ─────────────────────────────────────────────
-    // INISIALISASI GOOGLE SIGN-IN CLIENT
-    // Web client ID dari google-services.json /
-    // Firebase Console → Authentication → Google
+    // SETUP GOOGLE SIGN-IN CLIENT
+    // Web Client ID diambil dari strings.xml
+    // nama string: default_web_client_id
+    // (otomatis dibuat saat sync google-services.json)
     // ─────────────────────────────────────────────
     private fun setupGoogleSignIn() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id)) // auto-generated oleh Firebase plugin
+            .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso)
@@ -80,7 +77,7 @@ class LoginActivity : AppCompatActivity() {
     private fun setupTombolGoogle() {
         binding.btnGoogle.setOnClickListener {
             setLoading(true)
-            // Sign out dulu agar user bisa pilih akun Google berbeda
+            // Sign out dulu agar selalu muncul picker akun Google
             googleSignInClient.signOut().addOnCompleteListener {
                 googleLauncher.launch(googleSignInClient.signInIntent)
             }
@@ -88,53 +85,71 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // ─────────────────────────────────────────────
-    // PROSES LOGIN GOOGLE → FIREBASE
-    // Dipanggil setelah dapat idToken dari launcher
+    // AUTH GOOGLE TOKEN KE FIREBASE
     // ─────────────────────────────────────────────
-    private fun prosesGoogleLogin(idToken: String) {
-        FirebaseHelper.loginWithGoogle(
-            idToken   = idToken,
-            onSuccess = { uid, isNewUser ->
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+
+        FirebaseHelper.auth.signInWithCredential(credential)
+            .addOnSuccessListener { result ->
+                val uid      = result.user?.uid ?: return@addOnSuccessListener
+                val isNewUser = result.additionalUserInfo?.isNewUser ?: false
+                val nama     = result.user?.displayName ?: ""
+                val email    = result.user?.email ?: ""
+                val fotoUrl  = result.user?.photoUrl?.toString() ?: ""
+
                 if (isNewUser) {
-                    // User baru via Google → pilih role dulu
-                    setLoading(false)
-                    startActivity(
-                        Intent(this, RoleSelectionActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        }
-                    )
-                    finish()
+                    // User baru via Google → simpan ke Firestore → pilih role
+                    simpanUserBaruGoogle(uid, nama, email, fotoUrl)
                 } else {
-                    // User lama → cek role, lanjut ke dashboard
-                    FirebaseHelper.getRole(
-                        uid       = uid,
-                        onSuccess = { role ->
-                            setLoading(false)
-                            val dest = when (role) {
-                                "orang_tua" -> DashboardOrangTuaActivity::class.java
-                                "guru"      -> DashboardGuruActivity::class.java
-                                "pengelola" -> DashboardPengelolaActivity::class.java
-                                else        -> RoleSelectionActivity::class.java // role kosong
-                            }
-                            startActivity(
-                                Intent(this, dest).apply {
-                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                }
-                            )
-                            finish()
-                        },
-                        onError = { pesan ->
-                            setLoading(false)
-                            Toast.makeText(this, pesan, Toast.LENGTH_SHORT).show()
-                        }
-                    )
+                    // User lama → langsung cek role & navigate
+                    cekRoleDanNavigate(uid)
                 }
-            },
-            onError = { pesan ->
-                setLoading(false)
-                Toast.makeText(this, "Google login gagal: $pesan", Toast.LENGTH_LONG).show()
             }
+            .addOnFailureListener { e ->
+                setLoading(false)
+                Toast.makeText(this,
+                    "Login Google gagal: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    // ─────────────────────────────────────────────
+    // SIMPAN USER BARU GOOGLE KE FIRESTORE
+    // Path: users/{uid}
+    // ─────────────────────────────────────────────
+    private fun simpanUserBaruGoogle(
+        uid: String, nama: String, email: String, fotoUrl: String
+    ) {
+        val data = hashMapOf(
+            "nama"        to nama,
+            "email"       to email,
+            "no_hp"       to "",
+            "role"        to "",
+            "foto_url"    to fotoUrl,
+            "is_verified" to true,      // Google sudah verified otomatis
+            "status_akun" to "aktif",
+            "created_at"  to com.google.firebase.Timestamp.now(),
+            "updated_at"  to com.google.firebase.Timestamp.now()
         )
+
+        FirebaseHelper.db.collection("users").document(uid)
+            .set(data)
+            .addOnSuccessListener {
+                setLoading(false)
+                // Arahkan ke pilih role
+                startActivity(
+                    Intent(this, RoleSelectionActivity::class.java).apply {
+                        putExtra("UID",   uid)
+                        putExtra("NAMA",  nama)
+                        putExtra("EMAIL", email)
+                    }
+                )
+                finish()
+            }
+            .addOnFailureListener {
+                setLoading(false)
+                Toast.makeText(this, "Gagal simpan data. Coba lagi.", Toast.LENGTH_SHORT).show()
+            }
     }
 
     // ─────────────────────────────────────────────
@@ -156,7 +171,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // ─────────────────────────────────────────────
-    // TOMBOL MASUK (email & password)
+    // TOMBOL MASUK — Email & Password
     // XML id: btnMasuk, etEmail, etPassword
     // ─────────────────────────────────────────────
     private fun setupTombolMasuk() {
@@ -165,13 +180,16 @@ class LoginActivity : AppCompatActivity() {
             val password = binding.etPassword.text.toString().trim()
 
             if (email.isEmpty()) {
-                binding.etEmail.error = "Email wajib diisi"; return@setOnClickListener
+                binding.etEmail.error = "Email wajib diisi"
+                binding.etEmail.requestFocus(); return@setOnClickListener
             }
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                binding.etEmail.error = "Format email tidak valid"; return@setOnClickListener
+                binding.etEmail.error = "Format email tidak valid"
+                binding.etEmail.requestFocus(); return@setOnClickListener
             }
             if (password.isEmpty()) {
-                binding.etPassword.error = "Password wajib diisi"; return@setOnClickListener
+                binding.etPassword.error = "Password wajib diisi"
+                binding.etPassword.requestFocus(); return@setOnClickListener
             }
 
             setLoading(true)
@@ -179,30 +197,8 @@ class LoginActivity : AppCompatActivity() {
             FirebaseHelper.login(
                 email    = email,
                 password = password,
-                onSuccess = { uid ->
-                    FirebaseHelper.getRole(
-                        uid       = uid,
-                        onSuccess = { role ->
-                            setLoading(false)
-                            val dest = when (role) {
-                                "orang_tua" -> DashboardOrangTuaActivity::class.java
-                                "guru"      -> DashboardGuruActivity::class.java
-                                "pengelola" -> DashboardPengelolaActivity::class.java
-                                else        -> RoleSelectionActivity::class.java
-                            }
-                            startActivity(Intent(this, dest).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                                        Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            })
-                            finish()
-                        },
-                        onError = { pesan ->
-                            setLoading(false)
-                            Toast.makeText(this, pesan, Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                },
-                onError = { pesan ->
+                onSuccess = { uid -> cekRoleDanNavigate(uid) },
+                onError   = { pesan ->
                     setLoading(false)
                     val pesanRamah = when {
                         pesan.contains("password", ignoreCase = true) ->
@@ -222,6 +218,35 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // ─────────────────────────────────────────────
+    // CEK ROLE LALU NAVIGATE KE DASHBOARD
+    // ─────────────────────────────────────────────
+    private fun cekRoleDanNavigate(uid: String) {
+        FirebaseHelper.getRole(
+            uid       = uid,
+            onSuccess = { role ->
+                setLoading(false)
+                val dest = when (role) {
+                    "orang_tua" -> DashboardOrangTuaActivity::class.java
+                    "guru"      -> DashboardGuruActivity::class.java
+                    "pengelola" -> DashboardPengelolaActivity::class.java
+                    else        -> RoleSelectionActivity::class.java
+                }
+                startActivity(Intent(this, dest).apply {
+                    if (dest == RoleSelectionActivity::class.java) {
+                        putExtra("UID", uid)
+                    }
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                })
+                finish()
+            },
+            onError = { pesan ->
+                setLoading(false)
+                Toast.makeText(this, pesan, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    // ─────────────────────────────────────────────
     // LUPA PASSWORD
     // XML id: tvForgotPassword
     // ─────────────────────────────────────────────
@@ -230,8 +255,7 @@ class LoginActivity : AppCompatActivity() {
             val email = binding.etEmail.text.toString().trim()
             if (email.isEmpty()) {
                 binding.etEmail.error = "Masukkan email kamu dulu"
-                binding.etEmail.requestFocus()
-                return@setOnClickListener
+                binding.etEmail.requestFocus(); return@setOnClickListener
             }
             FirebaseHelper.resetPassword(
                 email     = email,
@@ -266,12 +290,14 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // ─────────────────────────────────────────────
-    // LOADING STATE — disable semua tombol saat proses
+    // LOADING STATE — disable semua tombol
     // ─────────────────────────────────────────────
     private fun setLoading(loading: Boolean) {
         binding.btnMasuk.isEnabled  = !loading
         binding.btnGoogle.isEnabled = !loading
-        binding.btnMasuk.text  = if (loading) "Memproses..." else getString(R.string.masuk)
-        binding.btnGoogle.text = if (loading) "Memproses..." else getString(R.string.masuk_dengan_google)
+        binding.btnMasuk.text =
+            if (loading) "Memproses..." else getString(R.string.masuk)
+        binding.btnGoogle.text =
+            if (loading) "Memproses..." else "Masuk dengan Google"
     }
 }

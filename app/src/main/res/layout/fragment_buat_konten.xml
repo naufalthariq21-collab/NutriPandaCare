@@ -1,12 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="@color/cream_primary">
 
-    <TextView
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/hello_blank_fragment" />
+        android:background="@color/white">
 
-</LinearLayout>
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="Buat Konten Baru"
+            app:titleTextColor="@color/green_primary"
+            app:navigationIcon="@android:drawable/ic_menu_revert"/>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                style="@style/Widget.NutriPandaCare.FieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Judul Konten" />
+
+            <EditText
+                android:id="@+id/etJudul"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Masukkan judul menarik..."
+                android:inputType="textCapSentences"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                style="@style/Widget.NutriPandaCare.FieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kategori" />
+
+            <Spinner
+                android:id="@+id/spinnerKategoriKonten"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                style="@style/Widget.NutriPandaCare.FieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Deskripsi Singkat" />
+
+            <EditText
+                android:id="@+id/etDeskripsiKonten"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Penjelasan singkat konten..."
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                style="@style/Widget.NutriPandaCare.FieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Isi Konten" />
+
+            <EditText
+                android:id="@+id/etIsiKonten"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tulis detail informasi di sini..."
+                android:gravity="top"
+                android:minLines="5"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                style="@style/Widget.NutriPandaCare.FieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Estimasi Menit Baca" />
+
+            <EditText
+                android:id="@+id/etMenitBaca"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Contoh: 5"
+                android:inputType="number"
+                android:layout_marginBottom="24dp"/>
+
+            <TextView
+                style="@style/Widget.NutriPandaCare.FieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Thumbnail Konten" />
+
+            <LinearLayout
+                android:id="@+id/layoutUploadThumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:background="@drawable/bg_circle_green_pastel"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@android:drawable/ic_menu_camera"
+                    app:tint="@color/green_primary"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Klik untuk upload foto"
+                    android:textColor="@color/green_primary"
+                    android:textStyle="bold"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/ivThumbnailPreview"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                android:layout_marginBottom="24dp"/>
+
+            <Button
+                android:id="@+id/btnPublish"
+                style="@style/Widget.NutriPandaCare.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Publikasikan Sekarang" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

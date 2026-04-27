@@ -1,6 +1,5 @@
-package com.example.nutripandacare.guru
+package com.example.nutripandacare.fragment.guru
 
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -8,80 +7,55 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.nutripandacare.R
+import com.example.nutripandacare.databinding.FragmentRekapGiziBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
-import com.google.android.material.bottomnavigation.BottomNavigationView
 
-class RekapGiziKelasActivity : AppCompatActivity() {
+class RekapGiziFragment : Fragment() {
 
-    // ─── Views ───────────────────────────────────────────────────
-    private lateinit var ivBack: ImageView
-    private lateinit var etSearch: EditText
-    private lateinit var chipSemua: TextView
-    private lateinit var chipNormal: TextView
-    private lateinit var chipBerisiko: TextView
-    private lateinit var rvSiswa: RecyclerView
-    private lateinit var bottomNavigation: BottomNavigationView
+    private var _binding: FragmentRekapGiziBinding? = null
+    private val binding get() = _binding!!
 
-    // ─── Data ────────────────────────────────────────────────────
-    // Setiap item: map data siswa dengan tambahan key "siswa_id" & "rekap_id"
-    private val semuaSiswa   = mutableListOf<Map<String, Any?>>()
+    private val semuaSiswa = mutableListOf<Map<String, Any?>>()
     private val filteredSiswa = mutableListOf<Map<String, Any?>>()
     private lateinit var adapter: SiswaAdapter
 
-    private var filterAktif = "semua"   // "semua" | "normal" | "berisiko"
+    private var filterAktif = "semua"
 
-    // ═════════════════════════════════════════════════════════════
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_rekap_gizi_kelas)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentRekapGiziBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        initViews()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         setupRecyclerView()
         setupSearch()
         setupChips()
         setupClickListeners()
-        setupBottomNavigation()
         loadSemuaSiswa()
     }
 
-    // ─── Init ─────────────────────────────────────────────────────
-    private fun initViews() {
-        ivBack           = findViewById(R.id.ivBack)
-        etSearch         = findViewById(R.id.etSearch)
-        chipSemua        = findViewById(R.id.chipSemua)
-        chipNormal       = findViewById(R.id.chipNormal)
-        chipBerisiko     = findViewById(R.id.chipBerisiko)
-        rvSiswa          = findViewById(R.id.rvSiswa)
-        bottomNavigation = findViewById(R.id.bottomNavigation)
-    }
-
-    // ─── RecyclerView ─────────────────────────────────────────────
     private fun setupRecyclerView() {
         adapter = SiswaAdapter(filteredSiswa) { siswaData ->
-            val intent = Intent(this, DetailSiswaActivity::class.java)
-            intent.putExtra("rekap_id", siswaData["rekap_id"] as? String ?: "")
-            intent.putExtra("siswa_id", siswaData["siswa_id"] as? String ?: "")
-            intent.putExtra("nama_siswa",  siswaData["nama_siswa"]  as? String ?: "-")
-            intent.putExtra("kelas",       siswaData["kelas"]       as? String ?: "-")
-            intent.putExtra("berat_badan", (siswaData["berat_badan"] as? Number)?.toDouble() ?: 0.0)
-            intent.putExtra("tinggi_badan",(siswaData["tinggi_badan"] as? Number)?.toDouble() ?: 0.0)
-            intent.putExtra("usia_bulan",  (siswaData["usia_bulan"]  as? Number)?.toInt() ?: 0)
-            intent.putExtra("z_score",     (siswaData["z_score"]     as? Number)?.toDouble() ?: 0.0)
-            intent.putExtra("status_gizi", siswaData["status_gizi"] as? String ?: "-")
-            startActivity(intent)
+            // Detail click handling - placeholder for now
+            Toast.makeText(requireContext(), "Detail: ${siswaData["nama_siswa"]}", Toast.LENGTH_SHORT).show()
         }
-        rvSiswa.layoutManager = LinearLayoutManager(this)
-        rvSiswa.adapter       = adapter
+        binding.rvDaftarSiswa.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvDaftarSiswa.adapter = adapter
     }
 
-    // ─── Muat semua rekap gizi milik guru → flatten detail_siswa ─
     private fun loadSemuaSiswa() {
         FirebaseHelper.getRekapGizi(
             onSuccess = { rekapList ->
+                if (_binding == null) return@getRekapGizi
                 semuaSiswa.clear()
 
                 if (rekapList.isEmpty()) {
@@ -92,7 +66,7 @@ class RekapGiziKelasActivity : AppCompatActivity() {
                 var selesai = 0
                 rekapList.forEach { (rekapId, _) ->
                     FirebaseHelper.getDetailSiswa(
-                        rekapId   = rekapId,
+                        rekapId = rekapId,
                         onSuccess = { siswaList ->
                             siswaList.forEach { siswaData ->
                                 semuaSiswa.add(siswaData + mapOf("rekap_id" to rekapId))
@@ -108,24 +82,24 @@ class RekapGiziKelasActivity : AppCompatActivity() {
                 }
             },
             onError = { err ->
-                Toast.makeText(this, err, Toast.LENGTH_SHORT).show()
+                if (_binding == null) return@getRekapGizi
+                Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show()
             }
         )
     }
 
-    // ─── Filter + Search ──────────────────────────────────────────
     private fun applyFilter() {
-        val query = etSearch.text.toString().trim().lowercase()
+        val query = binding.etCariSiswa.text.toString().trim().lowercase()
 
         val filtered = semuaSiswa.filter { siswa ->
-            val nama        = (siswa["nama_siswa"] as? String ?: "").lowercase()
-            val statusGizi  = (siswa["status_gizi"] as? String ?: "").lowercase()
-            val namaMatch   = nama.contains(query)
+            val nama = (siswa["nama_siswa"] as? String ?: "").lowercase()
+            val statusGizi = (siswa["status_gizi"] as? String ?: "").lowercase()
+            val namaMatch = nama.contains(query)
 
             val filterMatch = when (filterAktif) {
-                "normal"   -> statusGizi == "normal"
+                "normal" -> statusGizi == "normal"
                 "berisiko" -> statusGizi != "normal"
-                else       -> true
+                else -> true
             }
             namaMatch && filterMatch
         }
@@ -135,65 +109,50 @@ class RekapGiziKelasActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
     }
 
-    // ─── Search ───────────────────────────────────────────────────
     private fun setupSearch() {
-        etSearch.addTextChangedListener(object : TextWatcher {
+        binding.etCariSiswa.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) { applyFilter() }
         })
     }
 
-    // ─── Chips ────────────────────────────────────────────────────
     private fun setupChips() {
-        val chips = listOf(chipSemua, chipNormal, chipBerisiko)
-
-        fun setActiveChip(active: TextView, filterKey: String) {
-            chips.forEach { chip ->
-                chip.setBackgroundColor(resources.getColor(R.color.white, theme))
-                chip.setTextColor(resources.getColor(R.color.text_secondary, theme))
-            }
-            active.setBackgroundColor(resources.getColor(R.color.green_primary, theme))
-            active.setTextColor(resources.getColor(R.color.white, theme))
-            filterAktif = filterKey
-            applyFilter()
+        binding.chipSemua.setOnClickListener { 
+            filterAktif = "semua"
+            applyFilter() 
         }
-
-        chipSemua.setOnClickListener    { setActiveChip(chipSemua, "semua") }
-        chipNormal.setOnClickListener   { setActiveChip(chipNormal, "normal") }
-        chipBerisiko.setOnClickListener { setActiveChip(chipBerisiko, "berisiko") }
+        binding.chipNormal.setOnClickListener { 
+            filterAktif = "normal"
+            applyFilter() 
+        }
+        binding.chipResiko.setOnClickListener { 
+            filterAktif = "berisiko"
+            applyFilter() 
+        }
     }
 
-    // ─── Click Listeners ──────────────────────────────────────────
     private fun setupClickListeners() {
-        ivBack.setOnClickListener { finish() }
-    }
-
-    // ─── Bottom Navigation ────────────────────────────────────────
-    private fun setupBottomNavigation() {
-        bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home    -> { finish(); true }
-                R.id.nav_laporan -> { startActivity(Intent(this, LaporanMbgActivity::class.java)); true }
-                R.id.nav_konten  -> { startActivity(Intent(this, KelolaKontenActivity::class.java)); true }
-                else             -> false
-            }
+        binding.btnBack.setOnClickListener { 
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // Inner RecyclerView Adapter — item_siswa.xml
-    // ═════════════════════════════════════════════════════════════
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     inner class SiswaAdapter(
         private val data: List<Map<String, Any?>>,
         private val onClick: (Map<String, Any?>) -> Unit
     ) : RecyclerView.Adapter<SiswaAdapter.VH>() {
 
         inner class VH(view: View) : RecyclerView.ViewHolder(view) {
-            val tvInisial: TextView    = view.findViewById(R.id.tvInisialSiswa)
-            val tvNama: TextView       = view.findViewById(R.id.tvNamaSiswa)
-            val tvInfo: TextView       = view.findViewById(R.id.tvInfoSiswa)
-            val tvStatus: TextView     = view.findViewById(R.id.tvStatusGiziSiswa)
+            val tvInisial: TextView = view.findViewById(R.id.tvInisialSiswa)
+            val tvNama: TextView = view.findViewById(R.id.tvNamaSiswa)
+            val tvInfo: TextView = view.findViewById(R.id.tvInfoSiswa)
+            val tvStatus: TextView = view.findViewById(R.id.tvStatusGiziSiswa)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -205,29 +164,28 @@ class RekapGiziKelasActivity : AppCompatActivity() {
         override fun getItemCount() = data.size
 
         override fun onBindViewHolder(holder: VH, position: Int) {
-            val siswa      = data[position]
-            val nama       = siswa["nama_siswa"] as? String ?: "-"
-            val kelas      = siswa["kelas"]      as? String ?: "-"
-            val zScore     = (siswa["z_score"]   as? Number)?.toDouble() ?: 0.0
+            val siswa = data[position]
+            val nama = siswa["nama_siswa"] as? String ?: "-"
+            val kelas = siswa["kelas"] as? String ?: "-"
+            val zScore = (siswa["z_score"] as? Number)?.toDouble() ?: 0.0
             val statusGizi = siswa["status_gizi"] as? String ?: "Normal"
 
-            // Inisial
             val inisial = nama.split(" ")
                 .take(2).joinToString("") { it.firstOrNull()?.toString() ?: "" }
             holder.tvInisial.text = inisial.uppercase()
-            holder.tvNama.text    = nama
-            holder.tvInfo.text    = "$kelas • Z-Score: ${"%.1f".format(zScore)}"
-            holder.tvStatus.text  = statusGizi
+            holder.tvNama.text = nama
+            holder.tvInfo.text = "$kelas • Z-Score: ${"%.1f".format(zScore)}"
+            holder.tvStatus.text = statusGizi
 
-            // Warna status
-            val (bgColor, txtColor) = when (statusGizi) {
-                "Normal"     -> Pair(R.color.green_pastel, R.color.green_primary)
-                "Gizi Kurang",
-                "Gizi Buruk" -> Pair(R.color.error_bg, R.color.error_text)
-                else         -> Pair(R.color.cream_warm, R.color.text_secondary)
+            val (bgColor, txtColor) = when (statusGizi.lowercase()) {
+                "normal" -> Pair(R.color.green_pastel, R.color.green_primary)
+                "gizi kurang",
+                "gizi buruk" -> Pair(R.color.pending_bg, R.color.pending_text)
+                else -> Pair(R.color.cream_warm, R.color.text_secondary)
             }
-            holder.tvStatus.setBackgroundColor(resources.getColor(bgColor, theme))
-            holder.tvStatus.setTextColor(resources.getColor(txtColor, theme))
+            
+            holder.tvStatus.setBackgroundResource(bgColor)
+            holder.tvStatus.setTextColor(requireContext().getColor(txtColor))
 
             holder.itemView.setOnClickListener { onClick(siswa) }
         }
