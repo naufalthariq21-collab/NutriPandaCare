@@ -10,23 +10,21 @@
     tools:context=".SplashActivity">
 
     <!-- Logo App -->
-
-    <!-- Tagline -->
     <ImageView
         android:id="@+id/imgLogo"
         android:layout_width="413dp"
         android:layout_height="214dp"
         android:layout_marginTop="104dp"
         android:scaleType="fitCenter"
-
         android:src="@drawable/logo_nutripanda"
         app:layout_constraintBottom_toTopOf="@id/tvTagline"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVerticalBias="0.45"
-        app:layout_constraintVerticalChainStyle="packed" />
+        app:layout_constraintVertical_bias="0.45"
+        app:layout_constraintVertical_chainStyle="packed" />
 
+    <!-- Tagline -->
     <TextView
         android:id="@+id/tvTagline"
         android:layout_width="wrap_content"
