@@ -2,7 +2,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">NutriPanda Care</string>
     <string name="app_tagline">Nutrisi Terbaik untuk Si Kecil</string>
-    <!-- web client -->
+
+    <!-- web client (Firebase Google Sign-In) -->
     <string name="default_web_client_id">1040473569185-9qbk8drc01eptbhro55s38mi2m8tes15.apps.googleusercontent.com</string>
 
     <!-- Splash -->
@@ -19,7 +20,8 @@
     <string name="masuk">Masuk</string>
     <string name="atau_masuk_dengan">atau masuk dengan</string>
     <string name="google">Google</string>
-    <string name="facebook">Facebook</string>
+    <string name="masuk_dengan_google">Masuk dengan Google</string><!-- ← tambahan: dipakai btnGoogle & setLoading() -->
+    <string name="toggle_password_visibility">Tampilkan/Sembunyikan Password</string><!-- ← tambahan: contentDescription btnTogglePassword -->
     <string name="belum_punya_akun">Belum punya akun?</string>
     <string name="daftar_sekarang">Daftar sekarang</string>
 
@@ -29,7 +31,7 @@
     <string name="nama_lengkap_label">Nama Lengkap</string>
     <string name="nama_lengkap_hint">Masukkan nama lengkap</string>
     <string name="nomor_whatsapp_label">Nomor WhatsApp</string>
-    <string name="nomor_whatsapp_hint">+62 8   *********</string>
+    <string name="nomor_whatsapp_hint">+62 8*********</string>
     <string name="konfirmasi_password_label">Konfirmasi Password</string>
     <string name="konfirmasi_password_hint">Ulangi password</string>
     <string name="password_min">Minimal 8 karakter</string>
@@ -63,6 +65,7 @@
     <string name="user_name">Ayu Ningtias</string>
     <string name="user_role">Orang Tua</string>
     <string name="user_email">ayu.ningtias@email.com</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

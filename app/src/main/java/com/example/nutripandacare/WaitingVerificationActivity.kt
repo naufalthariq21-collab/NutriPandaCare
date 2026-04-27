@@ -2,103 +2,115 @@ package com.example.nutripandacare
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.animation.AlphaAnimation
-import android.view.animation.Animation
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.TextView
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.nutripandacare.databinding.ActivityWaitingVerificationBinding
+import com.example.nutripandacare.firebase.FirebaseHelper
 
 class WaitingVerificationActivity : AppCompatActivity() {
 
-    companion object {
-        const val EXTRA_ROLE  = "extra_role"
-        const val EXTRA_NAMA  = "extra_nama"
-        const val EXTRA_EMAIL = "extra_email"
+    private lateinit var binding: ActivityWaitingVerificationBinding
+
+    // Handler untuk auto-cek verifikasi email tiap 4 detik
+    private val handler  = Handler(Looper.getMainLooper())
+    private val interval = 4000L
+
+    private val cekVerifikasi = object : Runnable {
+        override fun run() {
+            FirebaseHelper.cekEmailVerified { sudahVerified ->
+                if (sudahVerified) {
+                    // Email sudah diverifikasi → ke halaman sukses
+                    startActivity(
+                        Intent(this@WaitingVerificationActivity, SuccessActivity::class.java).apply {
+                            putExtra("ROLE",  intent.getStringExtra("ROLE")  ?: "")
+                            putExtra("NAMA",  intent.getStringExtra("NAMA")  ?: "")
+                            putExtra("EMAIL", intent.getStringExtra("EMAIL") ?: "")
+                            putExtra("NO_HP", intent.getStringExtra("NO_HP") ?: "")
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                    )
+                    finish()
+                } else {
+                    // Belum verified → cek lagi setelah interval
+                    handler.postDelayed(this, interval)
+                }
+            }
+        }
     }
-
-    // Views sesuai ID di activity_waiting_verification.xml
-    // ID yang tersedia: btnBack, tvSelectedRole, btnKembaliLogin
-    private lateinit var btnBack: ImageButton
-    private lateinit var tvSelectedRole: TextView
-    private lateinit var btnKembaliLogin: Button
-
-    // Data dari RoleSelectionActivity
-    private var selectedRole = ""
-    private var userName     = ""
-    private var userEmail    = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_waiting_verification)
+        binding = ActivityWaitingVerificationBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        intent?.let {
-            selectedRole = it.getStringExtra(EXTRA_ROLE)  ?: "Guru"
-            userName     = it.getStringExtra(EXTRA_NAMA)  ?: ""
-            userEmail    = it.getStringExtra(EXTRA_EMAIL) ?: ""
+        // Tampilkan role yang dipilih
+        // XML id: tvSelectedRole
+        val role = intent.getStringExtra("ROLE") ?: ""
+        val roleTampil = when (role) {
+            "orang_tua" -> "Orang Tua / Siswa"
+            "guru"      -> "Guru"
+            "pengelola" -> "Pengelola MBG"
+            else        -> "-"
         }
+        binding.tvSelectedRole.text = roleTampil
 
-        initViews()
-        populateData()
-        setupClickListeners()
-        startPulseAnimation()
+        setupTombolBack()
+        setupTombolKembaliLogin()
     }
 
-    private fun initViews() {
-        btnBack        = findViewById(R.id.btnBack)
-        tvSelectedRole = findViewById(R.id.tvSelectedRole)
-        btnKembaliLogin = findViewById(R.id.btnKembaliLogin)
+    // Mulai auto-cek saat activity tampil
+    override fun onResume() {
+        super.onResume()
+        handler.post(cekVerifikasi)
     }
 
-    private fun populateData() {
-        // Tampilkan role yang dipilih di status card
-        tvSelectedRole.text = selectedRole
+    // Stop auto-cek saat activity tidak tampil (hemat baterai)
+    override fun onPause() {
+        super.onPause()
+        handler.removeCallbacks(cekVerifikasi)
     }
 
-    private fun setupClickListeners() {
-
-        btnBack.setOnClickListener {
-            @Suppress("DEPRECATION")
-            onBackPressed()
+    // ─────────────────────────────────────────────
+    // TOMBOL KEMBALI KE LOGIN
+    // XML id: btnKembaliLogin
+    // ─────────────────────────────────────────────
+    private fun setupTombolKembaliLogin() {
+        binding.btnKembaliLogin.setOnClickListener {
+            FirebaseHelper.logout()
+            startActivity(
+                Intent(this, LoginActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+            )
+            finish()
         }
-
-        btnKembaliLogin.setOnClickListener {
-            navigateToLogin()
-        }
     }
 
-    /**
-     * Animasi pulse (alpha berulang) pada seluruh konten
-     * sebagai indikasi "sedang menunggu"
-     */
-    private fun startPulseAnimation() {
-        // Cari FrameLayout berisi ikon jam via tag atau langsung via ID parent
-        // Karena layout tidak punya ID khusus untuk FrameLayout jam,
-        // kita animasikan tvSelectedRole sebagai indikator status
-        val pulseAnim = AlphaAnimation(0.4f, 1.0f).apply {
-            duration    = 1200
-            repeatMode  = Animation.REVERSE
-            repeatCount = Animation.INFINITE
+    // ─────────────────────────────────────────────
+    // TOMBOL BACK
+    // XML id: btnBack
+    // ─────────────────────────────────────────────
+    private fun setupTombolBack() {
+        binding.btnBack.setOnClickListener {
+            // Konfirmasi logout sebelum kembali
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Keluar?")
+                .setMessage("Kamu akan keluar dan harus login ulang nanti.")
+                .setPositiveButton("Keluar") { _, _ ->
+                    FirebaseHelper.logout()
+                    startActivity(
+                        Intent(this, LoginActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                    )
+                    finish()
+                }
+                .setNegativeButton("Batal", null)
+                .show()
         }
-        tvSelectedRole.startAnimation(pulseAnim)
-    }
-
-    /**
-     * Kembali ke Login dan clear back stack sepenuhnya.
-     * User tidak bisa back ke proses registrasi karena masih pending.
-     */
-    private fun navigateToLogin() {
-        val intent = Intent(this, LoginActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        startActivity(intent)
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-        finish()
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        super.onBackPressed()
-        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
     }
 }

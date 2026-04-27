@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- ================================================================
-         Base Widget (WAJIB ADA - jangan dihapus)
-    ================================================================ -->
+    <!-- ════════════════════════════════════════════════════════════
+         BASE WIDGET — WAJIB ADA, jangan dihapus
+    ════════════════════════════════════════════════════════════ -->
     <style name="Widget.NutriPandaCare" parent="Widget.MaterialComponents.Button">
     </style>
 
-    <!-- ================================================================
-         Base App Theme
-         AndroidManifest.xml → android:theme="@style/Theme.NutriPandaCare"
-    ================================================================ -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         APP THEME UTAMA
+         Dipakai di AndroidManifest: android:theme="@style/Theme.NutriPandaCare"
+    ════════════════════════════════════════════════════════════ -->
     <style name="Theme.NutriPandaCare" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/green_primary</item>
         <item name="colorPrimaryVariant">@color/green_dark</item>
@@ -24,22 +25,45 @@
         <item name="android:navigationBarColor">@color/cream_primary</item>
     </style>
 
-    <!-- ================================================================
-         Splash Screen Theme
-    ================================================================ -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         SPLASH SCREEN THEME
+         Dipakai di SplashActivity di AndroidManifest
+    ════════════════════════════════════════════════════════════ -->
     <style name="Theme.NutriPandaCare.Splash" parent="Theme.NutriPandaCare">
+        <item name="android:windowBackground">@color/cream_primary</item>
         <item name="android:statusBarColor">@color/cream_primary</item>
         <item name="android:navigationBarColor">@color/cream_primary</item>
+        <item name="android:windowFullscreen">false</item>
     </style>
 
-    <!-- ================================================================
-         TextInputLayout
+
+    <!-- ════════════════════════════════════════════════════════════
+         THEME KHUSUS GURU
+         Dipakai di DashboardGuruActivity jika ingin berbeda
+    ════════════════════════════════════════════════════════════ -->
+    <style name="Theme.NutriPandaGuru" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/green_primary</item>
+        <item name="colorPrimaryVariant">@color/green_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/green_accent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:windowBackground">@color/cream_primary</item>
+        <item name="android:statusBarColor">@color/green_dark</item>
+        <item name="android:navigationBarColor">@color/white</item>
+    </style>
+
+
+    <!-- ════════════════════════════════════════════════════════════
+         TEXT INPUT LAYOUT
          Cara pakai: style="@style/Widget.NutriPandaCare.TextInputLayout"
-    ================================================================ -->
-    <style name="Widget.NutriPandaCare.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+    ════════════════════════════════════════════════════════════ -->
+    <style name="Widget.NutriPandaCare.TextInputLayout"
+        parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="boxBackgroundColor">@color/input_bg</item>
         <item name="boxStrokeWidth">1dp</item>
         <item name="boxStrokeWidthFocused">1.5dp</item>
+        <item name="boxStrokeColor">@color/border_medium</item>
         <item name="boxCornerRadiusTopStart">12dp</item>
         <item name="boxCornerRadiusTopEnd">12dp</item>
         <item name="boxCornerRadiusBottomStart">12dp</item>
@@ -50,10 +74,15 @@
         <item name="android:minHeight">52dp</item>
     </style>
 
-    <!-- ================================================================
-         Field Label
+    <!-- Alias lebih pendek — sama fungsinya -->
+    <style name="Widget.NutriPanda.TextInput"
+        parent="Widget.NutriPandaCare.TextInputLayout" />
+
+
+    <!-- ════════════════════════════════════════════════════════════
+         FIELD LABEL
          Cara pakai: style="@style/Widget.NutriPandaCare.FieldLabel"
-    ================================================================ -->
+    ════════════════════════════════════════════════════════════ -->
     <style name="Widget.NutriPandaCare.FieldLabel">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -62,11 +91,14 @@
         <item name="android:textColor">@color/text_secondary</item>
     </style>
 
-    <!-- ================================================================
-         Button Solid
+
+    <!-- ════════════════════════════════════════════════════════════
+         BUTTON — SOLID PRIMARY
          Cara pakai: style="@style/Widget.NutriPandaCare.Button"
-    ================================================================ -->
-    <style name="Widget.NutriPandaCare.Button" parent="Widget.MaterialComponents.Button">
+                 atau style="@style/Widget.NutriPanda.Button.Primary"
+    ════════════════════════════════════════════════════════════ -->
+    <style name="Widget.NutriPandaCare.Button"
+        parent="Widget.MaterialComponents.Button">
         <item name="android:textColor">@color/white</item>
         <item name="backgroundTint">@color/green_primary</item>
         <item name="cornerRadius">12dp</item>
@@ -74,14 +106,23 @@
         <item name="android:textSize">15sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:minHeight">52dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
         <item name="rippleColor">@color/green_dark</item>
     </style>
 
-    <!-- ================================================================
-         Button Outlined
+    <!-- Alias lebih pendek -->
+    <style name="Widget.NutriPanda.Button.Primary"
+        parent="Widget.NutriPandaCare.Button" />
+
+
+    <!-- ════════════════════════════════════════════════════════════
+         BUTTON — OUTLINED
          Cara pakai: style="@style/Widget.NutriPandaCare.Button.Outlined"
-    ================================================================ -->
-    <style name="Widget.NutriPandaCare.Button.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
+                 atau style="@style/Widget.NutriPanda.Button.Outline"
+    ════════════════════════════════════════════════════════════ -->
+    <style name="Widget.NutriPandaCare.Button.Outlined"
+        parent="Widget.MaterialComponents.Button.OutlinedButton">
         <item name="android:textColor">@color/green_primary</item>
         <item name="strokeColor">@color/green_primary</item>
         <item name="strokeWidth">1.5dp</item>
@@ -91,86 +132,72 @@
         <item name="android:minHeight">52dp</item>
         <item name="rippleColor">@color/green_pale</item>
     </style>
-    <?xml version="1.0" encoding="utf-8"?>
-        <style name="Theme.NutriPandaGuru" parent="Theme.MaterialComponents.Light.NoActionBar">
-            <item name="colorPrimary">@color/green_primary</item>
-            <item name="colorPrimaryVariant">@color/green_dark</item>
-            <item name="colorOnPrimary">@color/white</item>
-            <item name="colorSecondary">@color/green_accent</item>
-            <item name="colorOnSecondary">@color/white</item>
-            <item name="android:windowBackground">@color/cream_primary</item>
-            <item name="android:statusBarColor">@color/green_dark</item>
-            <item name="android:navigationBarColor">@color/white</item>
-        </style>
-        <!-- Card Style -->
-        <style name="Widget.NutriPanda.Card" parent="Widget.MaterialComponents.CardView">
-            <item name="cardBackgroundColor">@color/white</item>
-            <item name="cardElevation">2dp</item>
-            <item name="cardCornerRadius">12dp</item>
-            <item name="android:layout_margin">8dp</item>
-        </style>
 
-        <style name="Widget.NutriPanda.CardCream" parent="Widget.MaterialComponents.CardView">
-            <item name="cardBackgroundColor">@color/cream_warm</item>
-            <item name="cardElevation">1dp</item>
-            <item name="cardCornerRadius">12dp</item>
-        </style>
+    <!-- Alias lebih pendek -->
+    <style name="Widget.NutriPanda.Button.Outline"
+        parent="Widget.NutriPandaCare.Button.Outlined" />
 
-        <!-- Button Primary -->
-        <style name="Widget.NutriPanda.Button.Primary" parent="Widget.MaterialComponents.Button">
-            <item name="backgroundTint">@color/green_primary</item>
-            <item name="android:textColor">@color/white</item>
-            <item name="cornerRadius">12dp</item>
-            <item name="android:paddingTop">14dp</item>
-            <item name="android:paddingBottom">14dp</item>
-            <item name="android:textSize">15sp</item>
-            <item name="android:textStyle">bold</item>
-        </style>
 
-        <!-- Button Outline -->
-        <style name="Widget.NutriPanda.Button.Outline" parent="Widget.MaterialComponents.Button.OutlinedButton">
-            <item name="strokeColor">@color/green_primary</item>
-            <item name="android:textColor">@color/green_primary</item>
-            <item name="cornerRadius">12dp</item>
-        </style>
+    <!-- ════════════════════════════════════════════════════════════
+         CARD STYLES
+         Cara pakai: style="@style/Widget.NutriPanda.Card"
+    ════════════════════════════════════════════════════════════ -->
+    <style name="Widget.NutriPanda.Card"
+        parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/white</item>
+        <item name="cardElevation">2dp</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
 
-        <!-- TextInput -->
-        <style name="Widget.NutriPanda.TextInput" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-            <item name="boxStrokeColor">@color/border_medium</item>
-            <item name="hintTextColor">@color/text_hint</item>
-            <item name="boxCornerRadiusTopStart">10dp</item>
-            <item name="boxCornerRadiusTopEnd">10dp</item>
-            <item name="boxCornerRadiusBottomStart">10dp</item>
-            <item name="boxCornerRadiusBottomEnd">10dp</item>
-        </style>
+    <style name="Widget.NutriPanda.CardCream"
+        parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/cream_warm</item>
+        <item name="cardElevation">1dp</item>
+        <item name="cardCornerRadius">12dp</item>
+    </style>
 
-        <!-- Chip Style -->
-        <style name="Widget.NutriPanda.Chip.Green" parent="Widget.MaterialComponents.Chip.Choice">
-            <item name="chipBackgroundColor">@color/chip_green_bg</item>
-            <item name="android:textColor">@color/chip_green_text</item>
-            <item name="chipCornerRadius">20dp</item>
-        </style>
 
-        <!-- Text Styles -->
-        <style name="TextStyle.NutriPanda.Header" parent="TextAppearance.MaterialComponents.Headline6">
-            <item name="android:textColor">@color/text_on_green</item>
-            <item name="android:textSize">18sp</item>
-            <item name="android:textStyle">bold</item>
-        </style>
+    <!-- ════════════════════════════════════════════════════════════
+         CHIP STYLE
+         Cara pakai: style="@style/Widget.NutriPanda.Chip.Green"
+    ════════════════════════════════════════════════════════════ -->
+    <style name="Widget.NutriPanda.Chip.Green"
+        parent="Widget.MaterialComponents.Chip.Choice">
+        <item name="chipBackgroundColor">@color/chip_green_bg</item>
+        <item name="android:textColor">@color/chip_green_text</item>
+        <item name="chipCornerRadius">20dp</item>
+    </style>
 
-        <style name="TextStyle.NutriPanda.Title" parent="TextAppearance.MaterialComponents.Subtitle1">
-            <item name="android:textColor">@color/text_primary</item>
-            <item name="android:textSize">16sp</item>
-            <item name="android:textStyle">bold</item>
-        </style>
 
-        <style name="TextStyle.NutriPanda.Body" parent="TextAppearance.MaterialComponents.Body1">
-            <item name="android:textColor">@color/text_body</item>
-            <item name="android:textSize">14sp</item>
-        </style>
+    <!-- ════════════════════════════════════════════════════════════
+         TEXT STYLES
+         Cara pakai: style="@style/TextStyle.NutriPanda.Header"
+    ════════════════════════════════════════════════════════════ -->
+    <style name="TextStyle.NutriPanda.Header"
+        parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">@color/text_on_green</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 
-        <style name="TextStyle.NutriPanda.Caption" parent="TextAppearance.MaterialComponents.Caption">
-            <item name="android:textColor">@color/text_secondary</item>
-            <item name="android:textSize">12sp</item>
-        </style>
+    <style name="TextStyle.NutriPanda.Title"
+        parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextStyle.NutriPanda.Body"
+        parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/text_body</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextStyle.NutriPanda.Caption"
+        parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
 </resources>

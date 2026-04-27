@@ -2,261 +2,179 @@ package com.example.nutripandacare
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
+import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
-import android.text.method.SingleLineTransformationMethod
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.nutripandacare.databinding.ActivityRegistrationBinding
+import com.example.nutripandacare.firebase.FirebaseHelper
 
 class RegistrationActivity : AppCompatActivity() {
 
-    private lateinit var etNamaLengkap: EditText
-    private lateinit var etEmail: EditText
-    private lateinit var etWhatsapp: EditText
-    private lateinit var etPassword: EditText
-    private lateinit var etKonfirmasiPassword: EditText
-    private lateinit var btnTogglePass: ImageButton
-    private lateinit var btnToggleConfirmPass: ImageButton
-    private lateinit var btnDaftar: Button
-    private lateinit var tvMasukLink: TextView
-    private lateinit var btnBack: ImageButton
-
-    private var isPasswordVisible = false
-    private var isConfirmPasswordVisible = false
-
-    // Data yang akan dikirim ke RoleSelectionActivity
-    private var registrationData = RegistrationData()
+    private lateinit var binding: ActivityRegistrationBinding
+    private var isPasswordVisible        = false
+    private var isKonfirmasiVisible      = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_registration)
+        binding = ActivityRegistrationBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        initViews()
-        setupClickListeners()
-        setupRealTimeValidation()
+        setupTogglePassword()
+        setupToggleKonfirmasi()
+        setupTombolDaftar()
+        setupMasukLink()
+        setupTombolBack()
     }
 
-    private fun initViews() {
-        etNamaLengkap = findViewById(R.id.etNamaLengkap)
-        etEmail = findViewById(R.id.etEmail)
-        etWhatsapp = findViewById(R.id.etWhatsapp)
-        etPassword = findViewById(R.id.etPassword)
-        etKonfirmasiPassword = findViewById(R.id.etKonfirmasiPassword)
-        btnTogglePass = findViewById(R.id.btnTogglePass)
-        btnToggleConfirmPass = findViewById(R.id.btnToggleConfirmPass)
-        btnDaftar = findViewById(R.id.btnDaftar)
-        tvMasukLink = findViewById(R.id.tvMasukLink)
-        btnBack = findViewById(R.id.btnBack)
-    }
-
-    private fun setupClickListeners() {
-
-        // Tombol Back
-        btnBack.setOnClickListener {
-            onBackPressed()
-        }
-
-        // Toggle Password
-        btnTogglePass.setOnClickListener {
+    // ─────────────────────────────────────────────
+    // TOGGLE PASSWORD
+    // XML id: btnTogglePass, etPassword
+    // ─────────────────────────────────────────────
+    private fun setupTogglePassword() {
+        binding.btnTogglePass.setOnClickListener {
             isPasswordVisible = !isPasswordVisible
-            togglePasswordVisibility(etPassword, isPasswordVisible)
-            updateToggleIcon(btnTogglePass, isPasswordVisible)
+            binding.etPassword.transformationMethod = if (isPasswordVisible)
+                HideReturnsTransformationMethod.getInstance()
+            else
+                PasswordTransformationMethod.getInstance()
+            binding.btnTogglePass.setImageResource(
+                if (isPasswordVisible) R.drawable.ic_eye_on else R.drawable.ic_eye_off
+            )
+            binding.etPassword.setSelection(binding.etPassword.text.length)
         }
+    }
 
-        // Toggle Konfirmasi Password
-        btnToggleConfirmPass.setOnClickListener {
-            isConfirmPasswordVisible = !isConfirmPasswordVisible
-            togglePasswordVisibility(etKonfirmasiPassword, isConfirmPasswordVisible)
-            updateToggleIcon(btnToggleConfirmPass, isConfirmPasswordVisible)
+    // ─────────────────────────────────────────────
+    // TOGGLE KONFIRMASI PASSWORD
+    // XML id: btnToggleConfirmPass, etKonfirmasiPassword
+    // ─────────────────────────────────────────────
+    private fun setupToggleKonfirmasi() {
+        binding.btnToggleConfirmPass.setOnClickListener {
+            isKonfirmasiVisible = !isKonfirmasiVisible
+            binding.etKonfirmasiPassword.transformationMethod = if (isKonfirmasiVisible)
+                HideReturnsTransformationMethod.getInstance()
+            else
+                PasswordTransformationMethod.getInstance()
+            binding.btnToggleConfirmPass.setImageResource(
+                if (isKonfirmasiVisible) R.drawable.ic_eye_on else R.drawable.ic_eye_off
+            )
+            binding.etKonfirmasiPassword.setSelection(binding.etKonfirmasiPassword.text.length)
         }
+    }
 
-        // Tombol Daftar
-        btnDaftar.setOnClickListener {
-            if (validateInputs()) {
-                collectRegistrationData()
-                navigateToRoleSelection()
+    // ─────────────────────────────────────────────
+    // TOMBOL DAFTAR
+    // XML id: btnDaftar, etNamaLengkap, etEmail,
+    //         etWhatsapp, etPassword, etKonfirmasiPassword
+    // ─────────────────────────────────────────────
+    private fun setupTombolDaftar() {
+        binding.btnDaftar.setOnClickListener {
+            val nama             = binding.etNamaLengkap.text.toString().trim()
+            val email            = binding.etEmail.text.toString().trim()
+            val noHp             = binding.etWhatsapp.text.toString().trim()
+            val password         = binding.etPassword.text.toString().trim()
+            val konfirmPassword  = binding.etKonfirmasiPassword.text.toString().trim()
+
+            // Validasi semua field
+            if (nama.isEmpty()) {
+                binding.etNamaLengkap.error = "Nama wajib diisi"
+                binding.etNamaLengkap.requestFocus(); return@setOnClickListener
             }
-        }
+            if (email.isEmpty()) {
+                binding.etEmail.error = "Email wajib diisi"
+                binding.etEmail.requestFocus(); return@setOnClickListener
+            }
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                binding.etEmail.error = "Format email tidak valid"
+                binding.etEmail.requestFocus(); return@setOnClickListener
+            }
+            if (noHp.isEmpty()) {
+                binding.etWhatsapp.error = "Nomor WhatsApp wajib diisi"
+                binding.etWhatsapp.requestFocus(); return@setOnClickListener
+            }
+            if (noHp.length < 10) {
+                binding.etWhatsapp.error = "Nomor tidak valid"
+                binding.etWhatsapp.requestFocus(); return@setOnClickListener
+            }
+            if (password.isEmpty()) {
+                binding.etPassword.error = "Password wajib diisi"
+                binding.etPassword.requestFocus(); return@setOnClickListener
+            }
+            if (password.length < 8) {
+                binding.etPassword.error = "Password minimal 8 karakter"
+                binding.etPassword.requestFocus(); return@setOnClickListener
+            }
+            if (konfirmPassword.isEmpty()) {
+                binding.etKonfirmasiPassword.error = "Konfirmasi password wajib diisi"
+                binding.etKonfirmasiPassword.requestFocus(); return@setOnClickListener
+            }
+            if (password != konfirmPassword) {
+                binding.etKonfirmasiPassword.error = "Password tidak cocok"
+                binding.etKonfirmasiPassword.requestFocus(); return@setOnClickListener
+            }
 
-        // Link Masuk (sudah punya akun)
-        tvMasukLink.setOnClickListener {
-            navigateToLogin()
-        }
-    }
+            setLoading(true)
 
-    private fun togglePasswordVisibility(editText: EditText, isVisible: Boolean) {
-        if (isVisible) {
-            editText.transformationMethod = SingleLineTransformationMethod.getInstance()
-        } else {
-            editText.transformationMethod = PasswordTransformationMethod.getInstance()
-        }
-        editText.setSelection(editText.text.length)
-    }
-
-    private fun updateToggleIcon(button: ImageButton, isVisible: Boolean) {
-        if (isVisible) {
-            button.setImageResource(R.drawable.ic_eye_on)
-        } else {
-            button.setImageResource(R.drawable.ic_eye_off)
-        }
-    }
-
-    /**
-     * Setup validasi real-time saat pengguna mengetik
-     */
-    private fun setupRealTimeValidation() {
-
-        // Format nomor WhatsApp otomatis
-        etWhatsapp.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                val text = s?.toString() ?: ""
-                // Tambahkan +62 jika user mengetik 08...
-                if (text.startsWith("08") && text.length == 2) {
-                    etWhatsapp.removeTextChangedListener(this)
-                    etWhatsapp.setText("+62 8")
-                    etWhatsapp.setSelection(etWhatsapp.text.length)
-                    etWhatsapp.addTextChangedListener(this)
+            // Register via FirebaseHelper
+            FirebaseHelper.register(
+                nama      = nama,
+                email     = email,
+                noHp      = noHp,
+                password  = password,
+                onSuccess = { uid ->
+                    setLoading(false)
+                    // Setelah register → ke pilih role
+                    // Kirim uid & data user ke RoleSelectionActivity
+                    startActivity(
+                        Intent(this, RoleSelectionActivity::class.java).apply {
+                            putExtra("UID",   uid)
+                            putExtra("NAMA",  nama)
+                            putExtra("EMAIL", email)
+                            putExtra("NO_HP", noHp)
+                        }
+                    )
+                    finish()
+                },
+                onError = { pesan ->
+                    setLoading(false)
+                    val pesanRamah = when {
+                        pesan.contains("email", ignoreCase = true) &&
+                                pesan.contains("already", ignoreCase = true) ->
+                            "Email sudah terdaftar. Coba login."
+                        pesan.contains("network", ignoreCase = true) ->
+                            "Tidak ada koneksi internet."
+                        pesan.contains("weak-password", ignoreCase = true) ->
+                            "Password terlalu lemah."
+                        else -> "Registrasi gagal. Coba lagi."
+                    }
+                    Toast.makeText(this, pesanRamah, Toast.LENGTH_LONG).show()
                 }
-            }
-        })
-
-        // Validasi konfirmasi password real-time
-        etKonfirmasiPassword.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                val password = etPassword.text.toString()
-                val confirmPassword = s?.toString() ?: ""
-                if (confirmPassword.isNotEmpty() && password != confirmPassword) {
-                    etKonfirmasiPassword.error = "Password tidak cocok"
-                } else {
-                    etKonfirmasiPassword.error = null
-                }
-            }
-        })
+            )
+        }
     }
 
-    /**
-     * Validasi semua input field
-     */
-    private fun validateInputs(): Boolean {
-        val nama = etNamaLengkap.text.toString().trim()
-        val email = etEmail.text.toString().trim()
-        val whatsapp = etWhatsapp.text.toString().trim()
-        val password = etPassword.text.toString()
-        val konfirmasiPassword = etKonfirmasiPassword.text.toString()
-
-        // Validasi Nama
-        if (nama.isEmpty()) {
-            etNamaLengkap.error = "Nama lengkap tidak boleh kosong"
-            etNamaLengkap.requestFocus()
-            return false
+    // ─────────────────────────────────────────────
+    // LINK MASUK (sudah punya akun)
+    // XML id: tvMasukLink
+    // ─────────────────────────────────────────────
+    private fun setupMasukLink() {
+        binding.tvMasukLink.setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
         }
-        if (nama.length < 3) {
-            etNamaLengkap.error = "Nama minimal 3 karakter"
-            etNamaLengkap.requestFocus()
-            return false
-        }
-
-        // Validasi Email
-        if (email.isEmpty()) {
-            etEmail.error = "Email tidak boleh kosong"
-            etEmail.requestFocus()
-            return false
-        }
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            etEmail.error = "Format email tidak valid"
-            etEmail.requestFocus()
-            return false
-        }
-
-        // Validasi WhatsApp
-        if (whatsapp.isEmpty()) {
-            etWhatsapp.error = "Nomor WhatsApp tidak boleh kosong"
-            etWhatsapp.requestFocus()
-            return false
-        }
-        val cleanPhone = whatsapp.replace(Regex("[^0-9+]"), "")
-        if (cleanPhone.length < 10) {
-            etWhatsapp.error = "Nomor WhatsApp tidak valid (minimal 10 digit)"
-            etWhatsapp.requestFocus()
-            return false
-        }
-
-        // Validasi Password
-        if (password.isEmpty()) {
-            etPassword.error = "Password tidak boleh kosong"
-            etPassword.requestFocus()
-            return false
-        }
-        if (password.length < 8) {
-            etPassword.error = "Password minimal 8 karakter"
-            etPassword.requestFocus()
-            return false
-        }
-
-        // Validasi Konfirmasi Password
-        if (konfirmasiPassword.isEmpty()) {
-            etKonfirmasiPassword.error = "Konfirmasi password tidak boleh kosong"
-            etKonfirmasiPassword.requestFocus()
-            return false
-        }
-        if (password != konfirmasiPassword) {
-            etKonfirmasiPassword.error = "Password tidak cocok"
-            etKonfirmasiPassword.requestFocus()
-            return false
-        }
-
-        return true
     }
 
-    /**
-     * Kumpulkan data registrasi untuk dikirim ke activity berikutnya
-     */
-    private fun collectRegistrationData() {
-        registrationData = RegistrationData(
-            namaLengkap = etNamaLengkap.text.toString().trim(),
-            email = etEmail.text.toString().trim(),
-            whatsapp = etWhatsapp.text.toString().trim(),
-            password = etPassword.text.toString()
-        )
+    // ─────────────────────────────────────────────
+    // TOMBOL BACK
+    // XML id: btnBack
+    // ─────────────────────────────────────────────
+    private fun setupTombolBack() {
+        binding.btnBack.setOnClickListener { finish() }
     }
 
-    private fun navigateToRoleSelection() {
-        val intent = Intent(this, RoleSelectionActivity::class.java).apply {
-            putExtra(RoleSelectionActivity.EXTRA_NAMA, registrationData.namaLengkap)
-            putExtra(RoleSelectionActivity.EXTRA_EMAIL, registrationData.email)
-            putExtra(RoleSelectionActivity.EXTRA_WHATSAPP, registrationData.whatsapp)
-            putExtra(RoleSelectionActivity.EXTRA_PASSWORD, registrationData.password)
-        }
-        startActivity(intent)
-        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+    private fun setLoading(loading: Boolean) {
+        binding.btnDaftar.isEnabled = !loading
+        binding.btnDaftar.text = if (loading) "Mendaftarkan..." else getString(R.string.daftar)
     }
-
-    private fun navigateToLogin() {
-        finish()
-        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-    }
-
-    override fun onBackPressed() {
-        super.onBackPressed()
-        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-    }
-
-    /**
-     * Data class untuk menyimpan data registrasi sementara
-     */
-    data class RegistrationData(
-        val namaLengkap: String = "",
-        val email: String = "",
-        val whatsapp: String = "",
-        val password: String = ""
-    )
 }
