@@ -13,11 +13,10 @@
     <color name="cream_medium">#F5EDD9</color>
     <color name="cream_dark">#E8D5B0</color>
     <color name="cream_warm">#FAF3E4</color>
-    <color name="cream">#856404</color>
+    <color name="coklat">#856404</color>
 
     <!-- White & Neutral -->
     <color name="white">#FFFFFF</color>
-    <color name="transparent">#000000</color>
     <color name="off_white">#FAFAFA</color>
     <color name="text_primary">#1A1A1A</color>
     <color name="text_secondary">#5C5C5C</color>
