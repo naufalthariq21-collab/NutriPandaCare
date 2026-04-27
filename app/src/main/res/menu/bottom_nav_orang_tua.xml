@@ -3,22 +3,22 @@
 
     <item
         android:id="@+id/homeOrangTuaFragment"
-        android:icon="@android:drawable/ic_menu_home"
+        android:icon="@drawable/ic_home"
         android:title="Home"/>
 
     <item
         android:id="@+id/edukasiFragment"
-        android:icon="@android:drawable/ic_menu_info_details"
+        android:icon="@drawable/ic_edukasi"
         android:title="Edukasi"/>
 
     <item
         android:id="@+id/giziFragment"
-        android:icon="@android:drawable/ic_menu_myplaces"
+        android:icon="@drawable/ic_gizi"
         android:title="Gizi"/>
 
     <item
         android:id="@+id/menuMbgFragment"
-        android:icon="@android:drawable/ic_menu_agenda"
+        android:icon="@drawable/ic_calendar"
         android:title="Kalender"/>
 
 </menu>

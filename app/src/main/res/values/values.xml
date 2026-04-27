@@ -1,10 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="default_web_client_id" translatable="false">1040473569185-9qbk8drc01eptbhro55s38mi2m8tes15.apps.googleusercontent.com</string>
-    <string name="gcm_defaultSenderId" translatable="false">1040473569185</string>
-    <string name="google_api_key" translatable="false">AIzaSyB53A9luVv0ZRmboPC1iCcE2jelmU5RaNM</string>
-    <string name="google_app_id" translatable="false">1:1040473569185:android:4b03b4eac3ddcc42d6bde0</string>
-    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyB53A9luVv0ZRmboPC1iCcE2jelmU5RaNM</string>
-    <string name="google_storage_bucket" translatable="false">nutripanda-care.firebasestorage.app</string>
-    <string name="project_id" translatable="false">nutripanda-care</string>
 </resources>
