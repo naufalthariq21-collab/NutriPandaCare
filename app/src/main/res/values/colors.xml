@@ -61,4 +61,7 @@
     <color name="chip_green_bg">#D8F3DC</color>
     <color name="chip_green_text">#2D6A4F</color>
     <color name="text_on_green">#FFFFFF</color>
+
+    <color name="green_primary">#XXXXXX</color>
+    <color name="gray">#AAAAAA</color>
 </resources>
