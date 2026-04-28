@@ -1,60 +1,160 @@
 package com.example.nutripandacare.fragment.pengelola
 
+import android.app.DatePickerDialog
+import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.nutripandacare.R
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.Fragment
+import com.example.nutripandacare.databinding.FragmentTambahMenuBinding
+import com.example.nutripandacare.firebase.FirebaseHelper
+import com.google.firebase.storage.FirebaseStorage
+import java.text.SimpleDateFormat
+import java.util.*
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [TambahMenuFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class TambahMenuFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+    private var _binding: FragmentTambahMenuBinding? = null
+    private val binding get() = _binding!!
+
+    private var imageUri: Uri? = null
+    private val calendar = Calendar.getInstance()
+
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            imageUri = it
+            binding.ivPreviewMedia.setImageURI(it)
+            binding.ivPreviewMedia.visibility = View.VISIBLE
         }
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_tambah_menu, container, false)
+    ): View {
+        _binding = FragmentTambahMenuBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment TambahMenuFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            TambahMenuFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupDatePicker()
+        setupClickListeners()
+    }
+
+    private fun setupDatePicker() {
+        val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
+            calendar.set(Calendar.YEAR, year)
+            calendar.set(Calendar.MONTH, month)
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+            updateDateLabel()
+        }
+
+        binding.etTanggal.setOnClickListener {
+            DatePickerDialog(
+                requireContext(),
+                dateSetListener,
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            ).show()
+        }
+    }
+
+    private fun updateDateLabel() {
+        val myFormat = "yyyy-MM-dd"
+        val sdf = SimpleDateFormat(myFormat, Locale.US)
+        binding.etTanggal.setText(sdf.format(calendar.time))
+    }
+
+    private fun setupClickListeners() {
+        binding.ivBack.setOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+
+        binding.flUploadMedia.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
+
+        binding.btnSimpan.setOnClickListener {
+            validateAndSave()
+        }
+    }
+
+    private fun validateAndSave() {
+        val nama = binding.etNamaMenu.text.toString().trim()
+        val tanggal = binding.etTanggal.text.toString().trim()
+        val kalori = binding.etCalories.text.toString().toIntOrNull() ?: 0
+        val protein = binding.etProtein.text.toString().toIntOrNull() ?: 0
+        val lemak = binding.etFat.text.toString().toIntOrNull() ?: 0
+        val karbo = binding.etCarbs.text.toString().toIntOrNull() ?: 0
+
+        if (nama.isEmpty() || tanggal.isEmpty()) {
+            Toast.makeText(requireContext(), "Nama dan Tanggal wajib diisi", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        binding.btnSimpan.isEnabled = false
+        binding.btnSimpan.text = "Menyimpan..."
+
+        if (imageUri != null) {
+            uploadImage(imageUri!!) { url ->
+                saveToFirestore(nama, tanggal, kalori, protein, lemak, karbo, url ?: "")
             }
+        } else {
+            saveToFirestore(nama, tanggal, kalori, protein, lemak, karbo, "")
+        }
+    }
+
+    private fun uploadImage(uri: Uri, onComplete: (String?) -> Unit) {
+        val fileName = UUID.randomUUID().toString()
+        val ref = FirebaseStorage.getInstance().reference.child("menu_mbg/$fileName.jpg")
+
+        ref.putFile(uri)
+            .continueWithTask { ref.downloadUrl }
+            .addOnSuccessListener { url -> onComplete(url.toString()) }
+            .addOnFailureListener { onComplete(null) }
+    }
+
+    private fun saveToFirestore(
+        nama: String, tanggal: String, kalori: Int, protein: Int,
+        lemak: Int, karbo: Int, imageUrl: String
+    ) {
+        val labelSdf = SimpleDateFormat("dd MMMM yyyy", Locale("id", "ID"))
+        val tanggalLabel = labelSdf.format(calendar.time)
+
+        FirebaseHelper.simpanMenuMbg(
+            tanggal = tanggal,
+            tanggalLabel = tanggalLabel,
+            namaMenu = nama,
+            deskripsi = "Menu sehat harian NutriPanda",
+            kalori = kalori,
+            protein = protein,
+            karbo = karbo,
+            lemak = lemak,
+            serat = 0,
+            persentaseNutrisi = 100,
+            fotoMenu = imageUrl,
+            onSuccess = {
+                if (_binding == null) return@simpanMenuMbg
+                Toast.makeText(requireContext(), "Menu berhasil disimpan!", Toast.LENGTH_SHORT).show()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
+            },
+            onError = { err ->
+                if (_binding == null) return@simpanMenuMbg
+                binding.btnSimpan.isEnabled = true
+                binding.btnSimpan.text = "Simpan Perubahan"
+                Toast.makeText(requireContext(), "Error: $err", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

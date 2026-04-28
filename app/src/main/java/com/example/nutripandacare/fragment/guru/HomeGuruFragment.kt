@@ -1,60 +1,81 @@
 package com.example.nutripandacare.fragment.guru
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.nutripandacare.R
+import com.example.nutripandacare.databinding.FragmentHomeGuruBinding
+import com.example.nutripandacare.firebase.FirebaseHelper
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [HomeGuruFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class HomeGuruFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentHomeGuruBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home_guru, container, false)
+    ): View {
+        _binding = FragmentHomeGuruBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment HomeGuruFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            HomeGuruFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        loadUserData()
+        loadClassStats()
+        setupClickListeners()
+    }
+
+    private fun loadUserData() {
+        val uid = FirebaseHelper.uid
+        if (uid.isEmpty()) return
+
+        FirebaseHelper.getDataUser(uid,
+            onSuccess = { data ->
+                val nama = data["nama"] as? String ?: "Guru"
+                binding.tvWelcome.text = "Selamat Pagi, $nama 👋"
+            },
+            onError = { /* Handle error */ }
+        )
+    }
+
+    private fun loadClassStats() {
+        // Logika untuk mengambil data statistik dari rekap gizi terakhir
+        FirebaseHelper.getRekapGizi(
+            onSuccess = { list ->
+                if (list.isNotEmpty()) {
+                    // Ambil rekap terbaru
+                    val lastRekap = list[0].second
+                    // Update UI dengan data dari Firestore (asumsi field sesuai)
+                    // binding.tvTotalSiswa.text = (lastRekap["total_siswa"] as? Number)?.toString() ?: "0"
+                    // dst...
                 }
-            }
+            },
+            onError = { /* Handle error */ }
+        )
+    }
+
+    private fun setupClickListeners() {
+        binding.btnRekapGizi.setOnClickListener {
+            findNavController().navigate(R.id.nav_rekap_gizi)
+        }
+
+        binding.btnKirimPengumuman.setOnClickListener {
+            findNavController().navigate(R.id.nav_buat_pengumuman)
+        }
+        
+        binding.ivBell.setOnClickListener {
+            // Navigasi ke notifikasi jika ada
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

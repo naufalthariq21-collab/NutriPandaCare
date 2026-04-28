@@ -1,60 +1,96 @@
 package com.example.nutripandacare.fragment.pengelola
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.nutripandacare.R
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.nutripandacare.databinding.FragmentAduanGuruBinding
+import com.example.nutripandacare.firebase.FirebaseHelper
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [AduanGuruFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class AduanGuruFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentAduanGuruBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var adapter: AduanAdapter
+    private val aduanList = mutableListOf<Pair<String, Map<String, Any?>>>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_aduan_guru, container, false)
+    ): View {
+        _binding = FragmentAduanGuruBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment AduanGuruFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            AduanGuruFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        
+        setupRecyclerView()
+        loadAllAduan()
+        
+        binding.ivBack.setOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
+    private fun setupRecyclerView() {
+        adapter = AduanAdapter(aduanList) { id, judul ->
+            showBalasDialog(id, judul)
+        }
+        binding.rvAduan.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvAduan.adapter = adapter
+    }
+
+    private fun loadAllAduan() {
+        FirebaseHelper.getAllAduan(
+            onSuccess = { list ->
+                if (_binding == null) return@getAllAduan
+                adapter.updateData(list)
+            },
+            onError = { err ->
+                Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    private fun showBalasDialog(aduanId: String, judul: String) {
+        val input = EditText(requireContext())
+        input.hint = "Tulis balasan di sini..."
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle("Balas Aduan")
+            .setMessage("Membalas: $judul")
+            .setView(input)
+            .setPositiveButton("Kirim") { _, _ ->
+                val balasan = input.text.toString().trim()
+                if (balasan.isNotEmpty()) {
+                    balasAduan(aduanId, balasan)
                 }
             }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun balasAduan(aduanId: String, balasan: String) {
+        FirebaseHelper.balasAduan(aduanId, balasan,
+            onSuccess = {
+                Toast.makeText(requireContext(), "Balasan terkirim!", Toast.LENGTH_SHORT).show()
+                loadAllAduan()
+            },
+            onError = { err ->
+                Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

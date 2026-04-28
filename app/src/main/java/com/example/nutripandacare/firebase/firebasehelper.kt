@@ -80,11 +80,18 @@ object FirebaseHelper {
     fun simpanRole(
         uid: String,
         role: String,
+        isVerified: Boolean = false,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
+        val updates = hashMapOf<String, Any>(
+            "role" to role,
+            "updated_at" to Timestamp.now()
+        )
+        if (isVerified) updates["is_verified"] = true
+
         db.collection("users").document(uid)
-            .update("role", role, "updated_at", Timestamp.now())
+            .update(updates)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal simpan role") }
     }

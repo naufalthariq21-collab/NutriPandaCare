@@ -1,99 +1,241 @@
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#FDF8F0">
-    <!--  APP BAR  -->
-    <com.google.android.material.appbar.AppBarLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#1B4332" app:elevation="0dp">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="16dp" android:paddingEnd="20dp" android:paddingTop="16dp" android:paddingBottom="16dp">
-            <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_arrow_back" android:padding="8dp"/>
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" android:text="Rekap Gizi" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold"/>
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/cream_primary">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/green_dark"
+        app:elevation="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="40dp"
+            android:paddingBottom="20dp">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back"
+                android:padding="8dp"
+                android:contentDescription="Kembali"
+                app:tint="@color/white"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Rekap Gizi Si Kecil"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
-    <!--  SCROLL CONTENT  -->
-    <androidx.core.widget.NestedScrollView android:layout_width="match_parent" android:layout_height="match_parent" app:layout_behavior="@string/appbar_scrolling_view_behavior" android:fillViewport="true">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="90dp">
-            <!--  SUMMARY HEADER CARD  -->
-            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginTop="16dp" app:cardCornerRadius="16dp" app:cardElevation="4dp" app:cardBackgroundColor="#2D6A4F">
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ringkasan Gizi Mingguan" android:textColor="#B7E4C7" android:textSize="13sp" android:layout_marginBottom="4dp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="13 – 19 Mei 2025" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" android:layout_marginBottom="16dp"/>
-                    <!--  Stats Row  -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rata-rata Kalori" android:textColor="#B7E4C7" android:textSize="11sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="420" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="kkal/hari" android:textColor="#74C69D" android:textSize="11sp"/>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="90dp">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/green_dark">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ringkasan Gizi"
+                        android:textColor="@color/green_pale"
+                        android:textSize="13sp"/>
+                    <TextView
+                        android:id="@+id/tvPeriodeGizi"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mei 2025"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Kalori"
+                                android:textColor="@color/green_pale"
+                                android:textSize="11sp"/>
+                            <TextView
+                                android:id="@+id/tvAvgKalori"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/white"
+                                android:textSize="22sp"
+                                android:textStyle="bold"/>
                         </LinearLayout>
-                        <View android:layout_width="1dp" android:layout_height="50dp" android:background="#40916C"/>
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rata-rata Protein" android:textColor="#B7E4C7" android:textSize="11sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="22g" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="per hari" android:textColor="#74C69D" android:textSize="11sp"/>
+
+                        <View android:layout_width="1dp" android:layout_height="40dp" android:background="@color/green_medium"/>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Protein"
+                                android:textColor="@color/green_pale"
+                                android:textSize="11sp"/>
+                            <TextView
+                                android:id="@+id/tvAvgProtein"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/white"
+                                android:textSize="22sp"
+                                android:textStyle="bold"/>
                         </LinearLayout>
-                        <View android:layout_width="1dp" android:layout_height="50dp" android:background="#40916C"/>
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nutrisi Terpenuhi" android:textColor="#B7E4C7" android:textSize="11sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="75%" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="minggu ini" android:textColor="#74C69D" android:textSize="11sp"/>
+
+                        <View android:layout_width="1dp" android:layout_height="40dp" android:background="@color/green_medium"/>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Terpenuhi"
+                                android:textColor="@color/green_pale"
+                                android:textSize="11sp"/>
+                            <TextView
+                                android:id="@+id/tvNutrisiPersen"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/white"
+                                android:textSize="22sp"
+                                android:textStyle="bold"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <!--  NUTRISI DETAIL CARD  -->
-            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginTop="14dp" app:cardCornerRadius="16dp" app:cardElevation="3dp" app:cardBackgroundColor="#FFFFFF">
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
-                        <View android:layout_width="4dp" android:layout_height="20dp" android:background="#2D6A4F"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Detail Nutrisi Harian" android:textColor="#1A1A1A" android:textSize="16sp" android:textStyle="bold"/>
-                    </LinearLayout>
-                    <!--  Protein Progress  -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="14dp">
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="6dp">
-                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Protein" android:textColor="#4A4A4A" android:textSize="13sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="22g / 30g" android:textColor="#2D6A4F" android:textSize="13sp" android:textStyle="bold"/>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Status Gizi Anak"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/bg_circle_green_pastel"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/check_circle"
+                            app:tint="@color/green_primary"
+                            android:contentDescription="Status"/>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="16dp"
+                            android:orientation="vertical">
+                            <TextView
+                                android:id="@+id/tvStatusGiziNama"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/green_dark"
+                                android:textSize="18sp"
+                                android:textStyle="bold"/>
+                            <TextView
+                                android:id="@+id/tvStatusGiziDetail"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/green_primary"
+                                android:textSize="12sp"/>
                         </LinearLayout>
-                        <com.google.android.material.progressindicator.LinearProgressIndicator android:layout_width="match_parent" android:layout_height="8dp" android:progress="73" app:trackColor="#D8F3DC" app:indicatorColor="#52B788" app:trackCornerRadius="4dp"/>
-                    </LinearLayout>
-                    <!--  Karbohidrat Progress  -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="14dp">
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="6dp">
-                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Karbohidrat" android:textColor="#4A4A4A" android:textSize="13sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="60g / 80g" android:textColor="#FFA726" android:textSize="13sp" android:textStyle="bold"/>
-                        </LinearLayout>
-                        <com.google.android.material.progressindicator.LinearProgressIndicator android:layout_width="match_parent" android:layout_height="8dp" android:progress="75" app:trackColor="#FFF3CD" app:indicatorColor="#FFA726" app:trackCornerRadius="4dp"/>
-                    </LinearLayout>
-                    <!--  Lemak Progress  -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="14dp">
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="6dp">
-                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Lemak" android:textColor="#4A4A4A" android:textSize="13sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="15g / 25g" android:textColor="#E53935" android:textSize="13sp" android:textStyle="bold"/>
-                        </LinearLayout>
-                        <com.google.android.material.progressindicator.LinearProgressIndicator android:layout_width="match_parent" android:layout_height="8dp" android:progress="60" app:trackColor="#FFEBEE" app:indicatorColor="#E53935" app:trackCornerRadius="4dp"/>
-                    </LinearLayout>
-                    <!--  Vitamin Progress  -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="6dp">
-                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Vitamin dan Mineral" android:textColor="#4A4A4A" android:textSize="13sp"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="80%" android:textColor="#2D6A4F" android:textSize="13sp" android:textStyle="bold"/>
-                        </LinearLayout>
-                        <com.google.android.material.progressindicator.LinearProgressIndicator android:layout_width="match_parent" android:layout_height="8dp" android:progress="80" app:trackColor="#D8F3DC" app:indicatorColor="#2D6A4F" app:trackCornerRadius="4dp"/>
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <!--  STATUS GIZI CARD  -->
-            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginTop="14dp" app:cardCornerRadius="16dp" app:cardElevation="3dp" app:cardBackgroundColor="#FFFFFF">
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="14dp">
-                        <View android:layout_width="4dp" android:layout_height="20dp" android:background="#2D6A4F"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Status Gizi Anak" android:textColor="#1A1A1A" android:textSize="16sp" android:textStyle="bold"/>
-                    </LinearLayout>
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="#D8F3DC" android:padding="14dp" android:gravity="center_vertical">
-                        <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/check_circle"
-                            app:tint="#2D6A4F" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="12dp" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Normal" android:textColor="#1B4332" android:textSize="18sp" android:textStyle="bold"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Z-Score: -1.2 | Status Gizi Baik" android:textColor="#2D6A4F" android:textSize="12sp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+
+            <Button
+                android:id="@+id/btnUpdateGizi"
+                style="@style/Widget.NutriPandaCare.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="Update Data Antropometri" />
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

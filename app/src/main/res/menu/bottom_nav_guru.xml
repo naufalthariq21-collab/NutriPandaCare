@@ -1,4 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_home"
+        android:title="Home"/>
+
+    <item
+        android:id="@+id/nav_rekap_gizi"
+        android:icon="@drawable/ic_gizi"
+        android:title="Rekap Gizi"/>
+
+    <item
+        android:id="@+id/nav_konten"
+        android:icon="@drawable/ic_edukasi"
+        android:title="Edukasi"/>
+
+    <item
+        android:id="@+id/nav_aduan"
+        android:icon="@drawable/ic_notifikasi"
+        android:title="Aduan"/>
+
 </menu>
