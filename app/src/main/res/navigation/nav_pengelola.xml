@@ -1,32 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_pengelola"
     app:startDestination="@id/fragment_home_pengelola">
 
     <fragment
         android:id="@+id/fragment_home_pengelola"
         android:name="com.example.nutripandacare.fragment.pengelola.HomePengelolaFragment"
-        android:label="Home" />
+        android:label="Home"
+        tools:layout="@layout/fragment_home_pengelola" />
 
     <fragment
         android:id="@+id/fragment_verifikasi_pengelola"
         android:name="com.example.nutripandacare.fragment.pengelola.DataPenggunaFragment"
-        android:label="Verifikasi" />
+        android:label="Verifikasi"
+        tools:layout="@layout/fragment_data_pengguna" />
 
     <fragment
         android:id="@+id/fragment_aduan_pengelola"
         android:name="com.example.nutripandacare.fragment.pengelola.AduanGuruFragment"
-        android:label="Aduan" />
+        android:label="Aduan"
+        tools:layout="@layout/fragment_aduan_guru" />
 
     <fragment
         android:id="@+id/fragment_menu_mbg"
         android:name="com.example.nutripandacare.fragment.pengelola.KelolaMenuFragment"
-        android:label="Menu MBG" />
+        android:label="Menu MBG"
+        tools:layout="@layout/fragment_kelola_menu" />
 
     <fragment
         android:id="@+id/fragment_profil_pengelola"
         android:name="com.example.nutripandacare.fragment.pengelola.NotifikasiFragment"
-        android:label="Profil" />
+        android:label="Profil"
+        tools:layout="@layout/fragment_notifikasi" />
 
 </navigation>
