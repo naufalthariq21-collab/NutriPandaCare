@@ -1,14 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.guru.AduanMbgFragment">
+    android:background="@color/cream_primary">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="Aduan MBG"
+            app:titleTextColor="@color/green_primary"
+            app:navigationIcon="@drawable/ic_arrow_back"/>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-</FrameLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                style="@style/Widget.NutriPandaCare.FieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Judul Aduan" />
+
+            <EditText
+                android:id="@+id/etJudulAduan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Contoh: Menu Hari Ini Kurang Matang"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                style="@style/Widget.NutriPandaCare.FieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kategori" />
+
+            <Spinner
+                android:id="@+id/spinnerKategoriAduan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                style="@style/Widget.NutriPandaCare.FieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Isi Aduan" />
+
+            <EditText
+                android:id="@+id/etIsiAduan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Jelaskan detail aduan kamu..."
+                android:gravity="top"
+                android:minLines="5"
+                android:layout_marginBottom="24dp"/>
+
+            <Button
+                android:id="@+id/btnKirimAduan"
+                style="@style/Widget.NutriPandaCare.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Kirim Aduan Sekarang" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

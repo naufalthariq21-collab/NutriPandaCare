@@ -1,14 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.orangtua.EdukasiFragment">
+    android:orientation="vertical"
+    android:background="@color/cream_primary">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/green_primary"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="44dp"
+        android:paddingBottom="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Edukasi NutriPanda"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Kategori Selector (Optional placeholder) -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:padding="12dp">
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupKategori"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="true">
+            <com.google.android.material.chip.Chip
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Semua"
+                android:checked="true"/>
+            <com.google.android.material.chip.Chip
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stunting"/>
+            <com.google.android.material.chip.Chip
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Resep Sehat"/>
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+
+    <!-- List Artikel -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvEdukasi"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:paddingHorizontal="16dp"
+        android:clipToPadding="false"
+        android:paddingBottom="100dp"/>
 
-</FrameLayout>
+</LinearLayout>

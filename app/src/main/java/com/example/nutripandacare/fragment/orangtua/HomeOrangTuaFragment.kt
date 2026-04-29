@@ -1,60 +1,156 @@
 package com.example.nutripandacare.fragment.orangtua
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.nutripandacare.R
+import com.example.nutripandacare.databinding.FragmentHomeOrangTuaBinding
+import com.example.nutripandacare.firebase.FirebaseHelper
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.*
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [HomeOrangTuaFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class HomeOrangTuaFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentHomeOrangTuaBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home_orang_tua, container, false)
+    ): View {
+        _binding = FragmentHomeOrangTuaBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment HomeOrangTuaFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            HomeOrangTuaFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        loadUserData()
+        loadChildData()
+        loadMenuHariIni()
+        loadPengumuman()
+        setupClickListeners()
+    }
+
+    private fun loadUserData() {
+        val uid = FirebaseHelper.uid
+        if (uid.isEmpty()) return
+
+        FirebaseHelper.getDataUser(uid,
+            onSuccess = { data ->
+                if (_binding == null) return@getDataUser
+                val nama = data["nama"] as? String ?: "Bunda"
+                binding.tvNamaUser.text = "$nama!"
+                
+                val fotoUrl = data["foto_url"] as? String ?: ""
+                if (fotoUrl.isNotEmpty()) {
+                    Glide.with(this).load(fotoUrl).into(binding.ivFotoProfil)
                 }
-            }
+            },
+            onError = { /* Handle error */ }
+        )
+    }
+
+    private fun loadChildData() {
+        FirebaseHelper.getDataAnak(
+            onSuccess = { _, data ->
+                if (_binding == null) return@getDataAnak
+                val namaAnak = data["nama_anak"] as? String ?: "Anak"
+                val usia = data["usia_anak"] as? String ?: "-"
+                val statusGizi = data["status_gizi"] as? String ?: "Normal"
+
+                binding.tvNamaAnak.text = namaAnak
+                binding.tvNamaAnakStatus.text = "$namaAnak • $usia"
+                binding.tvInfoAnak.text = "$usia • ${data["jenis_kelamin"] ?: ""}"
+                binding.tvStatusNutrisi.text = statusGizi
+                
+                val fotoAnak = data["foto_anak"] as? String ?: ""
+                if (fotoAnak.isNotEmpty()) {
+                    Glide.with(this).load(fotoAnak).into(binding.ivFotoAnak)
+                }
+            },
+            onError = { /* Handle error */ }
+        )
+    }
+
+    private fun loadMenuHariIni() {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        FirebaseHelper.getMenuHariIni(today,
+            onSuccess = { data ->
+                if (_binding == null) return@getMenuHariIni
+                if (data != null) {
+                    binding.tvNamaMenu.text = data["nama_menu"] as? String ?: "-"
+                    binding.tvKaloriMenu.text = "${data["kalori"] ?: 0} Kkal"
+                    binding.tvProteinMenu.text = "${data["protein"] ?: 0}g Protein"
+                    
+                    val percent = (data["persentase_nutrisi"] as? Number)?.toInt() ?: 0
+                    binding.tvPersentaseNutrisi.text = "$percent%"
+                    binding.progressNutrisi.progress = percent
+                }
+            },
+            onError = { /* Handle error */ }
+        )
+    }
+
+    private fun loadPengumuman() {
+        FirebaseHelper.getPengumumanTerbaru(1,
+            onSuccess = { list ->
+                if (_binding == null) return@getPengumumanTerbaru
+                if (list.isNotEmpty()) {
+                    val p = list[0]
+                    binding.tvJudulPengumuman.text = p["judul_pengumuman"] as? String ?: ""
+                    binding.tvIsiPengumuman.text = p["isi_pengumuman"] as? String ?: ""
+                    
+                    val ts = p["waktu_pengumuman"] as? Timestamp
+                    ts?.let {
+                        binding.tvWaktuPengumuman.text = formatWaktu(it.toDate())
+                    }
+                }
+            },
+            onError = { /* Handle error */ }
+        )
+    }
+
+    private fun formatWaktu(date: Date): String {
+        val diff = Date().time - date.time
+        val seconds = diff / 1000
+        val minutes = seconds / 60
+        val hours = minutes / 60
+        val days = hours / 24
+
+        return when {
+            days > 0 -> "$days hari yang lalu"
+            hours > 0 -> "$hours jam yang lalu"
+            minutes > 0 -> "$minutes menit yang lalu"
+            else -> "Baru saja"
+        }
+    }
+
+    private fun setupClickListeners() {
+        binding.btnLihatDetailGizi.setOnClickListener {
+            findNavController().navigate(R.id.giziFragment)
+        }
+        
+        binding.btnQaCekGizi.setOnClickListener {
+            findNavController().navigate(R.id.giziFragment)
+        }
+
+        binding.btnQaMenuMbg.setOnClickListener {
+            findNavController().navigate(R.id.menuMbgFragment)
+        }
+
+        binding.btnQaEdukasi.setOnClickListener {
+            findNavController().navigate(R.id.edukasiFragment)
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

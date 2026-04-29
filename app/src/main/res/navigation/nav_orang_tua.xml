@@ -1,27 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_orang_tua"
     app:startDestination="@id/homeOrangTuaFragment">
 
     <fragment
         android:id="@+id/homeOrangTuaFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.HomeOrangTuaFragment"
-        android:label="Home"/>
+        android:label="Home"
+        tools:layout="@layout/fragment_home_orang_tua" />
 
     <fragment
         android:id="@+id/edukasiFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.EdukasiFragment"
-        android:label="Edukasi"/>
+        android:label="Edukasi"
+        tools:layout="@layout/fragment_edukasi" />
 
     <fragment
         android:id="@+id/giziFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.GiziFragment"
-        android:label="Cek Gizi"/>
+        android:label="Cek Gizi"
+        tools:layout="@layout/fragment_gizi" />
 
     <fragment
         android:id="@+id/menuMbgFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.MenuMbgFragment"
-        android:label="Kalender Menu"/>
+        android:label="Kalender Menu"
+        tools:layout="@layout/fragment_menu_mbg" />
 
 </navigation>

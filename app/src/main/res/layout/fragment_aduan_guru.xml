@@ -1,117 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- activity_aduan_guru.xml -->
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="@color/cream_primary">
 
-    <!-- TOP APP BAR -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/green_dark"
-        app:elevation="4dp">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:paddingHorizontal="8dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Aduan Guru"
-                android:textColor="@color/white"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_gravity="start"/>
-        </androidx.appcompat.widget.Toolbar>
-    </com.google.android.material.appbar.AppBarLayout>
-
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/green_dark"
+        android:padding="16dp">
 
-        <!-- CHAT MESSAGES LIST -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvChatMessages"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:padding="12dp"
-            android:clipToPadding="false"
-            android:paddingBottom="8dp"/>
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/white"
+            android:contentDescription="Kembali" />
 
-        <!-- REPLY INPUT BAR -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="12dp"
-            android:paddingBottom="8dp"
-            android:background="@color/white"
-            android:elevation="4dp">
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="10dp"
-                app:boxStrokeColor="@color/input_border"
-                app:boxCornerRadiusTopStart="24dp"
-                app:boxCornerRadiusTopEnd="24dp"
-                app:boxCornerRadiusBottomStart="24dp"
-                app:boxCornerRadiusBottomEnd="24dp">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etReply"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Tulis balasan..."
-                    android:textSize="14sp"
-                    android:textColor="@color/text_primary"
-                    android:minLines="1"
-                    android:maxLines="4"
-                    android:inputType="textMultiLine|textCapSentences"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Send Button -->
-            <ImageView
-                android:id="@+id/ivSend"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:src="@drawable/ic_send"
-                android:tint="@color/white"
-                android:background="@drawable/bg_send_button"
-                android:padding="11dp"
-                android:contentDescription="Send"/>
-        </LinearLayout>
-
-        <!-- BOTTOM NAV SPACER area -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@color/nav_bg"/>
+            android:layout_weight="1"
+            android:text="Aduan Masuk"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginStart="12dp"/>
     </LinearLayout>
 
-    <!-- BOTTOM NAVIGATION -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
+    <!-- Content -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvAduan"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="@color/nav_bg"
-        app:itemIconTint="@color/nav_active"
-        app:itemTextColor="@color/nav_inactive"
-        app:itemActiveIndicatorColor="@color/nav_indicator"
-        app:menu="@menu/bottom_nav_pengelola"
-        app:elevation="8dp"/>
+        android:layout_height="match_parent"
+        android:padding="12dp"
+        android:clipToPadding="false"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</LinearLayout>

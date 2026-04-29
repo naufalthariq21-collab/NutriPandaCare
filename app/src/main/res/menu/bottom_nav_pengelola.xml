@@ -1,4 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <item
+        android:id="@+id/fragment_home_pengelola"
+        android:icon="@drawable/ic_home"
+        android:title="Home" />
+
+    <item
+        android:id="@+id/fragment_verifikasi_pengelola"
+        android:icon="@drawable/ic_eye_on"
+        android:title="Verifikasi" />
+
+    <item
+        android:id="@+id/fragment_aduan_pengelola"
+        android:icon="@drawable/ic_notifikasi"
+        android:title="Aduan" />
+
+    <item
+        android:id="@+id/fragment_menu_mbg"
+        android:icon="@drawable/ic_menu_mbg"
+        android:title="Menu MBG" />
+
+    <item
+        android:id="@+id/fragment_profil_pengelola"
+        android:icon="@drawable/ic_placeholder_avatar"
+        android:title="Profil" />
+
 </menu>

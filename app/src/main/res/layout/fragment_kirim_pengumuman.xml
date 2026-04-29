@@ -1,14 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<!-- activity_kirim_notifikasi.xml — Frame 6: Kirim Notifikasi -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.guru.KirimPengumumanFragment">
+    android:orientation="vertical"
+    android:background="@color/cream_primary">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <!-- Header -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/green_dark"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp">
 
-</FrameLayout>
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/ic_media_previous"
+            android:padding="4dp"
+            android:contentDescription="Kembali"
+            app:tint="@color/white" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kirim Notifikasi"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Buat pesan pengingat"
+                android:textColor="@color/green_pale"
+                android:textSize="11sp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Pesan Notifikasi Label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pesan Notifikasi"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Pesan Input -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/white"
+                app:cardElevation="1dp"
+                app:cardCornerRadius="10dp"
+                android:layout_marginBottom="8dp">
+
+                <EditText
+                    android:id="@+id/etPesanNotif"
+                    android:layout_width="match_parent"
+                    android:layout_height="160dp"
+                    android:hint="Contoh: Bunda &amp; Ayah, yuk baca artikel terbaru tentang pentingnya protein hewani untuk si kecil"
+                    android:textColorHint="@color/text_hint"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:padding="14dp"
+                    android:gravity="top"
+                    android:background="@null"
+                    android:inputType="textMultiLine"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Character Counter -->
+            <TextView
+                android:id="@+id/tvCharCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Maks 300 karakter"
+                android:textColor="@color/text_hint"
+                android:textSize="11sp"
+                android:gravity="end"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Kirim ke Orang Tua Button -->
+            <Button
+                android:id="@+id/btnKirim"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="📤  Kirim ke Orang Tua"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:backgroundTint="@color/green_dark"
+                app:cornerRadius="12dp"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:itemIconTint="@color/nav_inactive"
+        app:itemTextColor="@color/nav_inactive"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_guru"
+        app:elevation="8dp"/>
+
+</LinearLayout>

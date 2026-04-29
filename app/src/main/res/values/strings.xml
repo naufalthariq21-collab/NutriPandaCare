@@ -14,13 +14,13 @@
     <string name="distribusi_nutrisi">Distribusi Nutrisi</string>
     <string name="tambah_menu">+ Tambah Menu</string>
     <string name="simpan_perubahan">Simpan Perubahan</string>
-    <string name="kirim_notifikasi">Kirim Notifikasi</string>
-    <string name="verifikasi">&#x2713; Verifikasi</string>
-    <string name="tolak">&#x2715; Tolak</string>
+    <string name="kirim_notifikasi">🔔 Kirim Notifikasi</string>
+    <string name="verifikasi">✓ Verifikasi</string>
+    <string name="tolak">✕ Tolak</string>
     <string name="tandai_selesai">Tandai Selesai</string>
     <string name="tulis_balasan">Tulis balasan...</string>
-    <string name="ubah">&#x270F; Ubah</string>
-    <string name="hapus">Hapus</string>
+    <string name="ubah">✏ Ubah</string>
+    <string name="hapus">🗑 Hapus</string>
     <string name="nama_menu">Nama Menu</string>
     <string name="pilih_tanggal">Pilih Tanggal</string>
     <string name="upload_media">Upload Media</string>
@@ -38,75 +38,6 @@
     <string name="nav_aduan">Aduan</string>
     <string name="nav_kelola">Kelola Menu</string>
     <string name="nav_calendar">Calendar</string>
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-
-    <!-- Chip Filter Labels -->
-    <string name="chip_semua">Semua</string>
-    <string name="chip_normal">Normal</string>
-    <string name="chip_stunting">Stunting</string>
-    <string name="chip_resiko">Resiko</string>
-
-    <!-- App Bar -->
-    <string name="title_rekap_gizi">Rekap Gizi Kelas 5A</string>
-    <string name="label_siswa_terdaftar">35 Siswa Terdaftar</string>
-    <string name="label_update">Update</string>
-    <string name="date_update">15 Mei 2025</string>
-    <string name="label_hadir">Hadir</string>
-
-    <!-- Section Headers -->
-    <string name="label_daftar_siswa">Daftar Siswa</string>
-    <string name="label_jumlah_siswa">35 siswa</string>
-
-    <!-- Search -->
-    <string name="hint_cari_siswa">Cari nama siswa...</string>
-
-    <!-- Student Info -->
-    <string name="info_laki_laki_10">Laki-laki &#8226; 10 tahun</string>
-    <string name="info_perempuan_9">Perempuan &#8226; 9 tahun</string>
-    <string name="info_perempuan_10">Perempuan &#8226; 10 tahun</string>
-
-    <!-- Nutrition -->
-    <string name="nutrisi_82">Nutrisi 82%</string>
-    <string name="nutrisi_90">Nutrisi 90%</string>
-
-    <!-- Status -->
-    <string name="status_perlu_perhatian">Perlu perhatian segera</string>
-    <string name="status_perlu_pemantauan">Perlu pemantauan</string>
-
-    <!-- Accessibility / ContentDescription -->
-    <string name="desc_foto_siswa">Foto siswa</string>
-    <string name="desc_siswa_normal">Detail siswa status normal</string>
-    <string name="desc_siswa_stunting">Detail siswa status stunting</string>
-    <string name="desc_siswa_resiko">Detail siswa status resiko</string>
-
-    <!-- Activity Registration -->
-    <string name="daftar_akun">Daftar Akun</string>
-    <string name="buat_akun_baru">Buat akun baru untuk memulai</string>
-    <string name="nama_lengkap_label">Nama Lengkap</string>
-    <string name="nama_lengkap_hint">Masukkan nama lengkap</string>
-    <string name="email_label">Email</string>
-    <string name="email_hint">contoh@email.com</string>
-    <string name="nomor_whatsapp_label">Nomor WhatsApp</string>
-    <string name="nomor_whatsapp_hint">0812xxxx</string>
-    <string name="password_label">Password</string>
-    <string name="password_min">Minimal 8 karakter</string>
-    <string name="konfirmasi_password_label">Konfirmasi Password</string>
-    <string name="konfirmasi_password_hint">Ulangi password</string>
-    <string name="daftar">DAFTAR</string>
-    <string name="sudah_punya_akun">Sudah punya akun?</string>
-    <string name="back_button">Kembali</string>
-    <string name="toggle_password_visibility">Tampilkan/Sembunyikan Password</string>
-    <string name="toggle_confirm_password_visibility">Tampilkan atau Sembunyikan Konfirmasi Password</string>
-
-    <!-- Pilih Peran -->
-    <string name="pilih_peran">Pilih Peran</string>
-    <string name="pilih_peran_subtitle">Silakan pilih peran Anda dalam aplikasi ini</string>
-    <string name="orang_tua">Orang Tua</string>
-    <string name="orang_tua_desc">Pantau gizi dan pertumbuhan anak Anda setiap hari.</string>
-    <string name="guru">Guru</string>
-    <string name="guru_desc">Kelola data gizi siswa di sekolah Anda.</string>
-    <string name="pengelola_mbg">Pengelola MBG</string>
-    <string name="pengelola_mbg_desc">Manajemen program Makan Bergizi Gratis.</string>
-    <string name="lanjutkan">Lanjutkan</string>
-
 </resources>

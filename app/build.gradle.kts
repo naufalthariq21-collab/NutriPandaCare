@@ -32,7 +32,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    //noinspection WrongGradleMethod
     kotlin {
         compilerOptions {
             jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
@@ -55,15 +54,23 @@ dependencies {
     // Firebase
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
 
     // Google Sign-In
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.play.services.auth)
 
     // Navigation
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui)
+
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // CircleImageView
+    implementation("de.hdodenhof:circleimageview:3.1.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

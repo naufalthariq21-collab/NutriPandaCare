@@ -1,6 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/nav_guru">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_guru"
+    app:startDestination="@id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.nutripandacare.fragment.guru.HomeGuruFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home_guru" />
+
+    <fragment
+        android:id="@+id/nav_konten"
+        android:name="com.example.nutripandacare.fragment.guru.KontenEdukasiFragment"
+        android:label="Konten Edukasi"
+        tools:layout="@layout/fragment_konten_edukasi">
+        <action
+            android:id="@+id/action_nav_konten_to_nav_buat_konten"
+            app:destination="@id/nav_buat_konten" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_buat_konten"
+        android:name="com.example.nutripandacare.fragment.guru.BuatKontenFragment"
+        android:label="Buat Konten"
+        tools:layout="@layout/fragment_buat_konten" />
+
+    <fragment
+        android:id="@+id/nav_rekap_gizi"
+        android:name="com.example.nutripandacare.fragment.guru.RekapGiziFragment"
+        android:label="Rekap Gizi"
+        tools:layout="@layout/fragment_rekap_gizi" />
+
+    <fragment
+        android:id="@+id/nav_aduan"
+        android:name="com.example.nutripandacare.fragment.guru.AduanMbgFragment"
+        android:label="Aduan MBG"
+        tools:layout="@layout/fragment_aduan_mbg" />
+
+    <fragment
+        android:id="@+id/nav_buat_pengumuman"
+        android:name="com.example.nutripandacare.fragment.guru.KirimPengumumanFragment"
+        android:label="Kirim Pengumuman"
+        tools:layout="@layout/fragment_kirim_pengumuman" />
 
 </navigation>
