@@ -31,10 +31,7 @@ object FirebaseHelper {
         auth.signInWithEmailAndPassword(email, password)
             .addOnSuccessListener { result ->
                 val user = result.user ?: return@addOnSuccessListener
-                if (!user.isEmailVerified) {
-                    onError("Email belum diverifikasi. Cek inbox kamu.")
-                    return@addOnSuccessListener
-                }
+                // Diperbarui: Langsung masuk tanpa wajib verifikasi email agar memudahkan user
                 onSuccess(user.uid)
             }
             .addOnFailureListener { onError(it.message ?: "Login gagal") }
@@ -88,7 +85,8 @@ object FirebaseHelper {
             "role" to role,
             "updated_at" to Timestamp.now()
         )
-        if (isVerified) updates["is_verified"] = true
+        // Jika pengelola, otomatis dianggap verified
+        if (isVerified || role == "pengelola") updates["is_verified"] = true
 
         db.collection("users").document(uid)
             .update(updates)
@@ -149,19 +147,8 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // LOGIN DENGAN GOOGLE — Firebase Google Sign-In
-    // Dipanggil dari LoginActivity setelah dapat idToken dari
-    // GoogleSignInClient (launcher ActivityResultContract)
     // ════════════════════════════════════════════════════════════
 
-    /**
-     * Tukar Google idToken dengan Firebase credential, lalu sign in.
-     * Jika user belum pernah login Google sebelumnya → otomatis buat
-     * dokumen Firestore baru (tanpa perlu verifikasi email).
-     *
-     * @param idToken  token yang didapat dari GoogleSignInAccount.idToken
-     * @param onSuccess  callback dengan uid & isNewUser (true = baru daftar)
-     * @param onError    callback dengan pesan error
-     */
     fun loginWithGoogle(
         idToken: String,
         onSuccess: (uid: String, isNewUser: Boolean) -> Unit,
@@ -175,14 +162,13 @@ object FirebaseHelper {
                 val isNewUser = result.additionalUserInfo?.isNewUser ?: false
 
                 if (isNewUser) {
-                    // User pertama kali — buat dokumen Firestore
                     val data = hashMapOf(
                         "nama"        to (user.displayName ?: ""),
                         "email"       to (user.email ?: ""),
                         "no_hp"       to "",
                         "foto_url"    to (user.photoUrl?.toString() ?: ""),
                         "role"        to "",
-                        "is_verified" to true,          // Google sudah verified
+                        "is_verified" to true,
                         "status_akun" to "aktif",
                         "created_at"  to Timestamp.now(),
                         "updated_at"  to Timestamp.now()
@@ -191,7 +177,6 @@ object FirebaseHelper {
                         .addOnSuccessListener { onSuccess(user.uid, true) }
                         .addOnFailureListener { onError(it.message ?: "Gagal simpan data Google") }
                 } else {
-                    // User sudah pernah login — langsung lanjut
                     onSuccess(user.uid, false)
                 }
             }
@@ -201,10 +186,8 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // [B] USER — Data profil user
-    // Path: users/{uid}
     // ════════════════════════════════════════════════════════════
 
-    /** Ambil data profil user */
     fun getDataUser(
         uid: String,
         onSuccess: (data: Map<String, Any?>) -> Unit,
@@ -216,7 +199,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil data user") }
     }
 
-    /** Update data profil user */
     fun updateDataUser(
         uid: String,
         dataUpdate: Map<String, Any>,
@@ -235,10 +217,8 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // [C] DATA ANAK — Khusus Orang Tua
-    // Path: users/{uid}/anak/{anak_id}
     // ════════════════════════════════════════════════════════════
 
-    /** Ambil data anak pertama */
     fun getDataAnak(
         onSuccess: (anakId: String, data: Map<String, Any?>) -> Unit,
         onError: (String) -> Unit
@@ -258,7 +238,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil data anak") }
     }
 
-    /** Tambah data anak baru */
     fun tambahDataAnak(
         namaAnak: String,
         usiaAnak: String,
@@ -295,7 +274,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal tambah data anak") }
     }
 
-    /** Update hasil cek gizi anak + simpan ke riwayat */
     fun simpanHasilGizi(
         anakId: String,
         berat: Double,
@@ -321,7 +299,6 @@ object FirebaseHelper {
             "updated_at"         to Timestamp.now()
         )
 
-        // Batch: update data utama + tambah riwayat sekaligus
         val batch = db.batch()
         batch.update(anakRef, dataGizi as Map<String, Any>)
         batch.set(anakRef.collection("riwayat_gizi").document(), dataGizi)
@@ -331,7 +308,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal simpan gizi") }
     }
 
-    /** Ambil riwayat gizi anak (untuk grafik) */
     fun getRiwayatGizi(
         anakId: String,
         limit: Long = 6,
@@ -354,13 +330,11 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // [D] MENU MBG — Khusus Pengelola (CRUD) & Orang Tua (Read)
-    // Path: menu_mbg/{yyyy-MM-dd}
     // ════════════════════════════════════════════════════════════
 
-    /** Tambah/Update menu harian (ID = tanggal) */
     fun simpanMenuMbg(
-        tanggal: String,       // format: "2025-05-15"
-        tanggalLabel: String,  // format: "15 Mei 2025"
+        tanggal: String,
+        tanggalLabel: String,
         namaMenu: String,
         deskripsi: String,
         kalori: Int,
@@ -389,14 +363,12 @@ object FirebaseHelper {
             "created_at"         to Timestamp.now()
         )
 
-        // set() dengan ID tanggal — otomatis update jika sudah ada
         db.collection("menu_mbg").document(tanggal)
             .set(data)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal simpan menu") }
     }
 
-    /** Ambil menu hari ini */
     fun getMenuHariIni(
         tanggal: String,
         onSuccess: (data: Map<String, Any?>?) -> Unit,
@@ -410,7 +382,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil menu") }
     }
 
-    /** Ambil daftar menu dalam rentang tanggal */
     fun getDaftarMenu(
         tanggalMulai: String,
         tanggalAkhir: String,
@@ -429,7 +400,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil daftar menu") }
     }
 
-    /** Hapus menu berdasarkan tanggal */
     fun hapusMenuMbg(
         tanggal: String,
         onSuccess: () -> Unit,
@@ -441,7 +411,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal hapus menu") }
     }
 
-    /** Update sebagian field menu */
     fun updateMenuMbg(
         tanggal: String,
         dataUpdate: Map<String, Any>,
@@ -457,10 +426,8 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // [E] ARTIKEL EDUKASI — Guru (CRUD) & Orang Tua (Read)
-    // Path: artikel/{artikel_id}
     // ════════════════════════════════════════════════════════════
 
-    /** Tambah artikel baru */
     fun tambahArtikel(
         judul: String,
         deskripsi: String,
@@ -489,7 +456,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal tambah artikel") }
     }
 
-    /** Ambil semua artikel (dengan filter kategori opsional) */
     fun getArtikel(
         kategori: String = "Semua",
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
@@ -514,7 +480,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil artikel") }
     }
 
-    /** Update artikel */
     fun updateArtikel(
         artikelId: String,
         dataUpdate: Map<String, Any>,
@@ -527,7 +492,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal update artikel") }
     }
 
-    /** Hapus artikel */
     fun hapusArtikel(
         artikelId: String,
         onSuccess: () -> Unit,
@@ -542,14 +506,12 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // [F] PENGUMUMAN — Pengelola (CRUD)
-    // Path: pengumuman/{pengumuman_id}
     // ════════════════════════════════════════════════════════════
 
-    /** Kirim pengumuman */
     fun kirimPengumuman(
         judul: String,
         isi: String,
-        targetRole: String,  // "orang_tua" | "guru" | "semua"
+        targetRole: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -564,7 +526,6 @@ object FirebaseHelper {
 
         db.collection("pengumuman").add(data)
             .addOnSuccessListener {
-                // Setelah simpan pengumuman, kirim notifikasi ke user yang dituju
                 blastNotifikasi(
                     judul    = judul,
                     isi      = isi,
@@ -577,7 +538,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal kirim pengumuman") }
     }
 
-    /** Ambil pengumuman terbaru */
     fun getPengumumanTerbaru(
         limit: Long = 5,
         onSuccess: (List<Map<String, Any?>>) -> Unit,
@@ -598,10 +558,8 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // [G] NOTIFIKASI — Semua Role
-    // Path: notifikasi/{notif_id}
     // ════════════════════════════════════════════════════════════
 
-    /** Kirim notifikasi ke 1 user */
     fun kirimNotifikasi(
         targetUid: String,
         judul: String,
@@ -624,7 +582,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal kirim notifikasi") }
     }
 
-    /** Blast notifikasi ke semua user berdasarkan role */
     fun blastNotifikasi(
         judul: String,
         isi: String,
@@ -645,7 +602,6 @@ object FirebaseHelper {
             .addOnSuccessListener { snapshot ->
                 if (snapshot.isEmpty) { onSuccess(); return@addOnSuccessListener }
 
-                // Batch tulis notifikasi ke semua user sekaligus
                 val batch = db.batch()
                 snapshot.documents.forEach { userDoc ->
                     val notifRef = db.collection("notifikasi").document()
@@ -666,7 +622,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil daftar user") }
     }
 
-    /** Ambil notifikasi milik user sendiri (real-time) */
     fun listenNotifikasi(
         onUpdate: (List<Pair<String, Map<String, Any?>>>) -> Unit,
         onError: (String) -> Unit
@@ -679,13 +634,11 @@ object FirebaseHelper {
             onUpdate(list)
         }
 
-    /** Tandai 1 notifikasi sudah dibaca */
     fun tandaiDibaca(notifId: String) {
         db.collection("notifikasi").document(notifId)
             .update("is_read", true)
     }
 
-    /** Tandai semua notifikasi sudah dibaca */
     fun tandaiSemuaDibaca(onSuccess: () -> Unit = {}) {
         db.collection("notifikasi")
             .whereEqualTo("user_id", uid)
@@ -701,10 +654,8 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // [H] ADUAN — Orang Tua & Guru (Create + Read)
-    // Path: aduan/{aduan_id}
     // ════════════════════════════════════════════════════════════
 
-    /** Kirim aduan */
     fun kirimAduan(
         judul: String,
         isi: String,
@@ -734,7 +685,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal kirim aduan") }
     }
 
-    /** Ambil aduan milik user sendiri */
     fun getAduanSaya(
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
         onError: (String) -> Unit
@@ -750,7 +700,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil aduan") }
     }
 
-    /** Ambil semua aduan (khusus pengelola) */
     fun getAllAduan(
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
         onError: (String) -> Unit
@@ -765,7 +714,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil aduan") }
     }
 
-    /** Balas aduan (pengelola) */
     fun balasAduan(
         aduanId: String,
         balasan: String,
@@ -785,13 +733,11 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // [I] REKAP GIZI — Guru (CRUD)
-    // Path: rekap_gizi/{rekap_id}
     // ════════════════════════════════════════════════════════════
 
-    /** Simpan rekap gizi kelas */
     fun simpanRekapGizi(
         sekolah: String,
-        periode: String,   // format: "2025-05"
+        periode: String,
         totalSiswa: Int,
         normal: Int,
         giziKurang: Int,
@@ -820,7 +766,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal simpan rekap") }
     }
 
-    /** Tambah detail siswa ke rekap */
     fun tambahDetailSiswa(
         rekapId: String,
         namaSiswa: String,
@@ -851,7 +796,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal tambah siswa") }
     }
 
-    /** Ambil rekap gizi milik guru */
     fun getRekapGizi(
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
         onError: (String) -> Unit
@@ -867,7 +811,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil rekap") }
     }
 
-    /** Ambil detail siswa dari rekap */
     fun getDetailSiswa(
         rekapId: String,
         onSuccess: (List<Map<String, Any?>>) -> Unit,
@@ -887,10 +830,8 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // [J] DATA PENGGUNA — Khusus Pengelola
-    // Path: users (collection)
     // ════════════════════════════════════════════════════════════
 
-    /** Ambil semua pengguna berdasarkan role */
     fun getAllPengguna(
         role: String = "semua",
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
@@ -912,7 +853,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil data pengguna") }
     }
 
-    /** Ambil pengguna yang belum diverifikasi */
     fun getPendaftarBaru(
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
         onError: (String) -> Unit
@@ -928,7 +868,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil pendaftar baru") }
     }
 
-    /** Verifikasi akun pengguna */
     fun verifikasiAkun(
         targetUid: String,
         onSuccess: () -> Unit,
@@ -941,7 +880,6 @@ object FirebaseHelper {
                 "updated_at",  Timestamp.now()
             )
             .addOnSuccessListener {
-                // Kirim notifikasi ke user yang baru diverifikasi
                 kirimNotifikasi(
                     targetUid = targetUid,
                     judul     = "Akun Berhasil Diverifikasi",
@@ -953,7 +891,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal verifikasi akun") }
     }
 
-    /** Nonaktifkan akun pengguna */
     fun nonaktifkanAkun(
         targetUid: String,
         onSuccess: () -> Unit,
@@ -965,7 +902,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal nonaktifkan akun") }
     }
 
-    /** Hapus akun pengguna dari Firestore */
     fun hapusAkunPengguna(
         targetUid: String,
         onSuccess: () -> Unit,
@@ -982,7 +918,6 @@ object FirebaseHelper {
     // [K] HELPER UMUM
     // ════════════════════════════════════════════════════════════
 
-    /** Hitung Z-Score BB/U sederhana berdasarkan referensi WHO */
     fun hitungZScore(berat: Double, usiaBulan: Int): Double {
         val median = when {
             usiaBulan <= 6  -> 6.4
@@ -996,7 +931,6 @@ object FirebaseHelper {
         return (berat - median) / (median * 0.12)
     }
 
-    /** Tentukan kategori status gizi dari Z-Score */
     fun kategoriGizi(zScore: Double): String = when {
         zScore < -3.0 -> "Gizi Buruk"
         zScore < -2.0 -> "Gizi Kurang"

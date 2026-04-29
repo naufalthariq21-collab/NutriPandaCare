@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- res/layout/fragment_home_orang_tua.xml -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -7,9 +6,6 @@
     android:layout_height="match_parent"
     android:background="@color/cream_primary">
 
-    <!-- ══════════════════════════════════════ -->
-    <!-- HEADER / APP BAR                       -->
-    <!-- ══════════════════════════════════════ -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
@@ -27,7 +23,6 @@
             android:paddingBottom="20dp"
             android:gravity="center_vertical">
 
-            <!-- Foto Profil User (dari Firebase, default pakai placeholder) -->
             <ImageView
                 android:id="@+id/iv_foto_profil"
                 android:layout_width="48dp"
@@ -38,7 +33,6 @@
                 android:padding="2dp"
                 android:contentDescription="Foto profil" />
 
-            <!-- Sapaan & Nama -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -53,7 +47,6 @@
                     android:textColor="@color/green_pale"
                     android:textSize="13sp" />
 
-                <!-- Diisi dari Firebase: field "nama" -->
                 <TextView
                     android:id="@+id/tv_nama_user"
                     android:layout_width="wrap_content"
@@ -66,7 +59,6 @@
                     android:ellipsize="end" />
             </LinearLayout>
 
-            <!-- Tombol Notifikasi -->
             <ImageButton
                 android:id="@+id/btn_notifikasi"
                 android:layout_width="40dp"
@@ -74,14 +66,21 @@
                 android:src="@drawable/ic_bell"
                 android:background="@drawable/bg_circle_green_medium"
                 android:contentDescription="Notifikasi"
+                android:layout_marginEnd="8dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btn_logout"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_logout"
+                android:background="@drawable/bg_circle_green_medium"
+                android:contentDescription="Logout"
                 app:tint="@color/white" />
 
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- ══════════════════════════════════════ -->
-    <!-- KONTEN SCROLL                          -->
-    <!-- ══════════════════════════════════════ -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -95,9 +94,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- ══════════════════════════════ -->
-            <!-- KARTU STATUS NUTRISI ANAK      -->
-            <!-- ══════════════════════════════ -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_status_nutrisi"
                 android:layout_width="match_parent"
@@ -127,7 +123,6 @@
                             android:textColor="@color/green_pale"
                             android:textSize="12sp" />
 
-                        <!-- Diisi dari Firebase: field "status_gizi" -->
                         <TextView
                             android:id="@+id/tv_status_nutrisi"
                             android:layout_width="wrap_content"
@@ -138,7 +133,6 @@
                             android:textStyle="bold"
                             android:layout_marginTop="2dp" />
 
-                        <!-- Diisi dari Firebase: field "nama_anak" -->
                         <TextView
                             android:id="@+id/tv_nama_anak_status"
                             android:layout_width="wrap_content"
@@ -160,7 +154,6 @@
                             android:layout_marginTop="12dp" />
                     </LinearLayout>
 
-                    <!-- Ilustrasi / Icon Status -->
                     <ImageView
                         android:layout_width="80dp"
                         android:layout_height="80dp"
@@ -171,9 +164,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ══════════════════════════════ -->
-            <!-- LATEST ACTIVITY / MENU HARI INI -->
-            <!-- ══════════════════════════════ -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_menu_hari_ini"
                 android:layout_width="match_parent"
@@ -189,7 +179,6 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <!-- Header Row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -215,7 +204,6 @@
                             android:textSize="12sp" />
                     </LinearLayout>
 
-                    <!-- Nama Menu - dari Firebase -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -239,7 +227,6 @@
                             android:orientation="vertical"
                             android:layout_marginStart="12dp">
 
-                            <!-- dari Firebase: field "nama_menu" -->
                             <TextView
                                 android:id="@+id/tv_nama_menu"
                                 android:layout_width="wrap_content"
@@ -255,7 +242,6 @@
                                 android:orientation="horizontal"
                                 android:layout_marginTop="6dp">
 
-                                <!-- dari Firebase: field "kalori" -->
                                 <TextView
                                     android:id="@+id/tv_kalori_menu"
                                     android:layout_width="wrap_content"
@@ -272,7 +258,6 @@
                                     android:textColor="@color/text_hint"
                                     android:textSize="12sp" />
 
-                                <!-- dari Firebase: field "protein" -->
                                 <TextView
                                     android:id="@+id/tv_protein_menu"
                                     android:layout_width="wrap_content"
@@ -291,7 +276,6 @@
                             app:tint="@color/green_primary" />
                     </LinearLayout>
 
-                    <!-- Progress Nutrisi -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -312,7 +296,6 @@
                                 android:textColor="@color/text_secondary"
                                 android:textSize="12sp" />
 
-                            <!-- dari Firebase: field "persentase_nutrisi" -->
                             <TextView
                                 android:id="@+id/tv_persentase_nutrisi"
                                 android:layout_width="wrap_content"
@@ -338,9 +321,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ══════════════════════════════ -->
-            <!-- QUICK ACTIONS                  -->
-            <!-- ══════════════════════════════ -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -357,7 +337,6 @@
                 android:weightSum="4"
                 android:layout_marginBottom="20dp">
 
-                <!-- Cek Gizi -->
                 <LinearLayout
                     android:id="@+id/btn_qa_cek_gizi"
                     android:layout_width="0dp"
@@ -388,7 +367,6 @@
                         android:layout_marginTop="6dp" />
                 </LinearLayout>
 
-                <!-- Menu MBG -->
                 <LinearLayout
                     android:id="@+id/btn_qa_menu_mbg"
                     android:layout_width="0dp"
@@ -419,7 +397,6 @@
                         android:layout_marginTop="6dp" />
                 </LinearLayout>
 
-                <!-- Edukasi -->
                 <LinearLayout
                     android:id="@+id/btn_qa_edukasi"
                     android:layout_width="0dp"
@@ -450,7 +427,6 @@
                         android:layout_marginTop="6dp" />
                 </LinearLayout>
 
-                <!-- Notifikasi -->
                 <LinearLayout
                     android:id="@+id/btn_qa_notifikasi"
                     android:layout_width="0dp"
@@ -482,9 +458,6 @@
 
             </LinearLayout>
 
-            <!-- ══════════════════════════════ -->
-            <!-- PROFIL ANAK                    -->
-            <!-- ══════════════════════════════ -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -526,7 +499,6 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <!-- Foto Anak - dari Firebase field "foto_anak" -->
                     <ImageView
                         android:id="@+id/iv_foto_anak"
                         android:layout_width="56dp"
@@ -544,7 +516,6 @@
                         android:orientation="vertical"
                         android:layout_marginStart="14dp">
 
-                        <!-- dari Firebase: field "nama_anak" -->
                         <TextView
                             android:id="@+id/tv_nama_anak"
                             android:layout_width="wrap_content"
@@ -554,7 +525,6 @@
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
-                        <!-- dari Firebase: field "usia_anak" & "jenis_kelamin" -->
                         <TextView
                             android:id="@+id/tv_info_anak"
                             android:layout_width="wrap_content"
@@ -564,7 +534,6 @@
                             android:textSize="13sp"
                             android:layout_marginTop="2dp" />
 
-                        <!-- dari Firebase: field "sekolah_anak" -->
                         <TextView
                             android:id="@+id/tv_sekolah_anak"
                             android:layout_width="wrap_content"
@@ -584,9 +553,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ══════════════════════════════ -->
-            <!-- PENGUMUMAN TERBARU             -->
-            <!-- ══════════════════════════════ -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -612,7 +578,6 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
-            <!-- Item Pengumuman - dari Firebase collection "pengumuman" -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_pengumuman"
                 android:layout_width="match_parent"
@@ -629,7 +594,6 @@
                     android:padding="14dp"
                     android:gravity="top">
 
-                    <!-- Icon pengumuman -->
                     <ImageView
                         android:layout_width="44dp"
                         android:layout_height="44dp"
@@ -645,7 +609,6 @@
                         android:orientation="vertical"
                         android:layout_marginStart="12dp">
 
-                        <!-- dari Firebase: field "judul_pengumuman" -->
                         <TextView
                             android:id="@+id/tv_judul_pengumuman"
                             android:layout_width="wrap_content"
@@ -655,7 +618,6 @@
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
-                        <!-- dari Firebase: field "isi_pengumuman" -->
                         <TextView
                             android:id="@+id/tv_isi_pengumuman"
                             android:layout_width="wrap_content"
@@ -667,7 +629,6 @@
                             android:ellipsize="end"
                             android:layout_marginTop="4dp" />
 
-                        <!-- dari Firebase: field "waktu_pengumuman" -->
                         <TextView
                             android:id="@+id/tv_waktu_pengumuman"
                             android:layout_width="wrap_content"

@@ -1,11 +1,14 @@
 package com.example.nutripandacare.fragment.pengelola
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.example.nutripandacare.LoginActivity
 import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentHomePengelolaBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
@@ -47,20 +50,16 @@ class HomePengelolaFragment : Fragment() {
     }
 
     private fun loadSummaryStats() {
-        // Ambil jumlah pendaftar baru yang belum diverifikasi
         FirebaseHelper.getPendaftarBaru(
             onSuccess = { list ->
                 if (_binding == null) return@getPendaftarBaru
-                // binding.tvCountVerifikasi.text = list.size.toString()
             },
             onError = { }
         )
 
-        // Ambil jumlah aduan masuk
         FirebaseHelper.getAllAduan(
             onSuccess = { list ->
                 if (_binding == null) return@getAllAduan
-                // binding.tvCountAduan.text = list.size.toString()
             },
             onError = { }
         )
@@ -71,10 +70,6 @@ class HomePengelolaFragment : Fragment() {
         FirebaseHelper.getMenuHariIni(today,
             onSuccess = { data ->
                 if (_binding == null) return@getMenuHariIni
-                if (data != null) {
-                    // binding.tvNamaMenu.text = data["nama_menu"] as? String ?: "-"
-                    // binding.tvInfoMenu.text = "${data["kalori"] ?: 0} kkal • Nutrisi Lengkap"
-                }
             },
             onError = { }
         )
@@ -88,6 +83,24 @@ class HomePengelolaFragment : Fragment() {
         binding.btnKelolaAduan.setOnClickListener {
             findNavController().navigate(R.id.fragment_aduan_pengelola)
         }
+
+        binding.btnLogout.setOnClickListener {
+            confirmLogout()
+        }
+    }
+
+    private fun confirmLogout() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Logout")
+            .setMessage("Apakah Anda yakin ingin keluar?")
+            .setPositiveButton("Ya") { _, _ ->
+                FirebaseHelper.logout()
+                val intent = Intent(requireContext(), LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+            }
+            .setNegativeButton("Tidak", null)
+            .show()
     }
 
     override fun onDestroyView() {

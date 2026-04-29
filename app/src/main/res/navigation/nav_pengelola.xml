@@ -30,7 +30,7 @@
         tools:layout="@layout/fragment_kelola_menu" />
 
     <fragment
-        android:id="@+id/fragment_profil_pengelola"
+        android:id="@+id/fragment_notifikasi"
         android:name="com.example.nutripandacare.fragment.pengelola.NotifikasiFragment"
         android:label="Profil"
         tools:layout="@layout/fragment_notifikasi" />

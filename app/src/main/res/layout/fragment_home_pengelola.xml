@@ -15,24 +15,52 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
+            android:orientation="horizontal"
+            android:padding="20dp"
+            android:gravity="center_vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Dashboard Pengelola"
-                android:textColor="@color/white"
-                android:textSize="20sp"
-                android:textStyle="bold"/>
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="NutriPanda Care • Admin Panel"
-                android:textColor="@color/green_pale"
-                android:textSize="12sp"
-                android:layout_marginTop="4dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dashboard Pengelola"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="NutriPanda Care • Admin Panel"
+                    android:textColor="@color/green_pale"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp"/>
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btn_notifikasi"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_bell"
+                android:background="@drawable/bg_circle_green_medium"
+                android:contentDescription="Notifikasi"
+                android:layout_marginEnd="8dp"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btn_logout"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_logout"
+                android:background="@drawable/bg_circle_green_medium"
+                android:contentDescription="Logout"
+                app:tint="@color/white" />
+
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 

@@ -48,12 +48,24 @@
                         android:layout_marginTop="4dp"/>
                 </LinearLayout>
 
-                <ImageView
-                    android:id="@+id/ivBell"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                <ImageButton
+                    android:id="@+id/btn_notifikasi"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:src="@drawable/ic_bell"
-                    app:tint="@color/white"/>
+                    android:background="@drawable/bg_circle_green_medium"
+                    android:contentDescription="Notifikasi"
+                    android:layout_marginEnd="8dp"
+                    app:tint="@color/white" />
+
+                <ImageButton
+                    android:id="@+id/btn_logout"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_logout"
+                    android:background="@drawable/bg_circle_green_medium"
+                    android:contentDescription="Logout"
+                    app:tint="@color/white" />
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>

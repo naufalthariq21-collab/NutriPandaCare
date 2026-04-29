@@ -15,7 +15,17 @@
         android:id="@+id/edukasiFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.EdukasiFragment"
         android:label="Edukasi"
-        tools:layout="@layout/fragment_edukasi" />
+        tools:layout="@layout/fragment_edukasi">
+        <action
+            android:id="@+id/action_edukasiFragment_to_fragment_preview_konten"
+            app:destination="@id/fragment_preview_konten" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragment_preview_konten"
+        android:name="com.example.nutripandacare.fragment.guru.PreviewKontenFragment"
+        android:label="Detail Konten"
+        tools:layout="@layout/fragment_preview_konten" />
 
     <fragment
         android:id="@+id/giziFragment"
