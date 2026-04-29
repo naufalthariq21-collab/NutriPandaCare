@@ -23,13 +23,15 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="24dp">
 
+            <!-- FIX 1: tambah minWidth/minHeight 48dp + contentDescription -->
             <ImageButton
                 android:id="@+id/btnBack"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="@drawable/bg_card_white"
                 android:src="@drawable/ic_back_arrow"
                 android:padding="8dp"
+                android:contentDescription="@string/back_button"
                 app:tint="@color/green_dark" />
 
             <LinearLayout
@@ -144,6 +146,7 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="6dp" />
 
+                <!-- FIX 2: tambah textColorHint untuk contrast ratio -->
                 <EditText
                     android:id="@+id/etWhatsapp"
                     android:layout_width="match_parent"
@@ -189,15 +192,19 @@
                         android:inputType="textPassword"
                         android:singleLine="true" />
 
+                    <!-- FIX 3: tambah minWidth/minHeight 48dp + contentDescription -->
                     <ImageButton
                         android:id="@+id/btnTogglePass"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
                         android:layout_gravity="center_vertical|end"
-                        android:layout_marginEnd="8dp"
+                        android:layout_marginEnd="4dp"
                         android:background="@android:color/transparent"
                         android:src="@android:drawable/ic_menu_view"
-                        android:alpha="0.4" />
+                        android:alpha="0.4"
+                        android:contentDescription="@string/toggle_password_visibility"
+                        android:minWidth="48dp"
+                        android:minHeight="48dp" />
                 </FrameLayout>
 
                 <!-- Konfirmasi Password -->
@@ -230,15 +237,19 @@
                         android:inputType="textPassword"
                         android:singleLine="true" />
 
+                    <!-- FIX 4: tambah minWidth/minHeight 48dp + contentDescription -->
                     <ImageButton
                         android:id="@+id/btnToggleConfirmPass"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
                         android:layout_gravity="center_vertical|end"
-                        android:layout_marginEnd="8dp"
+                        android:layout_marginEnd="4dp"
                         android:background="@android:color/transparent"
                         android:src="@android:drawable/ic_menu_view"
-                        android:alpha="0.4" />
+                        android:alpha="0.4"
+                        android:contentDescription="@string/toggle_confirm_password_visibility"
+                        android:minWidth="48dp"
+                        android:minHeight="48dp" />
                 </FrameLayout>
 
             </LinearLayout>
