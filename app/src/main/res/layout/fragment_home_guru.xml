@@ -42,7 +42,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="NutriPanda Care • Teacher"
+                        android:text="NutriPanda Care • Guru"
                         android:textColor="@color/green_pale"
                         android:textSize="12sp"
                         android:layout_marginTop="4dp"/>
@@ -109,9 +109,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tv_count_siswa"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="35"
+                            android:text="0"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:textColor="@color/green_primary"/>
@@ -129,9 +130,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tv_count_normal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="28"
+                            android:text="0"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:textColor="@color/green_accent"/>
@@ -149,9 +151,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tv_count_resiko"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="7"
+                            android:text="0"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:textColor="@color/badge_red"/>
@@ -185,7 +188,7 @@
                 style="@style/Widget.NutriPandaCare.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Kirim Notifikasi ke Orang Tua" />
+                android:text="Kirim Pengumuman" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

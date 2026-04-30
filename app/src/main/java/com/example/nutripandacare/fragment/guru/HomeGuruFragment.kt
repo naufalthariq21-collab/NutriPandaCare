@@ -40,21 +40,38 @@ class HomeGuruFragment : Fragment() {
 
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
-                val nama = data["nama"] as? String ?: "Guru"
-                binding.tvWelcome.text = "Selamat Pagi, $nama 👋"
+                _binding?.let { binding ->
+                    val nama = data["nama"] as? String ?: "Guru"
+                    binding.tvWelcome.text = "Selamat Pagi, $nama 👋"
+                }
             },
-            onError = { /* Handle error */ }
+            onError = { }
         )
     }
 
     private fun loadClassStats() {
+        // Reset to zero if no data
+        binding.tvCountSiswa.text = "0"
+        binding.tvCountNormal.text = "0"
+        binding.tvCountResiko.text = "0"
+
         FirebaseHelper.getRekapGizi(
             onSuccess = { list ->
-                if (list.isNotEmpty()) {
-                    // Update stats logic here if needed
+                _binding?.let { binding ->
+                    if (list.isNotEmpty()) {
+                        val latest = list[0].second
+                        binding.tvCountSiswa.text = (latest["total_siswa"]?.toString() ?: "0")
+                        binding.tvCountNormal.text = (latest["normal"]?.toString() ?: "0")
+                        
+                        val resiko = ((latest["gizi_buruk"] as? Number)?.toInt() ?: 0) + 
+                                     ((latest["gizi_kurang"] as? Number)?.toInt() ?: 0) +
+                                     ((latest["obesitas"] as? Number)?.toInt() ?: 0)
+                        
+                        binding.tvCountResiko.text = resiko.toString()
+                    }
                 }
             },
-            onError = { /* Handle error */ }
+            onError = { }
         )
     }
 
@@ -68,7 +85,7 @@ class HomeGuruFragment : Fragment() {
         }
         
         binding.btnNotifikasi.setOnClickListener {
-            // Logic for notification
+            // Jika ada fragment notifikasi guru
         }
 
         binding.btnLogout.setOnClickListener {

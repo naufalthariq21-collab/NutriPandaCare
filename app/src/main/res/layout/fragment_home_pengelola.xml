@@ -26,6 +26,7 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tv_welcome"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Dashboard Pengelola"
@@ -84,6 +85,7 @@
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_verifikasi"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
@@ -97,9 +99,10 @@
                         android:padding="16dp"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tv_count_verifikasi"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="12"
+                            android:text="0"
                             android:textColor="@color/green_primary"
                             android:textSize="24sp"
                             android:textStyle="bold"/>
@@ -113,6 +116,7 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_aduan"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
@@ -126,9 +130,10 @@
                         android:padding="16dp"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tv_count_aduan"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="5"
+                            android:text="0"
                             android:textColor="@color/badge_red"
                             android:textSize="24sp"
                             android:textStyle="bold"/>
@@ -151,6 +156,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_menu_mbg"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="12dp"
@@ -161,9 +167,11 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:padding="16dp">
-                    <View
+                    <ImageView
+                        android:id="@+id/iv_menu_today"
                         android:layout_width="80dp"
                         android:layout_height="80dp"
+                        android:scaleType="centerCrop"
                         android:background="@color/green_pastel"/>
                     <LinearLayout
                         android:layout_width="0dp"
@@ -172,19 +180,22 @@
                         android:orientation="vertical"
                         android:layout_marginStart="16dp">
                         <TextView
+                            android:id="@+id/tv_nama_menu_today"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Nasi Ayam Hainan"
+                            android:text="Belum ada menu"
                             android:textStyle="bold"
                             android:textSize="16sp"/>
                         <TextView
+                            android:id="@+id/tv_desc_menu_today"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="850 kkal • Nutrisi Lengkap"
+                            android:text="Klik untuk kelola menu harian"
                             android:textSize="12sp"
                             android:textColor="@color/green_medium"
                             android:layout_marginTop="4dp"/>
                         <Button
+                            android:id="@+id/btn_edit_menu"
                             style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
