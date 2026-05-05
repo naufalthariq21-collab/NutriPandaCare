@@ -1,14 +1,11 @@
 package com.example.nutripandacare.fragment.guru
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.example.nutripandacare.LoginActivity
 import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentHomeGuruBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
@@ -48,10 +45,15 @@ class HomeGuruFragment : Fragment() {
     }
 
     private fun loadClassStats() {
+        // Logika untuk mengambil data statistik dari rekap gizi terakhir
         FirebaseHelper.getRekapGizi(
             onSuccess = { list ->
                 if (list.isNotEmpty()) {
-                    // Update stats logic here if needed
+                    // Ambil rekap terbaru
+                    val lastRekap = list[0].second
+                    // Update UI dengan data dari Firestore (asumsi field sesuai)
+                    // binding.tvTotalSiswa.text = (lastRekap["total_siswa"] as? Number)?.toString() ?: "0"
+                    // dst...
                 }
             },
             onError = { /* Handle error */ }
@@ -67,27 +69,9 @@ class HomeGuruFragment : Fragment() {
             findNavController().navigate(R.id.nav_buat_pengumuman)
         }
         
-        binding.btnNotifikasi.setOnClickListener {
-            // Logic for notification
+        binding.ivBell.setOnClickListener {
+            // Navigasi ke notifikasi jika ada
         }
-
-        binding.btnLogout.setOnClickListener {
-            confirmLogout()
-        }
-    }
-
-    private fun confirmLogout() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Logout")
-            .setMessage("Apakah Anda yakin ingin keluar?")
-            .setPositiveButton("Ya") { _, _ ->
-                FirebaseHelper.logout()
-                val intent = Intent(requireContext(), LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-            }
-            .setNegativeButton("Tidak", null)
-            .show()
     }
 
     override fun onDestroyView() {

@@ -1,60 +1,108 @@
 package com.example.nutripandacare.fragment.guru
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.nutripandacare.R
+import android.widget.ArrayAdapter
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import com.example.nutripandacare.databinding.FragmentAduanMbgBinding
+import com.example.nutripandacare.firebase.FirebaseHelper
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [AduanMbgFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class AduanMbgFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentAduanMbgBinding? = null
+    private val binding get() = _binding!!
+    
+    private var userNama: String = ""
+    private var isLoading = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_aduan_mbg, container, false)
+    ): View {
+        _binding = FragmentAduanMbgBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment AduanMbgFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            AduanMbgFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupToolbar()
+        setupSpinner()
+        loadUserData()
+        setupClickListeners()
+    }
+
+    private fun setupToolbar() {
+        binding.toolbar.setNavigationOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
+    private fun setupSpinner() {
+        val kategori = arrayOf("Makanan", "Pelayanan", "Kebersihan", "Lainnya")
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, kategori)
+        binding.spinnerKategoriAduan.adapter = adapter
+    }
+
+    private fun loadUserData() {
+        FirebaseHelper.getDataUser(FirebaseHelper.uid,
+            onSuccess = { data ->
+                userNama = data["nama"] as? String ?: "Guru"
+            },
+            onError = { /* Silently fail or use default */ }
+        )
+    }
+
+    private fun setupClickListeners() {
+        binding.btnKirimAduan.setOnClickListener {
+            val judul = binding.etJudulAduan.text.toString().trim()
+            val isi = binding.etIsiAduan.text.toString().trim()
+            val kategori = binding.spinnerKategoriAduan.selectedItem.toString()
+
+            if (judul.isEmpty()) {
+                binding.etJudulAduan.error = "Judul tidak boleh kosong"
+                return@setOnClickListener
             }
+            if (isi.isEmpty()) {
+                binding.etIsiAduan.error = "Isi aduan tidak boleh kosong"
+                return@setOnClickListener
+            }
+
+            kirimAduan(judul, isi, kategori)
+        }
+    }
+
+    private fun kirimAduan(judul: String, isi: String, kategori: String) {
+        if (isLoading) return
+        isLoading = true
+        binding.btnKirimAduan.isEnabled = false
+        binding.btnKirimAduan.text = "Mengirim..."
+
+        FirebaseHelper.kirimAduan(
+            judul = judul,
+            isi = isi,
+            kategori = kategori,
+            pengirimNama = userNama,
+            pengirimRole = "guru",
+            onSuccess = {
+                isLoading = false
+                Toast.makeText(requireContext(), "Aduan berhasil terkirim", Toast.LENGTH_SHORT).show()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
+            },
+            onError = { err ->
+                isLoading = false
+                binding.btnKirimAduan.isEnabled = true
+                binding.btnKirimAduan.text = "Kirim Aduan Sekarang"
+                Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_LONG).show()
+            }
+        )
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

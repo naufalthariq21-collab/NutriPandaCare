@@ -39,4 +39,22 @@
         android:label="Kalender Menu"
         tools:layout="@layout/fragment_menu_mbg" />
 
+    <fragment
+        android:id="@+id/editProfilAnakFragment"
+        android:name="com.example.nutripandacare.fragment.orangtua.EditProfilAnakFragment"
+        android:label="Edit Profil Anak"
+        tools:layout="@layout/fragment_edit_profil_anak" />
+
+    <fragment
+        android:id="@+id/notifikasiFragment"
+        android:name="com.example.nutripandacare.fragment.pengelola.NotifikasiFragment"
+        android:label="Notifikasi"
+        tools:layout="@layout/fragment_notifikasi" />
+
+    <fragment
+        android:id="@+id/pengumumanFragment"
+        android:name="com.example.nutripandacare.fragment.orangtua.PengumumanFragment"
+        android:label="Pengumuman"
+        tools:layout="@layout/fragment_pengumuman" />
+
 </navigation>
