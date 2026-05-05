@@ -169,7 +169,7 @@ class HomeOrangTuaFragment : Fragment() {
         }
 
         binding.tvLihatSemuaPengumuman.setOnClickListener {
-             Toast.makeText(requireContext(), "Fitur Pengumuman segera hadir!", Toast.LENGTH_SHORT).show()
+             findNavController().navigate(R.id.pengumumanFragment)
         }
 
         binding.btnLogout.setOnClickListener {

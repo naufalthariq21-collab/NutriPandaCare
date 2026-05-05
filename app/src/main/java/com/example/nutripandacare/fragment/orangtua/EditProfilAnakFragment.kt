@@ -1,10 +1,12 @@
 package com.example.nutripandacare.fragment.orangtua
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
@@ -17,6 +19,14 @@ class EditProfilAnakFragment : Fragment() {
     private var _binding: FragmentEditProfilAnakBinding? = null
     private val binding get() = _binding!!
     private var anakId: String = ""
+    private var imageUri: Uri? = null
+
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            imageUri = uri
+            binding.ivFotoAnak.setImageURI(uri)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -80,7 +90,7 @@ class EditProfilAnakFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val updates = mapOf(
+            val updates = mutableMapOf<String, Any>(
                 "nama_anak" to nama,
                 "usia_anak" to usiaStr,
                 "usia_bulan" to usiaBulan,
@@ -89,21 +99,38 @@ class EditProfilAnakFragment : Fragment() {
                 "jenis_kelamin" to jk
             )
 
-            FirebaseHelper.db.collection("users").document(FirebaseHelper.uid)
-                .collection("anak").document(anakId)
-                .update(updates)
-                .addOnSuccessListener {
-                    Toast.makeText(requireContext(), "Profil anak berhasil diperbarui", Toast.LENGTH_SHORT).show()
-                    findNavController().navigateUp()
-                }
-                .addOnFailureListener {
-                    Toast.makeText(requireContext(), "Gagal menyimpan: ${it.message}", Toast.LENGTH_SHORT).show()
-                }
+            if (imageUri != null) {
+                FirebaseHelper.uploadImage("anak/$anakId.jpg", imageUri!!,
+                    onSuccess = { url ->
+                        updates["foto_anak"] = url
+                        saveToFirestore(updates)
+                    },
+                    onError = {
+                        Toast.makeText(requireContext(), "Gagal upload foto: $it", Toast.LENGTH_SHORT).show()
+                        saveToFirestore(updates)
+                    }
+                )
+            } else {
+                saveToFirestore(updates)
+            }
         }
 
         binding.btnPilihFoto.setOnClickListener {
-            Toast.makeText(requireContext(), "Fitur unggah foto segera hadir!", Toast.LENGTH_SHORT).show()
+            pickImageLauncher.launch("image/*")
         }
+    }
+
+    private fun saveToFirestore(updates: Map<String, Any>) {
+        FirebaseHelper.db.collection("users").document(FirebaseHelper.uid)
+            .collection("anak").document(anakId)
+            .update(updates)
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "Profil anak berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                findNavController().navigateUp()
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Gagal menyimpan: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     override fun onDestroyView() {
