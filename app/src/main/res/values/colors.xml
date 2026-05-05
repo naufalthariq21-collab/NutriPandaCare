@@ -19,6 +19,7 @@
 
     <!-- White & Neutral -->
     <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
     <color name="off_white">#FAFAFA</color>
     <color name="surface_light">#FAFAFA</color>
     <color name="text_primary">#1A1A1A</color>
