@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.nutripandacare.LoginActivity
 import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentHomePengelolaBinding
@@ -43,7 +44,9 @@ class HomePengelolaFragment : Fragment() {
 
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
-                // Jika ingin menampilkan nama pengelola di header
+                if (_binding == null) return@getDataUser
+                val nama = data["nama"] as? String ?: "Pengelola"
+                binding.tvWelcomeName.text = "Selamat Datang, $nama"
             },
             onError = { }
         )
@@ -53,6 +56,7 @@ class HomePengelolaFragment : Fragment() {
         FirebaseHelper.getPendaftarBaru(
             onSuccess = { list ->
                 if (_binding == null) return@getPendaftarBaru
+                binding.tvCountVerifikasi.text = list.size.toString()
             },
             onError = { }
         )
@@ -60,6 +64,8 @@ class HomePengelolaFragment : Fragment() {
         FirebaseHelper.getAllAduan(
             onSuccess = { list ->
                 if (_binding == null) return@getAllAduan
+                val pendingCount = list.count { (it.second["status_aduan"] as? String) == "menunggu" }
+                binding.tvCountAduan.text = pendingCount.toString()
             },
             onError = { }
         )
@@ -70,6 +76,25 @@ class HomePengelolaFragment : Fragment() {
         FirebaseHelper.getMenuHariIni(today,
             onSuccess = { data ->
                 if (_binding == null) return@getMenuHariIni
+                if (data != null) {
+                    binding.tvNamaMenuHariIni.text = data["nama_menu"] as? String ?: "Menu Hari Ini"
+                    val kalori = (data["kalori"] as? Number)?.toLong() ?: 0L
+                    binding.tvInfoMenuHariIni.text = "$kalori kkal • Nutrisi Lengkap"
+                    
+                    val fotoUrl = data["foto_menu"] as? String ?: ""
+                    if (fotoUrl.isNotEmpty()) {
+                        Glide.with(requireContext())
+                            .load(fotoUrl)
+                            .placeholder(R.drawable.ic_food_plate)
+                            .into(binding.ivMenuHariIni)
+                    } else {
+                        binding.ivMenuHariIni.setImageResource(R.drawable.ic_food_plate)
+                    }
+                } else {
+                    binding.tvNamaMenuHariIni.text = "Belum Ada Menu"
+                    binding.tvInfoMenuHariIni.text = "Silakan tambahkan menu untuk hari ini"
+                    binding.ivMenuHariIni.setImageResource(R.drawable.ic_food_plate)
+                }
             },
             onError = { }
         )
@@ -83,9 +108,17 @@ class HomePengelolaFragment : Fragment() {
         binding.btnKelolaAduan.setOnClickListener {
             findNavController().navigate(R.id.fragment_aduan_pengelola)
         }
+        
+        binding.btnEditMenuHariIni.setOnClickListener {
+            findNavController().navigate(R.id.fragment_menu_mbg)
+        }
 
         binding.btnLogout.setOnClickListener {
             confirmLogout()
+        }
+        
+        binding.btnNotifikasi.setOnClickListener {
+            findNavController().navigate(R.id.fragment_notifikasi)
         }
     }
 
