@@ -45,15 +45,22 @@ class HomeGuruFragment : Fragment() {
     }
 
     private fun loadClassStats() {
-        // Logika untuk mengambil data statistik dari rekap gizi terakhir
         FirebaseHelper.getRekapGizi(
             onSuccess = { list ->
+                if (_binding == null) return@getRekapGizi
                 if (list.isNotEmpty()) {
-                    // Ambil rekap terbaru
                     val lastRekap = list[0].second
-                    // Update UI dengan data dari Firestore (asumsi field sesuai)
-                    // binding.tvTotalSiswa.text = (lastRekap["total_siswa"] as? Number)?.toString() ?: "0"
-                    // dst...
+                    val totalSiswa = (lastRekap["total_siswa"] as? Number)?.toInt() ?: 0
+                    val normal = (lastRekap["normal"] as? Number)?.toInt() ?: 0
+                    val beresiko = totalSiswa - normal
+
+                    binding.tvTotalSiswa.text = totalSiswa.toString()
+                    binding.tvTotalNormal.text = normal.toString()
+                    binding.tvTotalBeresiko.text = beresiko.coerceAtLeast(0).toString()
+                } else {
+                    binding.tvTotalSiswa.text = "0"
+                    binding.tvTotalNormal.text = "0"
+                    binding.tvTotalBeresiko.text = "0"
                 }
             },
             onError = { /* Handle error */ }
@@ -62,15 +69,16 @@ class HomeGuruFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.btnRekapGizi.setOnClickListener {
-            findNavController().navigate(R.id.nav_rekap_gizi)
+            findNavController().navigate(R.id.action_homeGuruFragment_to_rekapGiziFragment)
         }
 
         binding.btnKirimPengumuman.setOnClickListener {
-            findNavController().navigate(R.id.nav_buat_pengumuman)
+            findNavController().navigate(R.id.action_homeGuruFragment_to_kirimPengumumanFragment)
         }
         
         binding.ivBell.setOnClickListener {
             // Navigasi ke notifikasi jika ada
+            findNavController().navigate(R.id.nav_notifikasi)
         }
     }
 

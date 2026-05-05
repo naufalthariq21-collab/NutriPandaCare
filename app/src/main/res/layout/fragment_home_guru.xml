@@ -97,9 +97,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tvTotalSiswa"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="35"
+                            android:text="0"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:textColor="@color/green_primary"/>
@@ -117,9 +118,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tvTotalNormal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="28"
+                            android:text="0"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:textColor="@color/green_accent"/>
@@ -137,9 +139,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tvTotalBeresiko"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="7"
+                            android:text="0"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:textColor="@color/badge_red"/>
