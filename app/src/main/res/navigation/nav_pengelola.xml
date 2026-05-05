@@ -34,9 +34,15 @@
     </fragment>
 
     <fragment
-        android:id="@+id/fragment_notifikasi"
+        android:id="@+id/fragment_profil_pengelola"
         android:name="com.example.nutripandacare.fragment.pengelola.NotifikasiFragment"
         android:label="Profil"
+        tools:layout="@layout/fragment_notifikasi" />
+
+    <fragment
+        android:id="@+id/fragment_notifikasi"
+        android:name="com.example.nutripandacare.fragment.pengelola.NotifikasiFragment"
+        android:label="Notifikasi"
         tools:layout="@layout/fragment_notifikasi" />
 
     <fragment
@@ -44,5 +50,17 @@
         android:name="com.example.nutripandacare.fragment.pengelola.TambahMenuFragment"
         android:label="Tambah Menu"
         tools:layout="@layout/fragment_tambah_menu" />
+
+    <fragment
+        android:id="@+id/fragment_rekap_gizi"
+        android:name="com.example.nutripandacare.fragment.guru.RekapGiziFragment"
+        android:label="Rekap Gizi"
+        tools:layout="@layout/fragment_rekap_gizi" />
+
+    <fragment
+        android:id="@+id/fragment_edukasi"
+        android:name="com.example.nutripandacare.fragment.orangtua.EdukasiFragment"
+        android:label="Edukasi"
+        tools:layout="@layout/fragment_edukasi" />
 
 </navigation>

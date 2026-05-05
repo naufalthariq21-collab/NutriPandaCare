@@ -101,6 +101,21 @@ class HomePengelolaFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
+        // Navigasi dari Header/Summary
+        binding.btnNotifikasi.setOnClickListener {
+            findNavController().navigate(R.id.fragment_notifikasi)
+        }
+
+        binding.btnLogout.setOnClickListener {
+            confirmLogout()
+        }
+
+        // Navigasi Menu MBG (dari Card Menu Hari Ini)
+        binding.btnEditMenuHariIni.setOnClickListener {
+            findNavController().navigate(R.id.fragment_menu_mbg)
+        }
+
+        // Navigasi Aksi Cepat
         binding.btnKelolaPengguna.setOnClickListener {
             findNavController().navigate(R.id.fragment_verifikasi_pengelola)
         }
@@ -108,17 +123,13 @@ class HomePengelolaFragment : Fragment() {
         binding.btnKelolaAduan.setOnClickListener {
             findNavController().navigate(R.id.fragment_aduan_pengelola)
         }
-        
-        binding.btnEditMenuHariIni.setOnClickListener {
-            findNavController().navigate(R.id.fragment_menu_mbg)
+
+        binding.btnRekapGizi.setOnClickListener {
+            findNavController().navigate(R.id.fragment_rekap_gizi)
         }
 
-        binding.btnLogout.setOnClickListener {
-            confirmLogout()
-        }
-        
-        binding.btnNotifikasi.setOnClickListener {
-            findNavController().navigate(R.id.fragment_notifikasi)
+        binding.btnEdukasi.setOnClickListener {
+            findNavController().navigate(R.id.fragment_edukasi)
         }
     }
 
