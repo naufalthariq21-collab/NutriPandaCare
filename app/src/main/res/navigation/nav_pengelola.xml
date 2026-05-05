@@ -27,12 +27,22 @@
         android:id="@+id/fragment_menu_mbg"
         android:name="com.example.nutripandacare.fragment.pengelola.KelolaMenuFragment"
         android:label="Menu MBG"
-        tools:layout="@layout/fragment_kelola_menu" />
+        tools:layout="@layout/fragment_kelola_menu">
+        <action
+            android:id="@+id/action_fragment_menu_mbg_to_tambahMenuFragment"
+            app:destination="@id/tambahMenuFragment" />
+    </fragment>
 
     <fragment
-        android:id="@+id/fragment_profil_pengelola"
+        android:id="@+id/fragment_notifikasi"
         android:name="com.example.nutripandacare.fragment.pengelola.NotifikasiFragment"
         android:label="Profil"
         tools:layout="@layout/fragment_notifikasi" />
+
+    <fragment
+        android:id="@+id/tambahMenuFragment"
+        android:name="com.example.nutripandacare.fragment.pengelola.TambahMenuFragment"
+        android:label="Tambah Menu"
+        tools:layout="@layout/fragment_tambah_menu" />
 
 </navigation>

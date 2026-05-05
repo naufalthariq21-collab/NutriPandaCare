@@ -1,11 +1,15 @@
 package com.example.nutripandacare.fragment.pengelola
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
+import com.example.nutripandacare.LoginActivity
 import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentHomePengelolaBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
@@ -40,27 +44,28 @@ class HomePengelolaFragment : Fragment() {
 
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
-                // Jika ingin menampilkan nama pengelola di header
+                if (_binding == null) return@getDataUser
+                val nama = data["nama"] as? String ?: "Pengelola"
+                binding.tvWelcomeName.text = "Selamat Datang, $nama"
             },
             onError = { }
         )
     }
 
     private fun loadSummaryStats() {
-        // Ambil jumlah pendaftar baru yang belum diverifikasi
         FirebaseHelper.getPendaftarBaru(
             onSuccess = { list ->
                 if (_binding == null) return@getPendaftarBaru
-                // binding.tvCountVerifikasi.text = list.size.toString()
+                binding.tvCountVerifikasi.text = list.size.toString()
             },
             onError = { }
         )
 
-        // Ambil jumlah aduan masuk
         FirebaseHelper.getAllAduan(
             onSuccess = { list ->
                 if (_binding == null) return@getAllAduan
-                // binding.tvCountAduan.text = list.size.toString()
+                val pendingCount = list.count { (it.second["status_aduan"] as? String) == "menunggu" }
+                binding.tvCountAduan.text = pendingCount.toString()
             },
             onError = { }
         )
@@ -72,8 +77,23 @@ class HomePengelolaFragment : Fragment() {
             onSuccess = { data ->
                 if (_binding == null) return@getMenuHariIni
                 if (data != null) {
-                    // binding.tvNamaMenu.text = data["nama_menu"] as? String ?: "-"
-                    // binding.tvInfoMenu.text = "${data["kalori"] ?: 0} kkal • Nutrisi Lengkap"
+                    binding.tvNamaMenuHariIni.text = data["nama_menu"] as? String ?: "Menu Hari Ini"
+                    val kalori = (data["kalori"] as? Number)?.toLong() ?: 0L
+                    binding.tvInfoMenuHariIni.text = "$kalori kkal • Nutrisi Lengkap"
+                    
+                    val fotoUrl = data["foto_menu"] as? String ?: ""
+                    if (fotoUrl.isNotEmpty()) {
+                        Glide.with(requireContext())
+                            .load(fotoUrl)
+                            .placeholder(R.drawable.ic_food_plate)
+                            .into(binding.ivMenuHariIni)
+                    } else {
+                        binding.ivMenuHariIni.setImageResource(R.drawable.ic_food_plate)
+                    }
+                } else {
+                    binding.tvNamaMenuHariIni.text = "Belum Ada Menu"
+                    binding.tvInfoMenuHariIni.text = "Silakan tambahkan menu untuk hari ini"
+                    binding.ivMenuHariIni.setImageResource(R.drawable.ic_food_plate)
                 }
             },
             onError = { }
@@ -88,6 +108,32 @@ class HomePengelolaFragment : Fragment() {
         binding.btnKelolaAduan.setOnClickListener {
             findNavController().navigate(R.id.fragment_aduan_pengelola)
         }
+        
+        binding.btnEditMenuHariIni.setOnClickListener {
+            findNavController().navigate(R.id.fragment_menu_mbg)
+        }
+
+        binding.btnLogout.setOnClickListener {
+            confirmLogout()
+        }
+        
+        binding.btnNotifikasi.setOnClickListener {
+            findNavController().navigate(R.id.fragment_notifikasi)
+        }
+    }
+
+    private fun confirmLogout() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Logout")
+            .setMessage("Apakah Anda yakin ingin keluar?")
+            .setPositiveButton("Ya") { _, _ ->
+                FirebaseHelper.logout()
+                val intent = Intent(requireContext(), LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+            }
+            .setNegativeButton("Tidak", null)
+            .show()
     }
 
     override fun onDestroyView() {
