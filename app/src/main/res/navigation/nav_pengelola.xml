@@ -35,4 +35,10 @@
         android:label="Profil"
         tools:layout="@layout/fragment_notifikasi" />
 
+    <fragment
+        android:id="@+id/fragment_preview_konten"
+        android:name="com.example.nutripandacare.fragment.guru.PreviewKontenFragment"
+        android:label="Preview Konten"
+        tools:layout="@layout/fragment_preview_konten" />
+
 </navigation>

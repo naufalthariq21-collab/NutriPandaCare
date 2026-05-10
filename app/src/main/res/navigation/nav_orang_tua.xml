@@ -29,4 +29,10 @@
         android:label="Kalender Menu"
         tools:layout="@layout/fragment_menu_mbg" />
 
+    <fragment
+        android:id="@+id/fragment_preview_konten"
+        android:name="com.example.nutripandacare.fragment.guru.PreviewKontenFragment"
+        android:label="Preview Konten"
+        tools:layout="@layout/fragment_preview_konten" />
+
 </navigation>
