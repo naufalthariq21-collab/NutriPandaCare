@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentDataPenggunaBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 
@@ -33,7 +35,11 @@ class DataPenggunaFragment : Fragment() {
         loadPendaftarBaru()
         
         binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+            // Gunakan findNavController untuk navigasi balik yang lebih aman
+            if (!findNavController().navigateUp()) {
+                // Jika tidak ada stack, paksa balik ke Home Pengelola
+                findNavController().navigate(R.id.fragment_home_pengelola)
+            }
         }
     }
 
@@ -48,11 +54,14 @@ class DataPenggunaFragment : Fragment() {
     private fun loadPendaftarBaru() {
         FirebaseHelper.getPendaftarBaru(
             onSuccess = { list ->
-                if (_binding == null) return@getPendaftarBaru
-                adapter.updateData(list)
+                if (_binding != null) {
+                    adapter.updateData(list)
+                }
             },
             onError = { err ->
-                Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show()
+                context?.let {
+                    Toast.makeText(it, "Gagal memuat data: $err", Toast.LENGTH_SHORT).show()
+                }
             }
         )
     }
@@ -60,11 +69,15 @@ class DataPenggunaFragment : Fragment() {
     private fun verifikasiUser(uid: String) {
         FirebaseHelper.verifikasiAkun(uid,
             onSuccess = {
-                Toast.makeText(requireContext(), "Akun berhasil diverifikasi!", Toast.LENGTH_SHORT).show()
+                context?.let {
+                    Toast.makeText(it, "Akun berhasil diverifikasi!", Toast.LENGTH_SHORT).show()
+                }
                 loadPendaftarBaru()
             },
             onError = { err ->
-                Toast.makeText(requireContext(), "Gagal verifikasi: $err", Toast.LENGTH_SHORT).show()
+                context?.let {
+                    Toast.makeText(it, "Gagal verifikasi: $err", Toast.LENGTH_SHORT).show()
+                }
             }
         )
     }

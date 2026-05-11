@@ -57,41 +57,52 @@ class KelolaMenuFragment : Fragment() {
 
         FirebaseHelper.getDaftarMenu(start, end,
             onSuccess = { list ->
-                if (_binding == null) return@getDaftarMenu
-                adapter.updateData(list)
+                if (_binding != null) {
+                    adapter.updateData(list)
+                }
             },
             onError = { err ->
-                Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show()
+                context?.let {
+                    Toast.makeText(it, "Gagal memuat menu: $err", Toast.LENGTH_SHORT).show()
+                }
             }
         )
     }
 
     private fun konfirmasiHapus(tanggal: String) {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Hapus Menu")
-            .setMessage("Yakin ingin menghapus menu untuk tanggal $tanggal?")
-            .setPositiveButton("Hapus") { _, _ ->
-                FirebaseHelper.hapusMenuMbg(tanggal,
-                    onSuccess = {
-                        Toast.makeText(requireContext(), "Menu dihapus", Toast.LENGTH_SHORT).show()
-                        loadDaftarMenu()
-                    },
-                    onError = { err ->
-                        Toast.makeText(requireContext(), "Gagal hapus: $err", Toast.LENGTH_SHORT).show()
-                    }
-                )
-            }
-            .setNegativeButton("Batal", null)
-            .show()
+        context?.let { ctx ->
+            AlertDialog.Builder(ctx)
+                .setTitle("Hapus Menu")
+                .setMessage("Yakin ingin menghapus menu untuk tanggal $tanggal?")
+                .setPositiveButton("Hapus") { _, _ ->
+                    FirebaseHelper.hapusMenuMbg(tanggal,
+                        onSuccess = {
+                            Toast.makeText(ctx, "Menu berhasil dihapus", Toast.LENGTH_SHORT).show()
+                            loadDaftarMenu()
+                        },
+                        onError = { err ->
+                            Toast.makeText(ctx, "Gagal hapus: $err", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                }
+                .setNegativeButton("Batal", null)
+                .show()
+        }
     }
 
     private fun setupClickListeners() {
         binding.btnTambahMenu.setOnClickListener {
-            findNavController().navigate(R.id.action_fragment_menu_mbg_to_tambahMenuFragment)
+            // Pastikan navigasi aman dengan mengecek current destination
+            if (findNavController().currentDestination?.id == R.id.fragment_menu_mbg) {
+                findNavController().navigate(R.id.action_fragment_menu_mbg_to_tambahMenuFragment)
+            }
         }
         
         binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+            // Balik ke Home jika tidak bisa navigate up
+            if (!findNavController().navigateUp()) {
+                findNavController().navigate(R.id.fragment_home_pengelola)
+            }
         }
     }
 

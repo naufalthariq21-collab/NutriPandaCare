@@ -16,27 +16,11 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp">
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="@color/white"
+            app:title="Kelola Menu MBG"
+            app:titleTextColor="@color/white" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Kelola Menu MBG"
-                android:textColor="@color/white"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_gravity="start"/>
-
-            <ImageView
-                android:id="@+id/ivMenu"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_menu_sort_by_size"
-                android:layout_gravity="end"
-                android:contentDescription="Menu"
-                app:tint="@color/white" />
-        </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
     <LinearLayout
@@ -48,37 +32,26 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:background="@color/cream_primary">
+            android:padding="16dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTambahMenu"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="+ Tambah Menu"
-                android:textColor="@color/white"
-                android:textSize="15sp"
+                android:text="+ Tambah Menu Baru"
+                android:textAllCaps="false"
                 android:textStyle="bold"
-                app:backgroundTint="@color/green_dark"
                 app:cornerRadius="12dp"
-                app:icon="@null"/>
+                app:backgroundTint="@color/green_dark" />
         </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/divider"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvMenuList"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:padding="16dp"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="16dp"
             android:clipToPadding="false"
-            android:paddingBottom="16dp"/>
+            android:paddingBottom="80dp"/>
 
     </LinearLayout>
 
