@@ -2,8 +2,6 @@ package com.example.nutripandacare
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.method.HideReturnsTransformationMethod
-import android.text.method.PasswordTransformationMethod
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -19,7 +17,6 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
     private lateinit var googleSignInClient: GoogleSignInClient
-    private var isPasswordVisible = false
 
     // ─────────────────────────────────────────────
     // Google Sign-In result launcher
@@ -48,7 +45,6 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupGoogleSignIn()
-        setupTogglePassword()
         setupTombolMasuk()
         setupLupaPassword()
         setupTombolGoogle()
@@ -58,9 +54,6 @@ class LoginActivity : AppCompatActivity() {
 
     // ─────────────────────────────────────────────
     // SETUP GOOGLE SIGN-IN CLIENT
-    // Web Client ID diambil dari strings.xml
-    // nama string: default_web_client_id
-    // (otomatis dibuat saat sync google-services.json)
     // ─────────────────────────────────────────────
     private fun setupGoogleSignIn() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -72,12 +65,10 @@ class LoginActivity : AppCompatActivity() {
 
     // ─────────────────────────────────────────────
     // TOMBOL GOOGLE
-    // XML id: btnGoogle
     // ─────────────────────────────────────────────
     private fun setupTombolGoogle() {
         binding.btnGoogle.setOnClickListener {
             setLoading(true)
-            // Sign out dulu agar selalu muncul picker akun Google
             googleSignInClient.signOut().addOnCompleteListener {
                 googleLauncher.launch(googleSignInClient.signInIntent)
             }
@@ -99,10 +90,8 @@ class LoginActivity : AppCompatActivity() {
                 val fotoUrl  = result.user?.photoUrl?.toString() ?: ""
 
                 if (isNewUser) {
-                    // User baru via Google → simpan ke Firestore → pilih role
                     simpanUserBaruGoogle(uid, nama, email, fotoUrl)
                 } else {
-                    // User lama → langsung cek role & navigate
                     cekRoleDanNavigate(uid)
                 }
             }
@@ -113,10 +102,6 @@ class LoginActivity : AppCompatActivity() {
             }
     }
 
-    // ─────────────────────────────────────────────
-    // SIMPAN USER BARU GOOGLE KE FIRESTORE
-    // Path: users/{uid}
-    // ─────────────────────────────────────────────
     private fun simpanUserBaruGoogle(
         uid: String, nama: String, email: String, fotoUrl: String
     ) {
@@ -126,7 +111,7 @@ class LoginActivity : AppCompatActivity() {
             "no_hp"       to "",
             "role"        to "",
             "foto_url"    to fotoUrl,
-            "is_verified" to true,      // Google sudah verified otomatis
+            "is_verified" to true,
             "status_akun" to "aktif",
             "created_at"  to com.google.firebase.Timestamp.now(),
             "updated_at"  to com.google.firebase.Timestamp.now()
@@ -136,7 +121,6 @@ class LoginActivity : AppCompatActivity() {
             .set(data)
             .addOnSuccessListener {
                 setLoading(false)
-                // Arahkan ke pilih role
                 startActivity(
                     Intent(this, RoleSelectionActivity::class.java).apply {
                         putExtra("UID",   uid)
@@ -153,26 +137,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // ─────────────────────────────────────────────
-    // TOGGLE SHOW/HIDE PASSWORD
-    // XML id: btnTogglePassword, etPassword
-    // ─────────────────────────────────────────────
-    private fun setupTogglePassword() {
-        binding.btnTogglePassword.setOnClickListener {
-            isPasswordVisible = !isPasswordVisible
-            binding.etPassword.transformationMethod = if (isPasswordVisible)
-                HideReturnsTransformationMethod.getInstance()
-            else
-                PasswordTransformationMethod.getInstance()
-            binding.btnTogglePassword.setImageResource(
-                if (isPasswordVisible) R.drawable.ic_eye_on else R.drawable.ic_eye_off
-            )
-            binding.etPassword.setSelection(binding.etPassword.text.length)
-        }
-    }
-
-    // ─────────────────────────────────────────────
     // TOMBOL MASUK — Email & Password
-    // XML id: btnMasuk, etEmail, etPassword
     // ─────────────────────────────────────────────
     private fun setupTombolMasuk() {
         binding.btnMasuk.setOnClickListener {
@@ -217,9 +182,6 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // CEK ROLE LALU NAVIGATE KE DASHBOARD
-    // ─────────────────────────────────────────────
     private fun cekRoleDanNavigate(uid: String) {
         FirebaseHelper.getRole(
             uid       = uid,
@@ -246,10 +208,6 @@ class LoginActivity : AppCompatActivity() {
         )
     }
 
-    // ─────────────────────────────────────────────
-    // LUPA PASSWORD
-    // XML id: tvForgotPassword
-    // ─────────────────────────────────────────────
     private fun setupLupaPassword() {
         binding.tvForgotPassword.setOnClickListener {
             val email = binding.etEmail.text.toString().trim()
@@ -271,27 +229,16 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // LINK DAFTAR SEKARANG
-    // XML id: tvDaftarSekarang
-    // ─────────────────────────────────────────────
     private fun setupDaftarLink() {
         binding.tvDaftarSekarang.setOnClickListener {
             startActivity(Intent(this, RegistrationActivity::class.java))
         }
     }
 
-    // ─────────────────────────────────────────────
-    // TOMBOL BACK
-    // XML id: btnBack
-    // ─────────────────────────────────────────────
     private fun setupTombolBack() {
         binding.btnBack.setOnClickListener { finish() }
     }
 
-    // ─────────────────────────────────────────────
-    // LOADING STATE — disable semua tombol
-    // ─────────────────────────────────────────────
     private fun setLoading(loading: Boolean) {
         binding.btnMasuk.isEnabled  = !loading
         binding.btnGoogle.isEnabled = !loading

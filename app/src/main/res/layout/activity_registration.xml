@@ -8,284 +8,262 @@
     android:background="@color/cream_primary"
     android:fillViewport="true">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:layout_height="wrap_content">
 
-        <!-- Top Row: Back + Progress -->
+        <!-- Header Hijau - Konsisten dengan Login -->
+        <View
+            android:id="@+id/headerBg"
+            android:layout_width="0dp"
+            android:layout_height="180dp"
+            android:background="@drawable/bg_top_green_wave"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Tombol Kembali -->
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/bg_circle_green_medium"
+            android:src="@drawable/ic_arrow_back"
+            android:padding="10dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/white" />
+
+        <!-- Progress Dots -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/progressDots"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="24dp">
-
-            <ImageButton
-                android:id="@+id/btnBack"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@drawable/bg_card_white"
-                android:src="@drawable/ic_back_arrow"
-                android:padding="8dp"
-                app:tint="@color/green_dark" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <View android:layout_width="8dp" android:layout_height="8dp"
-                    android:background="@drawable/bg_clock_circle"
-                    android:alpha="0.4" android:layout_marginEnd="5dp"/>
-                <View android:layout_width="8dp" android:layout_height="8dp"
-                    android:background="@drawable/bg_success_circle"
-                    android:layout_marginEnd="5dp"/>
-                <View android:layout_width="8dp" android:layout_height="8dp"
-                    android:background="@drawable/bg_clock_circle"
-                    android:alpha="0.4"/>
-            </LinearLayout>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="26dp"
+            android:layout_marginEnd="24dp">
+            <View android:layout_width="8dp" android:layout_height="8dp"
+                android:background="@color/green_pale"
+                android:layout_marginEnd="5dp"/>
+            <View android:layout_width="8dp" android:layout_height="8dp"
+                android:background="@drawable/bg_success_circle"
+                android:layout_marginEnd="5dp"/>
+            <View android:layout_width="8dp" android:layout_height="8dp"
+                android:background="@color/green_pale"/>
         </LinearLayout>
 
-        <!-- Title -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/daftar_akun"
-            android:textSize="26sp"
-            android:textColor="@color/green_dark"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-medium"
-            android:layout_gravity="center"
-            android:layout_marginBottom="6dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/buat_akun_baru"
-            android:textSize="14sp"
-            android:textColor="@color/text_secondary"
-            android:layout_gravity="center"
-            android:layout_marginBottom="28dp" />
-
-        <!-- Form Card -->
+        <!-- Card Form Registrasi -->
         <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
+            android:id="@+id/cardForm"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="6dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginTop="110dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="8dp"
             app:cardBackgroundColor="@color/white"
-            android:layout_marginBottom="16dp">
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="24dp">
 
-                <!-- Nama Lengkap -->
                 <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/daftar_akun"
+                    android:textSize="22sp"
+                    android:textColor="@color/green_dark"
+                    android:textStyle="bold"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:id="@+id/tvSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/buat_akun_baru"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="24dp" />
+
+                <!-- Nama Lengkap Section -->
+                <TextView
+                    style="@style/Widget.NutriPandaCare.FieldLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/nama_lengkap_label"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="6dp" />
+                    android:layout_marginBottom="8dp" />
 
-                <EditText
-                    android:id="@+id/etNamaLengkap"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.NutriPandaCare.TextInputLayout"
                     android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:hint="@string/nama_lengkap_hint"
-                    android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:background="@drawable/bg_input_field"
-                    android:inputType="textPersonName"
-                    android:singleLine="true"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:hintEnabled="false">
 
-                <!-- Email -->
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etNamaLengkap"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/nama_lengkap_hint"
+                        android:inputType="textPersonName"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Email Section -->
                 <TextView
+                    style="@style/Widget.NutriPandaCare.FieldLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/email_label"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="6dp" />
+                    android:layout_marginBottom="8dp" />
 
-                <EditText
-                    android:id="@+id/etEmail"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.NutriPandaCare.TextInputLayout"
                     android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:hint="@string/email_hint"
-                    android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:background="@drawable/bg_input_field"
-                    android:inputType="textEmailAddress"
-                    android:singleLine="true"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:hintEnabled="false"
+                    app:startIconDrawable="@drawable/ic_email"
+                    app:startIconTint="@color/green_medium">
 
-                <!-- Nomor WhatsApp -->
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/email_hint"
+                        android:inputType="textEmailAddress"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Nomor WhatsApp Section -->
                 <TextView
+                    style="@style/Widget.NutriPandaCare.FieldLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/nomor_whatsapp_label"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="6dp" />
+                    android:layout_marginBottom="8dp" />
 
-                <EditText
-                    android:id="@+id/etWhatsapp"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.NutriPandaCare.TextInputLayout"
                     android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:hint="@string/nomor_whatsapp_hint"
-                    android:textColorHint="@color/text_hint"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:background="@drawable/bg_input_field"
-                    android:inputType="phone"
-                    android:singleLine="true"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:hintEnabled="false">
 
-                <!-- Password -->
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etWhatsapp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/nomor_whatsapp_hint"
+                        android:inputType="phone"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Password Section -->
                 <TextView
+                    style="@style/Widget.NutriPandaCare.FieldLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/password_label"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="6dp" />
+                    android:layout_marginBottom="8dp" />
 
-                <FrameLayout
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.NutriPandaCare.TextInputLayout"
                     android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:background="@drawable/bg_input_field"
-                    android:layout_marginBottom="16dp">
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:hintEnabled="false"
+                    app:passwordToggleEnabled="true"
+                    app:passwordToggleTint="@color/green_medium">
 
-                    <EditText
+                    <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPassword"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:hint="@string/password_min"
-                        android:textColorHint="@color/text_hint"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="48dp"
-                        android:background="@android:color/transparent"
                         android:inputType="textPassword"
-                        android:singleLine="true" />
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                    <ImageButton
-                        android:id="@+id/btnTogglePass"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="center_vertical|end"
-                        android:layout_marginEnd="8dp"
-                        android:background="@android:color/transparent"
-                        android:src="@android:drawable/ic_menu_view"
-                        android:alpha="0.4" />
-                </FrameLayout>
-
-                <!-- Konfirmasi Password -->
+                <!-- Konfirmasi Password Section -->
                 <TextView
+                    style="@style/Widget.NutriPandaCare.FieldLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/konfirmasi_password_label"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="6dp" />
+                    android:layout_marginBottom="8dp" />
 
-                <FrameLayout
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.NutriPandaCare.TextInputLayout"
                     android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:background="@drawable/bg_input_field"
-                    android:layout_marginBottom="8dp">
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    app:hintEnabled="false"
+                    app:passwordToggleEnabled="true"
+                    app:passwordToggleTint="@color/green_medium">
 
-                    <EditText
+                    <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etKonfirmasiPassword"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:hint="@string/konfirmasi_password_hint"
-                        android:textColorHint="@color/text_hint"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="48dp"
-                        android:background="@android:color/transparent"
                         android:inputType="textPassword"
-                        android:singleLine="true" />
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                    <ImageButton
-                        android:id="@+id/btnToggleConfirmPass"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="center_vertical|end"
-                        android:layout_marginEnd="8dp"
-                        android:background="@android:color/transparent"
-                        android:src="@android:drawable/ic_menu_view"
-                        android:alpha="0.4" />
-                </FrameLayout>
+                <!-- Tombol Daftar -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDaftar"
+                    style="@style/Widget.NutriPandaCare.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="@string/daftar"
+                    android:layout_marginBottom="20dp" />
+
+                <!-- Link ke Login -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sudah_punya_akun"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvMasukLink"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="  Masuk"
+                        android:textSize="13sp"
+                        android:textColor="@color/green_primary"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Register Button -->
-        <Button
-            android:id="@+id/btnDaftar"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:text="@string/daftar"
-            android:textSize="16sp"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            android:background="@drawable/bg_button_primary"
-            android:layout_marginBottom="20dp"
-            android:layout_marginTop="4dp" />
-
-        <!-- Login link -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_gravity="center"
-            android:layout_marginBottom="24dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/sudah_punya_akun"
-                android:textSize="13sp"
-                android:textColor="@color/text_secondary" />
-
-            <TextView
-                android:id="@+id/tvMasukLink"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="  Masuk"
-                android:textSize="13sp"
-                android:textColor="@color/green_primary"
-                android:textStyle="bold" />
-        </LinearLayout>
-
+        <!-- Spacer bawah -->
         <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            app:layout_constraintTop_toBottomOf="@id/cardForm" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

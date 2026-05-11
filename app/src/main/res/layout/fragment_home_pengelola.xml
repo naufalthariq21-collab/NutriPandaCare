@@ -26,9 +26,10 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tvWelcome"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Dashboard Pengelola"
+                    android:text="Memuat..."
                     android:textColor="@color/white"
                     android:textSize="20sp"
                     android:textStyle="bold"/>
@@ -53,7 +54,7 @@
                 app:tint="@color/white" />
 
             <ImageButton
-                android:id="@+id/btn_logout"
+                android:id="@+id/btnLogout"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@drawable/ic_logout"
@@ -84,12 +85,15 @@
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardVerifikasi"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_margin="6dp"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp">
+                    app:cardElevation="2dp"
+                    android:clickable="true"
+                    android:focusable="true">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -97,9 +101,10 @@
                         android:padding="16dp"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tvCountVerifikasi"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="12"
+                            android:text="-"
                             android:textColor="@color/green_primary"
                             android:textSize="24sp"
                             android:textStyle="bold"/>
@@ -113,12 +118,15 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardAduan"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_margin="6dp"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp">
+                    app:cardElevation="2dp"
+                    android:clickable="true"
+                    android:focusable="true">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -126,9 +134,10 @@
                         android:padding="16dp"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tvCountAduan"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="5"
+                            android:text="-"
                             android:textColor="@color/badge_red"
                             android:textSize="24sp"
                             android:textStyle="bold"/>
@@ -151,20 +160,26 @@
                 android:layout_marginBottom="8dp"/>
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardMenuMbg"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                android:layout_marginBottom="24dp">
+                android:layout_marginBottom="24dp"
+                android:clickable="true"
+                android:focusable="true">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:padding="16dp">
-                    <View
+                    <ImageView
+                        android:id="@+id/ivMenuToday"
                         android:layout_width="80dp"
                         android:layout_height="80dp"
-                        android:background="@color/green_pastel"/>
+                        android:scaleType="centerCrop"
+                        android:background="@color/green_pastel"
+                        android:src="@drawable/ic_food_plate"/>
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -172,19 +187,22 @@
                         android:orientation="vertical"
                         android:layout_marginStart="16dp">
                         <TextView
+                            android:id="@+id/tvNamaMenuToday"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Nasi Ayam Hainan"
+                            android:text="Memuat..."
                             android:textStyle="bold"
                             android:textSize="16sp"/>
                         <TextView
+                            android:id="@+id/tvDescMenuToday"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="850 kkal • Nutrisi Lengkap"
+                            android:text="-"
                             android:textSize="12sp"
                             android:textColor="@color/green_medium"
                             android:layout_marginTop="4dp"/>
                         <Button
+                            android:id="@+id/btnEditMenu"
                             style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"

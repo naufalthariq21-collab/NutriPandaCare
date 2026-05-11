@@ -51,7 +51,7 @@
                     android:id="@+id/tv_nama_user"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Bunda!"
+                    android:text="Memuat..."
                     android:textColor="@color/white"
                     android:textSize="20sp"
                     android:textStyle="bold"
@@ -127,7 +127,7 @@
                             android:id="@+id/tv_status_nutrisi"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Normal"
+                            android:text="-"
                             android:textColor="@color/white"
                             android:textSize="22sp"
                             android:textStyle="bold"
@@ -137,7 +137,7 @@
                             android:id="@+id/tv_nama_anak_status"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Zainal • 11 Tahun"
+                            android:text="-"
                             android:textColor="@color/green_pale"
                             android:textSize="12sp"
                             android:layout_marginTop="4dp" />
@@ -231,7 +231,7 @@
                                 android:id="@+id/tv_nama_menu"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Nasi + Ayam Bumbu"
+                                android:text="Memuat..."
                                 android:textColor="@color/text_primary"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
@@ -246,7 +246,7 @@
                                     android:id="@+id/tv_kalori_menu"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="450 Kkal"
+                                    android:text="0 Kkal"
                                     android:textColor="@color/green_primary"
                                     android:textSize="12sp"
                                     android:textStyle="bold" />
@@ -262,7 +262,7 @@
                                     android:id="@+id/tv_protein_menu"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="25g Protein"
+                                    android:text="0g Protein"
                                     android:textColor="@color/text_secondary"
                                     android:textSize="12sp" />
                             </LinearLayout>
@@ -300,7 +300,7 @@
                                 android:id="@+id/tv_persentase_nutrisi"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="75%"
+                                android:text="0%"
                                 android:textColor="@color/green_primary"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
@@ -313,7 +313,7 @@
                             android:layout_height="8dp"
                             android:layout_marginTop="6dp"
                             android:max="100"
-                            android:progress="75"
+                            android:progress="0"
                             android:progressTint="@color/green_accent"
                             android:progressBackgroundTint="@color/green_pale" />
                     </LinearLayout>
@@ -346,7 +346,9 @@
                     android:gravity="center"
                     android:background="@drawable/bg_quick_action"
                     android:layout_marginEnd="6dp"
-                    android:padding="12dp">
+                    android:padding="12dp"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <ImageView
                         android:layout_width="32dp"
@@ -376,7 +378,9 @@
                     android:gravity="center"
                     android:background="@drawable/bg_quick_action"
                     android:layout_marginEnd="6dp"
-                    android:padding="12dp">
+                    android:padding="12dp"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <ImageView
                         android:layout_width="32dp"
@@ -406,7 +410,9 @@
                     android:gravity="center"
                     android:background="@drawable/bg_quick_action"
                     android:layout_marginEnd="6dp"
-                    android:padding="12dp">
+                    android:padding="12dp"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <ImageView
                         android:layout_width="32dp"
@@ -435,7 +441,9 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:background="@drawable/bg_quick_action"
-                    android:padding="12dp">
+                    android:padding="12dp"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <ImageView
                         android:layout_width="32dp"
@@ -520,7 +528,7 @@
                             android:id="@+id/tv_nama_anak"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Zainal"
+                            android:text="-"
                             android:textColor="@color/text_primary"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -529,7 +537,7 @@
                             android:id="@+id/tv_info_anak"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="11 Tahun • Laki-laki"
+                            android:text="-"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp"
                             android:layout_marginTop="2dp" />
@@ -538,7 +546,7 @@
                             android:id="@+id/tv_sekolah_anak"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="SDN 01 Jakarta"
+                            android:text="-"
                             android:textColor="@color/text_hint"
                             android:textSize="12sp"
                             android:layout_marginTop="2dp" />
@@ -613,7 +621,7 @@
                             android:id="@+id/tv_judul_pengumuman"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Jadwal MBG Minggu Ini"
+                            android:text="Memuat..."
                             android:textColor="@color/text_primary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -622,7 +630,7 @@
                             android:id="@+id/tv_isi_pengumuman"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Menu minggu ini sudah diperbarui. Silakan cek menu MBG terbaru."
+                            android:text="-"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp"
                             android:maxLines="2"
@@ -633,7 +641,7 @@
                             android:id="@+id/tv_waktu_pengumuman"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="2 jam yang lalu"
+                            android:text="-"
                             android:textColor="@color/text_hint"
                             android:textSize="11sp"
                             android:layout_marginTop="6dp" />

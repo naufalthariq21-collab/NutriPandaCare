@@ -2,8 +2,6 @@ package com.example.nutripandacare
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.method.HideReturnsTransformationMethod
-import android.text.method.PasswordTransformationMethod
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.nutripandacare.databinding.ActivityRegistrationBinding
@@ -12,61 +10,19 @@ import com.example.nutripandacare.firebase.FirebaseHelper
 class RegistrationActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegistrationBinding
-    private var isPasswordVisible        = false
-    private var isKonfirmasiVisible      = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegistrationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupTogglePassword()
-        setupToggleKonfirmasi()
         setupTombolDaftar()
         setupMasukLink()
         setupTombolBack()
     }
 
     // ─────────────────────────────────────────────
-    // TOGGLE PASSWORD
-    // XML id: btnTogglePass, etPassword
-    // ─────────────────────────────────────────────
-    private fun setupTogglePassword() {
-        binding.btnTogglePass.setOnClickListener {
-            isPasswordVisible = !isPasswordVisible
-            binding.etPassword.transformationMethod = if (isPasswordVisible)
-                HideReturnsTransformationMethod.getInstance()
-            else
-                PasswordTransformationMethod.getInstance()
-            binding.btnTogglePass.setImageResource(
-                if (isPasswordVisible) R.drawable.ic_eye_on else R.drawable.ic_eye_off
-            )
-            binding.etPassword.setSelection(binding.etPassword.text.length)
-        }
-    }
-
-    // ─────────────────────────────────────────────
-    // TOGGLE KONFIRMASI PASSWORD
-    // XML id: btnToggleConfirmPass, etKonfirmasiPassword
-    // ─────────────────────────────────────────────
-    private fun setupToggleKonfirmasi() {
-        binding.btnToggleConfirmPass.setOnClickListener {
-            isKonfirmasiVisible = !isKonfirmasiVisible
-            binding.etKonfirmasiPassword.transformationMethod = if (isKonfirmasiVisible)
-                HideReturnsTransformationMethod.getInstance()
-            else
-                PasswordTransformationMethod.getInstance()
-            binding.btnToggleConfirmPass.setImageResource(
-                if (isKonfirmasiVisible) R.drawable.ic_eye_on else R.drawable.ic_eye_off
-            )
-            binding.etKonfirmasiPassword.setSelection(binding.etKonfirmasiPassword.text.length)
-        }
-    }
-
-    // ─────────────────────────────────────────────
     // TOMBOL DAFTAR
-    // XML id: btnDaftar, etNamaLengkap, etEmail,
-    //         etWhatsapp, etPassword, etKonfirmasiPassword
     // ─────────────────────────────────────────────
     private fun setupTombolDaftar() {
         binding.btnDaftar.setOnClickListener {
@@ -124,8 +80,6 @@ class RegistrationActivity : AppCompatActivity() {
                 password  = password,
                 onSuccess = { uid ->
                     setLoading(false)
-                    // Setelah register → ke pilih role
-                    // Kirim uid & data user ke RoleSelectionActivity
                     startActivity(
                         Intent(this, RoleSelectionActivity::class.java).apply {
                             putExtra("UID",   uid)
@@ -154,10 +108,6 @@ class RegistrationActivity : AppCompatActivity() {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // LINK MASUK (sudah punya akun)
-    // XML id: tvMasukLink
-    // ─────────────────────────────────────────────
     private fun setupMasukLink() {
         binding.tvMasukLink.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
@@ -165,10 +115,6 @@ class RegistrationActivity : AppCompatActivity() {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // TOMBOL BACK
-    // XML id: btnBack
-    // ─────────────────────────────────────────────
     private fun setupTombolBack() {
         binding.btnBack.setOnClickListener { finish() }
     }

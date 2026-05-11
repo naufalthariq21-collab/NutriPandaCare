@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentGiziBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import java.text.SimpleDateFormat
@@ -32,47 +34,42 @@ class GiziFragment : Fragment() {
     }
 
     private fun loadGiziData() {
-        // Ambil data anak
         FirebaseHelper.getDataAnak(
             onSuccess = { anakId, data ->
                 if (_binding == null) return@getDataAnak
                 
                 val namaAnak = data["nama_anak"] as? String ?: "Anak"
-                val statusGizi = data["status_gizi"] as? String ?: "Normal"
+                val statusGizi = data["status_gizi"] as? String ?: "Belum dicek"
                 val zScore = (data["z_score"] as? Number)?.toDouble() ?: 0.0
                 
                 binding.tvStatusGiziNama.text = statusGizi
                 binding.tvStatusGiziDetail.text = "$namaAnak | Z-Score: ${"%.2f".format(zScore)}"
                 
-                // Ambil rata-rata gizi mingguan (dummy logic or from history)
                 loadGiziHistory(anakId)
             },
             onError = { err ->
                 if (_binding == null) return@getDataAnak
                 Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show()
+                binding.tvStatusGiziNama.text = "Data belum ada"
             }
         )
     }
 
     private fun loadGiziHistory(anakId: String) {
-        FirebaseHelper.getRiwayatGizi(anakId, limit = 7,
+        FirebaseHelper.getRiwayatGizi(anakId, limit = 1,
             onSuccess = { history ->
-                if (_binding == null || history.isEmpty()) return@getRiwayatGizi
+                if (_binding == null) return@getRiwayatGizi
                 
-                // Kalkulasi rata-rata (Contoh sederhana)
-                var totalCal = 0.0
-                var totalProt = 0.0
-                var totalNutr = 0
-                
-                history.forEach {
-                    // Di Firestore riwayat_gizi harusnya simpan kalori/protein per hari
-                    // Untuk saat ini kita tampilkan data terakhir jika field tersebut belum ada
+                if (history.isNotEmpty()) {
+                    val latest = history[0]
+                    binding.tvAvgKalori.text = latest["kalori"]?.toString() ?: "0"
+                    binding.tvAvgProtein.text = latest["protein"]?.toString() ?: "0g"
+                    binding.tvNutrisiPersen.text = "${latest["persentase_nutrisi"] ?: "0"}%"
+                } else {
+                    binding.tvAvgKalori.text = "0"
+                    binding.tvAvgProtein.text = "0g"
+                    binding.tvNutrisiPersen.text = "0%"
                 }
-                
-                val latest = history[0]
-                binding.tvAvgKalori.text = (latest["kalori"] ?: "450").toString()
-                binding.tvAvgProtein.text = (latest["protein"] ?: "25g").toString()
-                binding.tvNutrisiPersen.text = "${latest["persentase_nutrisi"] ?: "75"}%"
                 
                 val sdf = SimpleDateFormat("MMMM yyyy", Locale("id", "ID"))
                 binding.tvPeriodeGizi.text = sdf.format(Date())
@@ -83,12 +80,11 @@ class GiziFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.btnBack.setOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+            findNavController().navigateUp()
         }
         
         binding.btnUpdateGizi.setOnClickListener {
-            // Navigasi ke form input antropometri (jika ada)
-            Toast.makeText(requireContext(), "Fitur Update segera hadir", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.inputGiziFragment)
         }
     }
 

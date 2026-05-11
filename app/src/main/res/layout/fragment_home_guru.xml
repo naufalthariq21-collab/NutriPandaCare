@@ -34,7 +34,7 @@
                         android:id="@+id/tvWelcome"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Selamat Pagi, Guru 👋"
+                        android:text="Memuat..."
                         android:textColor="@color/white"
                         android:textSize="18sp"
                         android:textStyle="bold"/>
@@ -59,7 +59,7 @@
                     app:tint="@color/white" />
 
                 <ImageButton
-                    android:id="@+id/btn_logout"
+                    android:id="@+id/btnLogout"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:src="@drawable/ic_logout"
@@ -109,9 +109,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tvCountSiswa"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="35"
+                            android:text="-"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:textColor="@color/green_primary"/>
@@ -129,9 +130,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tvCountNormal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="28"
+                            android:text="-"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:textColor="@color/green_accent"/>
@@ -149,9 +151,10 @@
                         android:orientation="vertical"
                         android:gravity="center">
                         <TextView
+                            android:id="@+id/tvCountResiko"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="7"
+                            android:text="-"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:textColor="@color/badge_red"/>

@@ -34,6 +34,12 @@
         tools:layout="@layout/fragment_gizi" />
 
     <fragment
+        android:id="@+id/inputGiziFragment"
+        android:name="com.example.nutripandacare.fragment.orangtua.InputGiziFragment"
+        android:label="Update Gizi"
+        tools:layout="@layout/fragment_input_gizi" />
+
+    <fragment
         android:id="@+id/menuMbgFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.MenuMbgFragment"
         android:label="Kalender Menu"
