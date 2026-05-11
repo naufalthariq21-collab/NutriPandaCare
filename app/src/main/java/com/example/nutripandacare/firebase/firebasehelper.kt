@@ -560,6 +560,24 @@ object FirebaseHelper {
     // [G] NOTIFIKASI — Semua Role
     // ════════════════════════════════════════════════════════════
 
+    val storage = com.google.firebase.storage.FirebaseStorage.getInstance()
+
+    fun uploadImage(
+        path: String,
+        uri: android.net.Uri,
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val ref = storage.reference.child(path)
+        ref.putFile(uri)
+            .addOnSuccessListener {
+                ref.downloadUrl.addOnSuccessListener { url ->
+                    onSuccess(url.toString())
+                }
+            }
+            .addOnFailureListener { onError(it.message ?: "Upload gagal") }
+    }
+
     fun kirimNotifikasi(
         targetUid: String,
         judul: String,

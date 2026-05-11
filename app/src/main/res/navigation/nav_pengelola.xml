@@ -9,20 +9,7 @@
         android:id="@+id/fragment_home_pengelola"
         android:name="com.example.nutripandacare.fragment.pengelola.HomePengelolaFragment"
         android:label="Home"
-        tools:layout="@layout/fragment_home_pengelola">
-        <action
-            android:id="@+id/action_home_to_verifikasi"
-            app:destination="@id/fragment_verifikasi_pengelola" />
-        <action
-            android:id="@+id/action_home_to_aduan"
-            app:destination="@id/fragment_aduan_pengelola" />
-        <action
-            android:id="@+id/action_home_to_menu"
-            app:destination="@id/fragment_menu_mbg" />
-        <action
-            android:id="@+id/action_home_to_notifikasi"
-            app:destination="@id/fragment_notifikasi" />
-    </fragment>
+        tools:layout="@layout/fragment_home_pengelola" />
 
     <fragment
         android:id="@+id/fragment_verifikasi_pengelola"
@@ -40,28 +27,12 @@
         android:id="@+id/fragment_menu_mbg"
         android:name="com.example.nutripandacare.fragment.pengelola.KelolaMenuFragment"
         android:label="Menu MBG"
-        tools:layout="@layout/fragment_kelola_menu">
-        <action
-            android:id="@+id/action_menu_to_tambah"
-            app:destination="@id/fragment_tambah_menu" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/fragment_tambah_menu"
-        android:name="com.example.nutripandacare.fragment.pengelola.TambahMenuFragment"
-        android:label="Tambah Menu"
-        tools:layout="@layout/fragment_tambah_menu" />
+        tools:layout="@layout/fragment_kelola_menu" />
 
     <fragment
         android:id="@+id/fragment_notifikasi"
         android:name="com.example.nutripandacare.fragment.pengelola.NotifikasiFragment"
-        android:label="Notifikasi"
-        tools:layout="@layout/fragment_notifikasi" />
-
-    <fragment
-        android:id="@+id/fragment_profil_pengelola"
-        android:name="com.example.nutripandacare.fragment.pengelola.ProfilPengelolaFragment"
         android:label="Profil"
-        tools:layout="@layout/fragment_profil_pengelola" />
+        tools:layout="@layout/fragment_notifikasi" />
 
 </navigation>

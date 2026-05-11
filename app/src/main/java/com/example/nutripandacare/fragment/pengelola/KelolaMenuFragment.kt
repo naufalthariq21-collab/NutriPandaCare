@@ -87,7 +87,11 @@ class KelolaMenuFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.btnTambahMenu.setOnClickListener {
-            // findNavController().navigate(R.id.fragment_tambah_menu)
+            findNavController().navigate(R.id.action_fragment_menu_mbg_to_tambahMenuFragment)
+        }
+        
+        binding.toolbar.setNavigationOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
     }
 

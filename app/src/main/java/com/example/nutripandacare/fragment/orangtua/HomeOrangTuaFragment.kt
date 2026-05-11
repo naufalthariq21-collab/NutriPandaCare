@@ -46,46 +46,38 @@ class HomeOrangTuaFragment : Fragment() {
 
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
-                _binding?.let { binding ->
-                    val nama = data["nama"] as? String ?: "Bunda"
-                    binding.tvNamaUser.text = "$nama!"
-                    
-                    val fotoUrl = data["foto_url"] as? String ?: ""
-                    if (fotoUrl.isNotEmpty()) {
-                        Glide.with(this).load(fotoUrl).placeholder(R.drawable.ic_placeholder_avatar).into(binding.ivFotoProfil)
-                    }
+                if (_binding == null) return@getDataUser
+                val nama = data["nama"] as? String ?: "Bunda"
+                binding.tvNamaUser.text = "$nama!"
+                
+                val fotoUrl = data["foto_url"] as? String ?: ""
+                if (fotoUrl.isNotEmpty()) {
+                    Glide.with(this).load(fotoUrl).into(binding.ivFotoProfil)
                 }
             },
-            onError = { }
+            onError = { /* Handle error */ }
         )
     }
 
     private fun loadChildData() {
         FirebaseHelper.getDataAnak(
             onSuccess = { _, data ->
-                _binding?.let { binding ->
-                    val namaAnak = data["nama_anak"] as? String ?: "Anak"
-                    val usia = data["usia_anak"] as? String ?: "-"
-                    val statusGizi = data["status_gizi"] as? String ?: "Belum dicek"
+                if (_binding == null) return@getDataAnak
+                val namaAnak = data["nama_anak"] as? String ?: "Anak"
+                val usia = data["usia_anak"] as? String ?: "-"
+                val statusGizi = data["status_gizi"] as? String ?: "Normal"
 
-                    binding.tvNamaAnak.text = namaAnak
-                    binding.tvNamaAnakStatus.text = "$namaAnak • $usia"
-                    binding.tvInfoAnak.text = "$usia • ${data["jenis_kelamin"] ?: ""}"
-                    binding.tvStatusNutrisi.text = statusGizi
-                    
-                    val fotoAnak = data["foto_anak"] as? String ?: ""
-                    if (fotoAnak.isNotEmpty()) {
-                        Glide.with(this).load(fotoAnak).placeholder(R.drawable.ic_placeholder_child).into(binding.ivFotoAnak)
-                    }
+                binding.tvNamaAnak.text = namaAnak
+                binding.tvNamaAnakStatus.text = "$namaAnak • $usia"
+                binding.tvInfoAnak.text = "$usia • ${data["jenis_kelamin"] ?: ""}"
+                binding.tvStatusNutrisi.text = statusGizi
+                
+                val fotoAnak = data["foto_anak"] as? String ?: ""
+                if (fotoAnak.isNotEmpty()) {
+                    Glide.with(this).load(fotoAnak).into(binding.ivFotoAnak)
                 }
             },
-            onError = {
-                _binding?.let { binding ->
-                    binding.tvNamaAnak.text = "Belum ada data anak"
-                    binding.tvStatusNutrisi.text = "Belum dicek"
-                    binding.tvInfoAnak.text = "Silakan tambah data anak"
-                }
-            }
+            onError = { /* Handle error */ }
         )
     }
 
@@ -93,49 +85,37 @@ class HomeOrangTuaFragment : Fragment() {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         FirebaseHelper.getMenuHariIni(today,
             onSuccess = { data ->
-                _binding?.let { binding ->
-                    if (data != null) {
-                        binding.tvNamaMenu.text = data["nama_menu"] as? String ?: "-"
-                        binding.tvKaloriMenu.text = "${data["kalori"] ?: 0} Kkal"
-                        binding.tvProteinMenu.text = "${data["protein"] ?: 0}g Protein"
-                        
-                        val percent = (data["persentase_nutrisi"] as? Number)?.toInt() ?: 0
-                        binding.tvPersentaseNutrisi.text = "$percent%"
-                        binding.progressNutrisi.progress = percent
-                    } else {
-                        binding.tvNamaMenu.text = "Belum ada menu hari ini"
-                        binding.tvKaloriMenu.text = "0 Kkal"
-                        binding.tvProteinMenu.text = "0g Protein"
-                        binding.tvPersentaseNutrisi.text = "0%"
-                        binding.progressNutrisi.progress = 0
-                    }
+                if (_binding == null) return@getMenuHariIni
+                if (data != null) {
+                    binding.tvNamaMenu.text = data["nama_menu"] as? String ?: "-"
+                    binding.tvKaloriMenu.text = "${data["kalori"] ?: 0} Kkal"
+                    binding.tvProteinMenu.text = "${data["protein"] ?: 0}g Protein"
+                    
+                    val percent = (data["persentase_nutrisi"] as? Number)?.toInt() ?: 0
+                    binding.tvPersentaseNutrisi.text = "$percent%"
+                    binding.progressNutrisi.progress = percent
                 }
             },
-            onError = { }
+            onError = { /* Handle error */ }
         )
     }
 
     private fun loadPengumuman() {
         FirebaseHelper.getPengumumanTerbaru(1,
             onSuccess = { list ->
-                _binding?.let { binding ->
-                    if (list.isNotEmpty()) {
-                        val p = list[0]
-                        binding.tvJudulPengumuman.text = p["judul_pengumuman"] as? String ?: ""
-                        binding.tvIsiPengumuman.text = p["isi_pengumuman"] as? String ?: ""
-                        
-                        val ts = p["waktu_pengumuman"] as? Timestamp
-                        ts?.let {
-                            binding.tvWaktuPengumuman.text = formatWaktu(it.toDate())
-                        }
-                    } else {
-                        binding.tvJudulPengumuman.text = "Belum ada pengumuman"
-                        binding.tvIsiPengumuman.text = "Info terbaru akan muncul di sini."
-                        binding.tvWaktuPengumuman.text = "-"
+                if (_binding == null) return@getPengumumanTerbaru
+                if (list.isNotEmpty()) {
+                    val p = list[0]
+                    binding.tvJudulPengumuman.text = p["judul_pengumuman"] as? String ?: ""
+                    binding.tvIsiPengumuman.text = p["isi_pengumuman"] as? String ?: ""
+                    
+                    val ts = p["waktu_pengumuman"] as? Timestamp
+                    ts?.let {
+                        binding.tvWaktuPengumuman.text = formatWaktu(it.toDate())
                     }
                 }
             },
-            onError = { }
+            onError = { /* Handle error */ }
         )
     }
 
@@ -171,20 +151,8 @@ class HomeOrangTuaFragment : Fragment() {
             findNavController().navigate(R.id.edukasiFragment)
         }
 
-        binding.btnQaNotifikasi.setOnClickListener {
-            findNavController().navigate(R.id.fragment_notifikasi)
-        }
-
-        binding.btnNotifikasi.setOnClickListener {
-            findNavController().navigate(R.id.fragment_notifikasi)
-        }
-
         binding.btnLogout.setOnClickListener {
             confirmLogout()
-        }
-
-        binding.cardProfilAnak.setOnClickListener {
-            // navigate to edit child profile if needed
         }
     }
 
