@@ -29,33 +29,36 @@ class ProfilPengelolaFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
         loadUserData()
         setupClickListeners()
     }
 
     private fun loadUserData() {
         val uid = FirebaseHelper.uid
+        if (uid.isEmpty()) return
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
-                if (_binding == null) return@getDataUser
-                binding.tvNama.text = data["nama"] as? String ?: "Admin NutriPanda"
-                binding.tvEmail.text = data["email"] as? String ?: ""
-                
-                val fotoUrl = data["foto_url"] as? String ?: ""
+                val b = _binding ?: return@getDataUser
+                b.tvNama.text  = data["nama"] as? String ?: "Admin NutriPanda"
+                b.tvEmail.text = data["email"] as? String ?: ""
+                val fotoUrl    = data["foto_url"] as? String ?: ""
                 if (fotoUrl.isNotEmpty()) {
-                    Glide.with(this).load(fotoUrl).into(binding.ivProfil)
+                    Glide.with(this).load(fotoUrl)
+                        .placeholder(R.drawable.ic_placeholder_avatar)
+                        .circleCrop()
+                        .into(b.ivProfil)
                 }
             },
-            onError = { }
+            onError = {}
         )
     }
 
     private fun setupClickListeners() {
         binding.btnNotifikasi.setOnClickListener {
-            findNavController().navigate(R.id.fragment_notifikasi)
+            if (findNavController().currentDestination?.id == R.id.fragment_profil_pengelola) {
+                findNavController().navigate(R.id.fragment_notifikasi)
+            }
         }
-
         binding.btnLogout.setOnClickListener {
             confirmLogout()
         }

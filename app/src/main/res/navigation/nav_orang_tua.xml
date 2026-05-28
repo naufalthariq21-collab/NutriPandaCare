@@ -5,58 +5,127 @@
     android:id="@+id/nav_orang_tua"
     app:startDestination="@id/homeOrangTuaFragment">
 
+    <!-- ═══════════════════════════════════════════════════
+         HOME ORANG TUA
+         ═══════════════════════════════════════════════════ -->
     <fragment
         android:id="@+id/homeOrangTuaFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.HomeOrangTuaFragment"
         android:label="Home"
-        tools:layout="@layout/fragment_home_orang_tua" />
+        tools:layout="@layout/fragment_home_orang_tua">
 
+        <action
+            android:id="@+id/action_home_to_gizi"
+            app:destination="@id/giziFragment" />
+
+        <action
+            android:id="@+id/action_home_to_menu_mbg"
+            app:destination="@id/menuMbgFragment" />
+
+        <action
+            android:id="@+id/action_home_to_edukasi"
+            app:destination="@id/edukasiFragment" />
+
+        <action
+            android:id="@+id/action_home_to_notifikasi"
+            app:destination="@id/notifikasiFragment" />
+
+        <action
+            android:id="@+id/action_home_to_edit_profil_anak"
+            app:destination="@id/editProfilAnakFragment" />
+
+        <action
+            android:id="@+id/action_home_to_pengumuman"
+            app:destination="@id/pengumumanFragment" />
+
+    </fragment>
+
+    <!-- ═══════════════════════════════════════════════════
+         EDUKASI — bisa navigate ke detail artikel
+         ═══════════════════════════════════════════════════ -->
     <fragment
         android:id="@+id/edukasiFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.EdukasiFragment"
         android:label="Edukasi"
         tools:layout="@layout/fragment_edukasi">
+
         <action
-            android:id="@+id/action_edukasiFragment_to_fragment_preview_konten"
+            android:id="@+id/action_edukasi_to_preview_konten"
             app:destination="@id/fragment_preview_konten" />
+
     </fragment>
 
+    <!-- ═══════════════════════════════════════════════════
+         PREVIEW KONTEN (shared: dipakai guru & orang tua)
+         Menerima artikel_id wajib
+         ═══════════════════════════════════════════════════ -->
     <fragment
         android:id="@+id/fragment_preview_konten"
         android:name="com.example.nutripandacare.fragment.guru.PreviewKontenFragment"
-        android:label="Detail Konten"
-        tools:layout="@layout/fragment_preview_konten" />
+        android:label="Detail Artikel"
+        tools:layout="@layout/fragment_preview_konten">
 
+        <argument
+            android:name="artikel_id"
+            app:argType="string"
+            android:defaultValue="" />
+
+    </fragment>
+
+    <!-- ═══════════════════════════════════════════════════
+         GIZI
+         ═══════════════════════════════════════════════════ -->
     <fragment
         android:id="@+id/giziFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.GiziFragment"
         android:label="Cek Gizi"
-        tools:layout="@layout/fragment_gizi" />
+        tools:layout="@layout/fragment_gizi">
 
+        <action
+            android:id="@+id/action_gizi_to_input_gizi"
+            app:destination="@id/inputGiziFragment" />
+
+    </fragment>
+
+    <!-- ═══════════════════════════════════════════════════
+         INPUT GIZI (tidak ada outgoing action)
+         ═══════════════════════════════════════════════════ -->
     <fragment
         android:id="@+id/inputGiziFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.InputGiziFragment"
         android:label="Update Gizi"
         tools:layout="@layout/fragment_input_gizi" />
 
+    <!-- ═══════════════════════════════════════════════════
+         MENU MBG (tidak ada outgoing action)
+         ═══════════════════════════════════════════════════ -->
     <fragment
         android:id="@+id/menuMbgFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.MenuMbgFragment"
-        android:label="Kalender Menu"
+        android:label="Kalender Menu MBG"
         tools:layout="@layout/fragment_menu_mbg" />
 
+    <!-- ═══════════════════════════════════════════════════
+         EDIT PROFIL ANAK (tidak ada outgoing action)
+         ═══════════════════════════════════════════════════ -->
     <fragment
         android:id="@+id/editProfilAnakFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.EditProfilAnakFragment"
         android:label="Edit Profil Anak"
         tools:layout="@layout/fragment_edit_profil_anak" />
 
+    <!-- ═══════════════════════════════════════════════════
+         NOTIFIKASI (tidak ada outgoing action)
+         ═══════════════════════════════════════════════════ -->
     <fragment
         android:id="@+id/notifikasiFragment"
         android:name="com.example.nutripandacare.fragment.pengelola.NotifikasiFragment"
         android:label="Notifikasi"
         tools:layout="@layout/fragment_notifikasi" />
 
+    <!-- ═══════════════════════════════════════════════════
+         PENGUMUMAN (tidak ada outgoing action)
+         ═══════════════════════════════════════════════════ -->
     <fragment
         android:id="@+id/pengumumanFragment"
         android:name="com.example.nutripandacare.fragment.orangtua.PengumumanFragment"

@@ -33,38 +33,45 @@ class KelolaMenuFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
         setupRecyclerView()
         loadDaftarMenu()
         setupClickListeners()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Reload setelah balik dari TambahMenu / EditMenu
+        loadDaftarMenu()
+    }
+
     private fun setupRecyclerView() {
-        adapter = MenuAdapter(menuList) { tanggal ->
-            konfirmasiHapus(tanggal)
-        }
+        adapter = MenuAdapter(
+            menuList      = menuList,
+            onDeleteClick = { tanggal -> konfirmasiHapus(tanggal) },
+            onEditClick   = { tanggal -> navigasiEdit(tanggal) }
+        )
         binding.rvMenuList.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvMenuList.adapter = adapter
+        binding.rvMenuList.adapter       = adapter
     }
 
     private fun loadDaftarMenu() {
-        // Ambil menu untuk 30 hari ke depan
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        binding.progressBar.visibility = View.VISIBLE
+        val sdf   = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val start = sdf.format(Date())
-        val cal = Calendar.getInstance()
-        cal.add(Calendar.DAY_OF_YEAR, 30)
-        val end = sdf.format(cal.time)
+        val cal   = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 30) }
+        val end   = sdf.format(cal.time)
 
         FirebaseHelper.getDaftarMenu(start, end,
             onSuccess = { list ->
-                if (_binding != null) {
-                    adapter.updateData(list)
-                }
+                if (_binding == null) return@getDaftarMenu
+                binding.progressBar.visibility = View.GONE
+                adapter.updateData(list)
+                binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
             },
             onError = { err ->
-                context?.let {
-                    Toast.makeText(it, "Gagal memuat menu: $err", Toast.LENGTH_SHORT).show()
-                }
+                if (_binding == null) return@getDaftarMenu
+                binding.progressBar.visibility = View.GONE
+                context?.let { Toast.makeText(it, "Gagal memuat menu: $err", Toast.LENGTH_SHORT).show() }
             }
         )
     }
@@ -90,16 +97,32 @@ class KelolaMenuFragment : Fragment() {
         }
     }
 
+    private fun navigasiEdit(tanggal: String) {
+        // Kirim tanggal sebagai argument ke TambahMenuFragment (mode edit)
+        val bundle = Bundle().apply { putString("tanggal_edit", tanggal) }
+        try {
+            if (findNavController().currentDestination?.id == R.id.fragment_menu_mbg) {
+                findNavController().navigate(
+                    R.id.action_fragment_menu_mbg_to_tambahMenuFragment, bundle
+                )
+            }
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Navigasi gagal: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun setupClickListeners() {
         binding.btnTambahMenu.setOnClickListener {
-            // Pastikan navigasi aman dengan mengecek current destination
-            if (findNavController().currentDestination?.id == R.id.fragment_menu_mbg) {
-                findNavController().navigate(R.id.action_fragment_menu_mbg_to_tambahMenuFragment)
+            try {
+                if (findNavController().currentDestination?.id == R.id.fragment_menu_mbg) {
+                    findNavController().navigate(R.id.action_fragment_menu_mbg_to_tambahMenuFragment)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Navigasi gagal", Toast.LENGTH_SHORT).show()
             }
         }
-        
+
         binding.toolbar.setNavigationOnClickListener {
-            // Balik ke Home jika tidak bisa navigate up
             if (!findNavController().navigateUp()) {
                 findNavController().navigate(R.id.fragment_home_pengelola)
             }

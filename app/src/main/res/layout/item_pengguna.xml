@@ -58,14 +58,38 @@
                 android:textSize="11sp" />
         </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnVerifikasi"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:text="Verifikasi"
-            android:textSize="11sp"
-            app:cornerRadius="18dp"
-            app:backgroundTint="@color/green_primary"/>
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVerifikasi"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="Verifikasi"
+                android:textSize="10sp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/green_primary"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTolak"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="Tolak"
+                android:textSize="10sp"
+                android:layout_marginTop="4dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/badge_red"
+                android:textColor="@color/badge_red"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

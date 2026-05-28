@@ -60,13 +60,30 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/btnDelete"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@android:drawable/ic_menu_delete"
-            android:padding="6dp"
-            app:tint="@color/badge_red" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <ImageView
+                android:id="@+id/btnEdit"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_edit"
+                android:padding="6dp"
+                app:tint="@color/green_primary" />
+
+            <ImageView
+                android:id="@+id/btnDelete"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/ic_menu_delete"
+                android:padding="6dp"
+                android:layout_marginTop="4dp"
+                app:tint="@color/badge_red" />
+
+        </LinearLayout>
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

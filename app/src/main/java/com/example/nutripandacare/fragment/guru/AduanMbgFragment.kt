@@ -14,7 +14,7 @@ class AduanMbgFragment : Fragment() {
 
     private var _binding: FragmentAduanMbgBinding? = null
     private val binding get() = _binding!!
-    
+
     private var userNama: String = ""
     private var isLoading = false
 
@@ -43,23 +43,26 @@ class AduanMbgFragment : Fragment() {
 
     private fun setupSpinner() {
         val kategori = arrayOf("Makanan", "Pelayanan", "Kebersihan", "Lainnya")
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, kategori)
+        val adapter  = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, kategori)
         binding.spinnerKategoriAduan.adapter = adapter
     }
 
     private fun loadUserData() {
-        FirebaseHelper.getDataUser(FirebaseHelper.uid,
+        val uid = FirebaseHelper.uid
+        if (uid.isEmpty()) return
+
+        FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
                 userNama = data["nama"] as? String ?: "Guru"
             },
-            onError = { /* Silently fail or use default */ }
+            onError = { /* Gunakan nama default "Guru" */ }
         )
     }
 
     private fun setupClickListeners() {
         binding.btnKirimAduan.setOnClickListener {
-            val judul = binding.etJudulAduan.text.toString().trim()
-            val isi = binding.etIsiAduan.text.toString().trim()
+            val judul    = binding.etJudulAduan.text.toString().trim()
+            val isi      = binding.etIsiAduan.text.toString().trim()
             val kategori = binding.spinnerKategoriAduan.selectedItem.toString()
 
             if (judul.isEmpty()) {
@@ -82,20 +85,23 @@ class AduanMbgFragment : Fragment() {
         binding.btnKirimAduan.text = "Mengirim..."
 
         FirebaseHelper.kirimAduan(
-            judul = judul,
-            isi = isi,
-            kategori = kategori,
-            pengirimNama = userNama,
-            pengirimRole = "guru",
-            onSuccess = {
+            judul         = judul,
+            isi           = isi,
+            kategori      = kategori,
+            pengirimNama  = userNama.ifEmpty { "Guru" },
+            pengirimRole  = "guru",
+            onSuccess     = {
                 isLoading = false
                 Toast.makeText(requireContext(), "Aduan berhasil terkirim", Toast.LENGTH_SHORT).show()
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             },
             onError = { err ->
                 isLoading = false
-                binding.btnKirimAduan.isEnabled = true
-                binding.btnKirimAduan.text = "Kirim Aduan Sekarang"
+                // Kembalikan tombol ke state semula
+                _binding?.let { b ->
+                    b.btnKirimAduan.isEnabled = true
+                    b.btnKirimAduan.text      = "Kirim Aduan Sekarang"
+                }
                 Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_LONG).show()
             }
         )

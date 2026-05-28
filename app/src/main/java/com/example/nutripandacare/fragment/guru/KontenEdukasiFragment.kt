@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -50,9 +51,15 @@ class KontenEdukasiFragment : Fragment() {
     private fun setupRecyclerView() {
         adapter = KontenAdapter(
             data = daftarArtikel,
-            onKirimNotif = { artikelId, judulArtikel ->
-                // Navigate to KirimPengumumanFragment
-                findNavController().navigate(R.id.nav_buat_pengumuman)
+            onPreview = { artikelId ->
+                // Navigasi ke preview dengan kirim artikel_id sebagai argumen
+                val args = bundleOf("artikel_id" to artikelId)
+                findNavController().navigate(R.id.nav_preview_konten, args)
+            },
+            onKirimNotif = { _, judulArtikel ->
+                // Kirim judul artikel sebagai pesan awal ke KirimPengumumanFragment
+                val args = bundleOf("judul_artikel" to judulArtikel)
+                findNavController().navigate(R.id.nav_buat_pengumuman, args)
             },
             onHapus = { artikelId ->
                 konfirmasiHapus(artikelId)
@@ -64,8 +71,8 @@ class KontenEdukasiFragment : Fragment() {
 
     private fun loadArtikel() {
         binding.progressBar.visibility = View.VISIBLE
-        binding.rvKonten.visibility = View.GONE
-        binding.tvEmpty.visibility = View.GONE
+        binding.rvKonten.visibility    = View.GONE
+        binding.tvEmpty.visibility     = View.GONE
 
         FirebaseHelper.getArtikel(
             kategori = "Semua",
@@ -78,10 +85,10 @@ class KontenEdukasiFragment : Fragment() {
                 adapter.notifyDataSetChanged()
 
                 if (list.isEmpty()) {
-                    binding.tvEmpty.visibility = View.VISIBLE
+                    binding.tvEmpty.visibility  = View.VISIBLE
                     binding.rvKonten.visibility = View.GONE
                 } else {
-                    binding.tvEmpty.visibility = View.GONE
+                    binding.tvEmpty.visibility  = View.GONE
                     binding.rvKonten.visibility = View.VISIBLE
                 }
             },
@@ -128,8 +135,12 @@ class KontenEdukasiFragment : Fragment() {
         _binding = null
     }
 
+    // ─────────────────────────────────────────────────
+    // Inner Adapter
+    // ─────────────────────────────────────────────────
     inner class KontenAdapter(
         private val data: List<Pair<String, Map<String, Any?>>>,
+        private val onPreview: (artikelId: String) -> Unit,
         private val onKirimNotif: (artikelId: String, judulArtikel: String) -> Unit,
         private val onHapus: (artikelId: String) -> Unit
     ) : RecyclerView.Adapter<KontenAdapter.VH>() {
@@ -138,10 +149,10 @@ class KontenEdukasiFragment : Fragment() {
 
         inner class VH(view: View) : RecyclerView.ViewHolder(view) {
             val ivThumbnail: ImageView = view.findViewById(R.id.ivThumbnailKonten)
-            val tvJudul: TextView = view.findViewById(R.id.tvJudulKonten)
-            val tvKategori: TextView = view.findViewById(R.id.tvKategoriKonten)
+            val tvJudul: TextView      = view.findViewById(R.id.tvJudulKonten)
+            val tvKategori: TextView   = view.findViewById(R.id.tvKategoriKonten)
             val tvWaktuMenit: TextView = view.findViewById(R.id.tvWaktuMenitKonten)
-            val tvMenu: TextView = view.findViewById(R.id.tvMenuKonten)
+            val tvMenu: TextView       = view.findViewById(R.id.tvMenuKonten)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -155,11 +166,11 @@ class KontenEdukasiFragment : Fragment() {
         override fun onBindViewHolder(holder: VH, position: Int) {
             val (artikelId, item) = data[position]
 
-            holder.tvJudul.text = item["judul"] as? String ?: "-"
+            holder.tvJudul.text    = item["judul"]    as? String ?: "-"
             holder.tvKategori.text = item["kategori"] as? String ?: "-"
 
             val tsPublish = item["waktu_publish"] as? Timestamp
-            val tanggal = tsPublish?.toDate()?.let { sdf.format(it) } ?: "-"
+            val tanggal   = tsPublish?.toDate()?.let { sdf.format(it) } ?: "-"
             val menitBaca = (item["menit_baca"] as? Number)?.toInt() ?: 0
             holder.tvWaktuMenit.text = "$tanggal • $menitBaca menit"
 
@@ -178,6 +189,10 @@ class KontenEdukasiFragment : Fragment() {
                 holder.ivThumbnail.setImageDrawable(null)
             }
 
+            // Tap card → preview
+            holder.itemView.setOnClickListener { onPreview(artikelId) }
+
+            // Tap menu (⋮)
             holder.tvMenu.setOnClickListener { anchor ->
                 val popup = PopupMenu(anchor.context, anchor)
                 popup.menu.add(0, 0, 0, "📤  Kirim Notifikasi ke Ortu")

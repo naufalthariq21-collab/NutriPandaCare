@@ -1,5 +1,6 @@
 package com.example.nutripandacare.fragment.guru
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -17,7 +18,7 @@ class KirimPengumumanFragment : Fragment() {
     private var _binding: FragmentKirimPengumumanBinding? = null
     private val binding get() = _binding!!
 
-    private val MAX_CHAR = 300
+    private val MAX_CHAR  = 300
     private var isLoading = false
 
     override fun onCreateView(
@@ -28,12 +29,20 @@ class KirimPengumumanFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Jika masuk dari KontenEdukasiFragment, isi pesan awal otomatis
+        arguments?.getString("judul_artikel")?.let { judulArtikel ->
+            if (judulArtikel.isNotEmpty()) {
+                binding.etPesanNotif.setText("Baca artikel terbaru: \"$judulArtikel\" di aplikasi NutriPanda Care!")
+            }
+        }
+
         setupCharCounter()
         setupClickListeners()
-        
+
         binding.ivBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
@@ -43,6 +52,7 @@ class KirimPengumumanFragment : Fragment() {
         binding.etPesanNotif.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            @SuppressLint("SetTextI18n")
             override fun afterTextChanged(s: Editable?) {
                 val len = s?.length ?: 0
                 binding.tvCharCount.text = "$len / $MAX_CHAR karakter"
@@ -60,6 +70,7 @@ class KirimPengumumanFragment : Fragment() {
         binding.btnKirim.setOnClickListener { kirimNotifikasi() }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun kirimNotifikasi() {
         if (isLoading) return
 
@@ -81,11 +92,11 @@ class KirimPengumumanFragment : Fragment() {
         val judulNotif = "Pesan dari Guru 📢"
 
         FirebaseHelper.blastNotifikasi(
-            judul = judulNotif,
-            isi = pesan,
-            tipe = "pengumuman",
+            judul      = judulNotif,
+            isi        = pesan,
+            tipe       = "pengumuman",
             targetRole = "orang_tua",
-            onSuccess = {
+            onSuccess  = {
                 isLoading = false
                 Toast.makeText(requireContext(), "Notifikasi berhasil dikirim!", Toast.LENGTH_SHORT).show()
                 requireActivity().onBackPressedDispatcher.onBackPressed()

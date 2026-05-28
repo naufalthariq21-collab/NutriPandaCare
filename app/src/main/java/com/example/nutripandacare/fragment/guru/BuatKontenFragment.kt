@@ -29,7 +29,7 @@ class BuatKontenFragment : Fragment() {
             uri?.let {
                 thumbnailUri = it
                 binding.ivThumbnailPreview.setImageURI(it)
-                binding.ivThumbnailPreview.visibility = View.VISIBLE
+                binding.ivThumbnailPreview.visibility   = View.VISIBLE
                 binding.layoutUploadThumbnail.visibility = View.GONE
             }
         }
@@ -47,7 +47,7 @@ class BuatKontenFragment : Fragment() {
 
         setupSpinner()
         setupClickListeners()
-        
+
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
@@ -63,18 +63,17 @@ class BuatKontenFragment : Fragment() {
         binding.layoutUploadThumbnail.setOnClickListener {
             pickImageLauncher.launch("image/*")
         }
-
         binding.btnPublish.setOnClickListener { publishKonten() }
     }
 
     private fun publishKonten() {
         if (isLoading) return
 
-        val judul = binding.etJudul.text.toString().trim()
-        val katPos = binding.spinnerKategoriKonten.selectedItemPosition
+        val judul     = binding.etJudul.text.toString().trim()
+        val katPos    = binding.spinnerKategoriKonten.selectedItemPosition
         val deskripsi = binding.etDeskripsiKonten.text.toString().trim()
-        val isi = binding.etIsiKonten.text.toString().trim()
-        val menitStr = binding.etMenitBaca.text.toString().trim()
+        val isi       = binding.etIsiKonten.text.toString().trim()
+        val menitStr  = binding.etMenitBaca.text.toString().trim()
 
         if (judul.isEmpty()) {
             binding.etJudul.error = "Judul wajib diisi"
@@ -93,7 +92,7 @@ class BuatKontenFragment : Fragment() {
             return
         }
 
-        val menit = menitStr.toIntOrNull() ?: 5
+        val menit    = menitStr.toIntOrNull() ?: 5
         val kategori = kategoriList[katPos]
 
         isLoading = true
@@ -102,6 +101,7 @@ class BuatKontenFragment : Fragment() {
 
         if (thumbnailUri != null) {
             uploadThumbnail(thumbnailUri!!) { url ->
+                // url bisa null jika upload gagal, lanjut simpan dengan url kosong
                 simpanArtikel(judul, kategori, deskripsi, isi, menit, url)
             }
         } else {
@@ -115,9 +115,17 @@ class BuatKontenFragment : Fragment() {
             .child("thumbnail_artikel/$artikelId.jpg")
 
         ref.putFile(uri)
-            .continueWithTask { ref.downloadUrl }
-            .addOnSuccessListener { url -> onComplete(url.toString()) }
-            .addOnFailureListener { onComplete(null) }
+            .addOnSuccessListener {
+                // Ambil download URL setelah upload sukses
+                ref.downloadUrl
+                    .addOnSuccessListener { url -> onComplete(url.toString()) }
+                    .addOnFailureListener { onComplete(null) }
+            }
+            .addOnFailureListener {
+                // Upload gagal, tetap lanjut tanpa thumbnail
+                Toast.makeText(requireContext(), "Gagal upload thumbnail, artikel tetap disimpan", Toast.LENGTH_SHORT).show()
+                onComplete(null)
+            }
     }
 
     private fun simpanArtikel(
@@ -125,13 +133,13 @@ class BuatKontenFragment : Fragment() {
         isi: String, menit: Int, thumbnailUrl: String?
     ) {
         FirebaseHelper.tambahArtikel(
-            judul = judul,
-            deskripsi = deskripsi,
-            isiKonten = isi,
-            kategori = kategori,
+            judul        = judul,
+            deskripsi    = deskripsi,
+            isiKonten    = isi,
+            kategori     = kategori,
             thumbnailUrl = thumbnailUrl ?: "",
-            menitBaca = menit,
-            onSuccess = { _ ->
+            menitBaca    = menit,
+            onSuccess    = { _ ->
                 isLoading = false
                 Toast.makeText(requireContext(), "Konten berhasil dipublikasikan!", Toast.LENGTH_SHORT).show()
                 requireActivity().onBackPressedDispatcher.onBackPressed()

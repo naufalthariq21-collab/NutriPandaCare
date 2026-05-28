@@ -19,9 +19,12 @@ class RekapGiziFragment : Fragment() {
     private var _binding: FragmentRekapGiziBinding? = null
     private val binding get() = _binding!!
 
-    private val semuaSiswa = mutableListOf<Map<String, Any?>>()
+    private val semuaSiswa    = mutableListOf<Map<String, Any?>>()
     private val filteredSiswa = mutableListOf<Map<String, Any?>>()
     private lateinit var adapter: SiswaAdapter
+
+    // Status gizi yang dianggap berisiko (lowercase agar case-insensitive)
+    private val statusBerisiko = setOf("gizi kurang", "gizi buruk", "gizi lebih", "obesitas")
 
     private var filterAktif = "semua"
 
@@ -45,7 +48,6 @@ class RekapGiziFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = SiswaAdapter(filteredSiswa) { siswaData ->
-            // Detail click handling - placeholder for now
             Toast.makeText(requireContext(), "Detail: ${siswaData["nama_siswa"]}", Toast.LENGTH_SHORT).show()
         }
         binding.rvDaftarSiswa.layoutManager = LinearLayoutManager(requireContext())
@@ -69,6 +71,7 @@ class RekapGiziFragment : Fragment() {
                         rekapId = rekapId,
                         onSuccess = { siswaList ->
                             siswaList.forEach { siswaData ->
+                                // Inject rekap_id ke setiap data siswa agar bisa di-trace
                                 semuaSiswa.add(siswaData + mapOf("rekap_id" to rekapId))
                             }
                             selesai++
@@ -89,17 +92,19 @@ class RekapGiziFragment : Fragment() {
     }
 
     private fun applyFilter() {
+        if (_binding == null) return
+
         val query = binding.etCariSiswa.text.toString().trim().lowercase()
 
         val filtered = semuaSiswa.filter { siswa ->
-            val nama = (siswa["nama_siswa"] as? String ?: "").lowercase()
-            val statusGizi = (siswa["status_gizi"] as? String ?: "").lowercase()
-            val namaMatch = nama.contains(query)
+            val nama       = (siswa["nama_siswa"] as? String ?: "").lowercase()
+            val statusGizi = (siswa["status_gizi"] as? String ?: "").lowercase().trim()
+            val namaMatch  = nama.contains(query)
 
             val filterMatch = when (filterAktif) {
-                "normal" -> statusGizi == "normal"
-                "berisiko" -> statusGizi != "normal"
-                else -> true
+                "normal"   -> statusGizi == "normal"
+                "berisiko" -> statusGizi in statusBerisiko
+                else       -> true
             }
             namaMatch && filterMatch
         }
@@ -118,22 +123,22 @@ class RekapGiziFragment : Fragment() {
     }
 
     private fun setupChips() {
-        binding.chipSemua.setOnClickListener { 
+        binding.chipSemua.setOnClickListener {
             filterAktif = "semua"
-            applyFilter() 
+            applyFilter()
         }
-        binding.chipNormal.setOnClickListener { 
+        binding.chipNormal.setOnClickListener {
             filterAktif = "normal"
-            applyFilter() 
+            applyFilter()
         }
-        binding.chipResiko.setOnClickListener { 
+        binding.chipResiko.setOnClickListener {
             filterAktif = "berisiko"
-            applyFilter() 
+            applyFilter()
         }
     }
 
     private fun setupClickListeners() {
-        binding.btnBack.setOnClickListener { 
+        binding.btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
     }
@@ -150,9 +155,9 @@ class RekapGiziFragment : Fragment() {
 
         inner class VH(view: View) : RecyclerView.ViewHolder(view) {
             val tvInisial: TextView = view.findViewById(R.id.tvInisialSiswa)
-            val tvNama: TextView = view.findViewById(R.id.tvNamaSiswa)
-            val tvInfo: TextView = view.findViewById(R.id.tvInfoSiswa)
-            val tvStatus: TextView = view.findViewById(R.id.tvStatusGiziSiswa)
+            val tvNama: TextView    = view.findViewById(R.id.tvNamaSiswa)
+            val tvInfo: TextView    = view.findViewById(R.id.tvInfoSiswa)
+            val tvStatus: TextView  = view.findViewById(R.id.tvStatusGiziSiswa)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -164,26 +169,27 @@ class RekapGiziFragment : Fragment() {
         override fun getItemCount() = data.size
 
         override fun onBindViewHolder(holder: VH, position: Int) {
-            val siswa = data[position]
-            val nama = siswa["nama_siswa"] as? String ?: "-"
-            val kelas = siswa["kelas"] as? String ?: "-"
-            val zScore = (siswa["z_score"] as? Number)?.toDouble() ?: 0.0
+            val siswa      = data[position]
+            val nama       = siswa["nama_siswa"] as? String ?: "-"
+            val kelas      = siswa["kelas"]      as? String ?: "-"
+            val zScore     = (siswa["z_score"]   as? Number)?.toDouble() ?: 0.0
             val statusGizi = siswa["status_gizi"] as? String ?: "Normal"
 
             val inisial = nama.split(" ")
                 .take(2).joinToString("") { it.firstOrNull()?.toString() ?: "" }
             holder.tvInisial.text = inisial.uppercase()
-            holder.tvNama.text = nama
-            holder.tvInfo.text = "$kelas • Z-Score: ${"%.1f".format(zScore)}"
-            holder.tvStatus.text = statusGizi
+            holder.tvNama.text    = nama
+            holder.tvInfo.text    = "$kelas • Z-Score: ${"%.1f".format(zScore)}"
+            holder.tvStatus.text  = statusGizi
 
-            val (bgColor, txtColor) = when (statusGizi.lowercase()) {
-                "normal" -> Pair(R.color.green_pastel, R.color.green_primary)
+            val (bgColor, txtColor) = when (statusGizi.lowercase().trim()) {
+                "normal"                -> Pair(R.color.green_pastel,  R.color.green_primary)
                 "gizi kurang",
-                "gizi buruk" -> Pair(R.color.pending_bg, R.color.pending_text)
-                else -> Pair(R.color.cream_warm, R.color.text_secondary)
+                "gizi buruk"            -> Pair(R.color.pending_bg,    R.color.pending_text)
+                "gizi lebih", "obesitas"-> Pair(R.color.cream_warm,    R.color.text_secondary)
+                else                    -> Pair(R.color.cream_warm,    R.color.text_secondary)
             }
-            
+
             holder.tvStatus.setBackgroundResource(bgColor)
             holder.tvStatus.setTextColor(requireContext().getColor(txtColor))
 

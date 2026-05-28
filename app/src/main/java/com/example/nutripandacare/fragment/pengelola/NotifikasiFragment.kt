@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.nutripandacare.databinding.FragmentNotifikasiBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
+import com.google.firebase.firestore.ListenerRegistration
 
 class NotifikasiFragment : Fragment() {
 
@@ -17,6 +18,9 @@ class NotifikasiFragment : Fragment() {
 
     private lateinit var adapter: NotifikasiAdapter
     private val notifList = mutableListOf<Pair<String, Map<String, Any?>>>()
+
+    // Simpan referensi listener agar bisa di-remove → mencegah memory leak
+    private var listenerRegistration: ListenerRegistration? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,7 +32,6 @@ class NotifikasiFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupRecyclerView()
         observeNotifikasi()
 
@@ -46,12 +49,14 @@ class NotifikasiFragment : Fragment() {
     }
 
     private fun observeNotifikasi() {
-        FirebaseHelper.listenNotifikasi(
+        listenerRegistration = FirebaseHelper.listenNotifikasi(
             onUpdate = { list ->
                 if (_binding == null) return@listenNotifikasi
                 adapter.updateData(list)
+                binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
             },
             onError = { err ->
+                if (_binding == null) return@listenNotifikasi
                 Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show()
             }
         )
@@ -59,11 +64,15 @@ class NotifikasiFragment : Fragment() {
 
     private fun tandaiSemuaDibaca() {
         FirebaseHelper.tandaiSemuaDibaca {
+            if (_binding == null) return@tandaiSemuaDibaca
             Toast.makeText(requireContext(), "Semua ditandai dibaca", Toast.LENGTH_SHORT).show()
         }
     }
 
     override fun onDestroyView() {
+        // PENTING: hentikan listener Firestore agar tidak bocor memori
+        listenerRegistration?.remove()
+        listenerRegistration = null
         super.onDestroyView()
         _binding = null
     }

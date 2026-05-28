@@ -1,5 +1,6 @@
 package com.example.nutripandacare.fragment.orangtua
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -33,18 +34,31 @@ class GiziFragment : Fragment() {
         setupClickListeners()
     }
 
+    @SuppressLint("SetTextI18n")
     private fun loadGiziData() {
         FirebaseHelper.getDataAnak(
             onSuccess = { anakId, data ->
                 if (_binding == null) return@getDataAnak
-                
-                val namaAnak = data["nama_anak"] as? String ?: "Anak"
+
+                val namaAnak   = data["nama_anak"]   as? String ?: "Anak"
                 val statusGizi = data["status_gizi"] as? String ?: "Belum dicek"
-                val zScore = (data["z_score"] as? Number)?.toDouble() ?: 0.0
-                
-                binding.tvStatusGiziNama.text = statusGizi
+                val zScore     = (data["z_score"]    as? Number)?.toDouble() ?: 0.0
+                val berat      = (data["berat_badan"] as? Number)?.toDouble() ?: 0.0
+                val tinggi     = (data["tinggi_badan"] as? Number)?.toDouble() ?: 0.0
+                val persen     = (data["persentase_nutrisi"] as? Number)?.toInt() ?: 0
+
+                binding.tvStatusGiziNama.text   = statusGizi
                 binding.tvStatusGiziDetail.text = "$namaAnak | Z-Score: ${"%.2f".format(zScore)}"
-                
+
+                // Tampilkan data pengukuran terakhir dari field anak langsung
+                binding.tvAvgKalori.text    = "${berat} kg"
+                binding.tvAvgProtein.text   = "${tinggi} cm"
+                binding.tvNutrisiPersen.text = "$persen%"
+
+                val sdf = SimpleDateFormat("MMMM yyyy", Locale("id", "ID"))
+                binding.tvPeriodeGizi.text = sdf.format(Date())
+
+                // Load riwayat untuk update tampilan dengan data terbaru
                 loadGiziHistory(anakId)
             },
             onError = { err ->
@@ -55,26 +69,29 @@ class GiziFragment : Fragment() {
         )
     }
 
+    @SuppressLint("SetTextI18n")
     private fun loadGiziHistory(anakId: String) {
         FirebaseHelper.getRiwayatGizi(anakId, limit = 1,
             onSuccess = { history ->
                 if (_binding == null) return@getRiwayatGizi
-                
+
                 if (history.isNotEmpty()) {
                     val latest = history[0]
-                    binding.tvAvgKalori.text = latest["kalori"]?.toString() ?: "0"
-                    binding.tvAvgProtein.text = latest["protein"]?.toString() ?: "0g"
-                    binding.tvNutrisiPersen.text = "${latest["persentase_nutrisi"] ?: "0"}%"
-                } else {
-                    binding.tvAvgKalori.text = "0"
-                    binding.tvAvgProtein.text = "0g"
-                    binding.tvNutrisiPersen.text = "0%"
+                    // Field yang benar sesuai skema FirebaseHelper.simpanHasilGizi:
+                    // berat_badan, tinggi_badan, usia_bulan, z_score, status_gizi, persentase_nutrisi
+                    val berat  = (latest["berat_badan"]        as? Number)?.toDouble() ?: 0.0
+                    val tinggi = (latest["tinggi_badan"]       as? Number)?.toDouble() ?: 0.0
+                    val persen = (latest["persentase_nutrisi"] as? Number)?.toInt()    ?: 0
+
+                    binding.tvAvgKalori.text    = "$berat kg"
+                    binding.tvAvgProtein.text   = "$tinggi cm"
+                    binding.tvNutrisiPersen.text = "$persen%"
                 }
-                
+
                 val sdf = SimpleDateFormat("MMMM yyyy", Locale("id", "ID"))
                 binding.tvPeriodeGizi.text = sdf.format(Date())
             },
-            onError = { }
+            onError = { /* Tampilan sudah diisi dari data anak di atas */ }
         )
     }
 
@@ -82,9 +99,10 @@ class GiziFragment : Fragment() {
         binding.btnBack.setOnClickListener {
             findNavController().navigateUp()
         }
-        
+
+        // Pakai action ID yang sudah terdaftar di nav graph
         binding.btnUpdateGizi.setOnClickListener {
-            findNavController().navigate(R.id.inputGiziFragment)
+            findNavController().navigate(R.id.action_gizi_to_input_gizi)
         }
     }
 

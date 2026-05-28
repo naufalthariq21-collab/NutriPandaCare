@@ -29,9 +29,7 @@ class HomeGuruFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Tampilkan state awal (kosongan/loading)
         resetUI()
-        
         loadUserData()
         loadClassStats()
         setupClickListeners()
@@ -50,9 +48,9 @@ class HomeGuruFragment : Fragment() {
 
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
-                _binding?.let { binding ->
+                _binding?.let { b ->
                     val nama = data["nama"] as? String ?: "Guru"
-                    binding.tvWelcome.text = "Selamat Pagi, $nama 👋"
+                    b.tvWelcome.text = "Selamat Pagi, $nama 👋"
                 }
             },
             onError = { }
@@ -62,21 +60,28 @@ class HomeGuruFragment : Fragment() {
     private fun loadClassStats() {
         FirebaseHelper.getRekapGizi(
             onSuccess = { list ->
-                _binding?.let { binding ->
+                _binding?.let { b ->
                     if (list.isNotEmpty()) {
-                        val latest = list[0].second
-                        binding.tvCountSiswa.text = (latest["total_siswa"]?.toString() ?: "0")
-                        binding.tvCountNormal.text = (latest["normal"]?.toString() ?: "0")
-                        
-                        val resiko = ((latest["gizi_buruk"] as? Number)?.toInt() ?: 0) + 
-                                     ((latest["gizi_kurang"] as? Number)?.toInt() ?: 0) +
-                                     ((latest["obesitas"] as? Number)?.toInt() ?: 0)
-                        
-                        binding.tvCountResiko.text = resiko.toString()
+                        // Agregasi semua rekap, bukan hanya yang pertama
+                        var totalSiswa = 0
+                        var totalNormal = 0
+                        var totalResiko = 0
+
+                        list.forEach { (_, data) ->
+                            totalSiswa  += (data["total_siswa"] as? Number)?.toInt() ?: 0
+                            totalNormal += (data["normal"]      as? Number)?.toInt() ?: 0
+                            totalResiko += ((data["gizi_buruk"]  as? Number)?.toInt() ?: 0) +
+                                    ((data["gizi_kurang"] as? Number)?.toInt() ?: 0) +
+                                    ((data["obesitas"]    as? Number)?.toInt() ?: 0)
+                        }
+
+                        b.tvCountSiswa.text  = totalSiswa.toString()
+                        b.tvCountNormal.text = totalNormal.toString()
+                        b.tvCountResiko.text = totalResiko.toString()
                     } else {
-                        binding.tvCountSiswa.text = "0"
-                        binding.tvCountNormal.text = "0"
-                        binding.tvCountResiko.text = "0"
+                        b.tvCountSiswa.text  = "0"
+                        b.tvCountNormal.text = "0"
+                        b.tvCountResiko.text = "0"
                     }
                 }
             },
@@ -92,7 +97,7 @@ class HomeGuruFragment : Fragment() {
         binding.btnKirimPengumuman.setOnClickListener {
             findNavController().navigate(R.id.nav_buat_pengumuman)
         }
-        
+
         binding.btnNotifikasi.setOnClickListener {
             // Navigasi ke fragment notifikasi jika diperlukan
         }

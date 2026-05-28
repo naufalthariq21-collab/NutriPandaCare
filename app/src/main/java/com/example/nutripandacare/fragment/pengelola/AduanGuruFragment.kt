@@ -30,48 +30,59 @@ class AduanGuruFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
         setupRecyclerView()
         loadAllAduan()
-        
+
         binding.ivBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
     }
 
     private fun setupRecyclerView() {
-        adapter = AduanAdapter(aduanList) { id, judul ->
-            showBalasDialog(id, judul)
+        // Callback kini terima 3 param: id, judul, balasanLama
+        adapter = AduanAdapter(aduanList) { id, judul, balasanLama ->
+            showBalasDialog(id, judul, balasanLama)
         }
         binding.rvAduan.layoutManager = LinearLayoutManager(requireContext())
         binding.rvAduan.adapter = adapter
     }
 
     private fun loadAllAduan() {
+        binding.progressBar.visibility = View.VISIBLE
         FirebaseHelper.getAllAduan(
             onSuccess = { list ->
                 if (_binding == null) return@getAllAduan
+                binding.progressBar.visibility = View.GONE
                 adapter.updateData(list)
+                binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
             },
             onError = { err ->
+                if (_binding == null) return@getAllAduan
+                binding.progressBar.visibility = View.GONE
                 Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show()
             }
         )
     }
 
-    private fun showBalasDialog(aduanId: String, judul: String) {
-        val input = EditText(requireContext())
-        input.hint = "Tulis balasan di sini..."
-        
+    /**
+     * Dialog balas aduan. Jika sudah ada balasan lama, isi field dengan teks tersebut
+     * sehingga pengelola bisa mengeditnya, bukan mengetik ulang dari awal.
+     */
+    private fun showBalasDialog(aduanId: String, judul: String, balasanLama: String) {
+        val input = EditText(requireContext()).apply {
+            hint    = "Tulis balasan di sini..."
+            setText(balasanLama)
+            setSelection(balasanLama.length) // cursor ke akhir
+        }
+
         AlertDialog.Builder(requireContext())
-            .setTitle("Balas Aduan")
+            .setTitle(if (balasanLama.isEmpty()) "Balas Aduan" else "Ubah Balasan")
             .setMessage("Membalas: $judul")
             .setView(input)
             .setPositiveButton("Kirim") { _, _ ->
-                val balasan = input.text.toString().trim()
-                if (balasan.isNotEmpty()) {
-                    balasAduan(aduanId, balasan)
-                }
+                val teks = input.text.toString().trim()
+                if (teks.isNotEmpty()) balasAduan(aduanId, teks)
+                else Toast.makeText(requireContext(), "Balasan tidak boleh kosong", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Batal", null)
             .show()
@@ -80,10 +91,12 @@ class AduanGuruFragment : Fragment() {
     private fun balasAduan(aduanId: String, balasan: String) {
         FirebaseHelper.balasAduan(aduanId, balasan,
             onSuccess = {
+                if (_binding == null) return@balasAduan
                 Toast.makeText(requireContext(), "Balasan terkirim!", Toast.LENGTH_SHORT).show()
                 loadAllAduan()
             },
             onError = { err ->
+                if (_binding == null) return@balasAduan
                 Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_SHORT).show()
             }
         )

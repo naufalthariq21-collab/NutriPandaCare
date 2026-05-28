@@ -35,6 +35,17 @@
             android:focusable="true" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="64dp"
+        android:text="Tidak ada notifikasi"
+        android:textColor="@color/text_hint"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvNotifikasi"
         android:layout_width="match_parent"

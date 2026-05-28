@@ -21,7 +21,6 @@ object FirebaseHelper {
     // [A] AUTH — Login, Register, Logout
     // ════════════════════════════════════════════════════════════
 
-    /** Login dengan email & password */
     fun login(
         email: String,
         password: String,
@@ -31,13 +30,11 @@ object FirebaseHelper {
         auth.signInWithEmailAndPassword(email, password)
             .addOnSuccessListener { result ->
                 val user = result.user ?: return@addOnSuccessListener
-                // Diperbarui: Langsung masuk tanpa wajib verifikasi email agar memudahkan user
                 onSuccess(user.uid)
             }
             .addOnFailureListener { onError(it.message ?: "Login gagal") }
     }
 
-    /** Register akun baru */
     fun register(
         nama: String,
         email: String,
@@ -73,7 +70,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Registrasi gagal") }
     }
 
-    /** Simpan role user setelah pilih role */
     fun simpanRole(
         uid: String,
         role: String,
@@ -85,7 +81,6 @@ object FirebaseHelper {
             "role" to role,
             "updated_at" to Timestamp.now()
         )
-        // Jika pengelola, otomatis dianggap verified
         if (isVerified || role == "pengelola") updates["is_verified"] = true
 
         db.collection("users").document(uid)
@@ -94,7 +89,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal simpan role") }
     }
 
-    /** Ambil role user dari Firestore */
     fun getRole(
         uid: String,
         onSuccess: (role: String) -> Unit,
@@ -108,10 +102,8 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil role") }
     }
 
-    /** Logout */
     fun logout() = auth.signOut()
 
-    /** Kirim ulang email verifikasi */
     fun kirimUlangVerifikasi(
         onSuccess: () -> Unit,
         onError: (String) -> Unit
@@ -121,7 +113,6 @@ object FirebaseHelper {
             ?.addOnFailureListener { onError(it.message ?: "Gagal kirim email") }
     }
 
-    /** Cek apakah email sudah diverifikasi */
     fun cekEmailVerified(onResult: (Boolean) -> Unit) {
         auth.currentUser?.reload()
             ?.addOnSuccessListener {
@@ -134,7 +125,6 @@ object FirebaseHelper {
             }
     }
 
-    /** Reset password */
     fun resetPassword(
         email: String,
         onSuccess: () -> Unit,
@@ -145,8 +135,9 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal kirim reset password") }
     }
 
+
     // ════════════════════════════════════════════════════════════
-    // LOGIN DENGAN GOOGLE — Firebase Google Sign-In
+    // LOGIN DENGAN GOOGLE
     // ════════════════════════════════════════════════════════════
 
     fun loginWithGoogle(
@@ -329,7 +320,7 @@ object FirebaseHelper {
 
 
     // ════════════════════════════════════════════════════════════
-    // [D] MENU MBG — Khusus Pengelola (CRUD) & Orang Tua (Read)
+    // [D] MENU MBG — Pengelola (CRUD) & Orang Tua (Read)
     // ════════════════════════════════════════════════════════════
 
     fun simpanMenuMbg(
@@ -426,6 +417,7 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // [E] ARTIKEL EDUKASI — Guru (CRUD) & Orang Tua (Read)
+    // Kategori valid: "Stunting", "Resep Sehat", "Gizi", "Tumbuh Kembang"
     // ════════════════════════════════════════════════════════════
 
     fun tambahArtikel(
@@ -442,7 +434,7 @@ object FirebaseHelper {
             "judul"         to judul,
             "deskripsi"     to deskripsi,
             "isi_konten"    to isiKonten,
-            "kategori"      to kategori,
+            "kategori"      to kategori,   // harus salah satu dari KATEGORI_VALID
             "thumbnail_url" to thumbnailUrl,
             "menit_baca"    to menitBaca,
             "penulis"       to uid,
@@ -456,17 +448,22 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal tambah artikel") }
     }
 
+    /**
+     * Ambil artikel dari koleksi "artikel".
+     * @param kategori "Semua" untuk semua artikel, atau salah satu dari:
+     *   "Stunting", "Resep Sehat", "Gizi", "Tumbuh Kembang"
+     */
     fun getArtikel(
         kategori: String = "Semua",
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
         onError: (String) -> Unit
     ) {
-        var query = db.collection("artikel")
-            .whereEqualTo("is_published", true)
-            .orderBy("waktu_publish", Query.Direction.DESCENDING)
-
-        if (kategori != "Semua") {
-            query = db.collection("artikel")
+        val query = if (kategori == "Semua") {
+            db.collection("artikel")
+                .whereEqualTo("is_published", true)
+                .orderBy("waktu_publish", Query.Direction.DESCENDING)
+        } else {
+            db.collection("artikel")
                 .whereEqualTo("is_published", true)
                 .whereEqualTo("kategori", kategori)
                 .orderBy("waktu_publish", Query.Direction.DESCENDING)
@@ -503,6 +500,23 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal hapus artikel") }
     }
 
+    /**
+     * Ambil satu artikel by ID — untuk PreviewKontenFragment
+     */
+    fun getArtikelById(
+        artikelId: String,
+        onSuccess: (Map<String, Any?>) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        db.collection("artikel").document(artikelId)
+            .get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists()) onSuccess(doc.data ?: emptyMap())
+                else onError("Artikel tidak ditemukan")
+            }
+            .addOnFailureListener { onError(it.message ?: "Gagal ambil artikel") }
+    }
+
 
     // ════════════════════════════════════════════════════════════
     // [F] PENGUMUMAN — Pengelola (CRUD)
@@ -527,9 +541,9 @@ object FirebaseHelper {
         db.collection("pengumuman").add(data)
             .addOnSuccessListener {
                 blastNotifikasi(
-                    judul    = judul,
-                    isi      = isi,
-                    tipe     = "pengumuman",
+                    judul      = judul,
+                    isi        = isi,
+                    tipe       = "pengumuman",
                     targetRole = targetRole,
                     onSuccess  = onSuccess,
                     onError    = onError
@@ -667,6 +681,20 @@ object FirebaseHelper {
                 snapshot.documents.forEach { batch.update(it.reference, "is_read", true) }
                 batch.commit().addOnSuccessListener { onSuccess() }
             }
+    }
+
+    /**
+     * Hitung jumlah notifikasi yang belum dibaca — untuk badge di bottom nav
+     */
+    fun getJumlahNotifBelumDibaca(
+        onResult: (Int) -> Unit
+    ) {
+        db.collection("notifikasi")
+            .whereEqualTo("user_id", uid)
+            .whereEqualTo("is_read", false)
+            .get()
+            .addOnSuccessListener { onResult(it.size()) }
+            .addOnFailureListener { onResult(0) }
     }
 
 
@@ -909,6 +937,30 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal verifikasi akun") }
     }
 
+    fun tolakAkun(
+        targetUid: String,
+        alasan: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        db.collection("users").document(targetUid)
+            .update(
+                "status_akun", "ditolak",
+                "alasan_tolak", alasan,
+                "updated_at",  Timestamp.now()
+            )
+            .addOnSuccessListener {
+                kirimNotifikasi(
+                    targetUid = targetUid,
+                    judul     = "Pendaftaran Ditolak",
+                    isi       = "Maaf, pendaftaran akun kamu ditolak. Alasan: $alasan",
+                    tipe      = "akun"
+                )
+                onSuccess()
+            }
+            .addOnFailureListener { onError(it.message ?: "Gagal tolak akun") }
+    }
+
     fun nonaktifkanAkun(
         targetUid: String,
         onSuccess: () -> Unit,
@@ -935,6 +987,9 @@ object FirebaseHelper {
     // ════════════════════════════════════════════════════════════
     // [K] HELPER UMUM
     // ════════════════════════════════════════════════════════════
+
+    /** Kategori artikel yang valid — harus konsisten antara guru (input) & orang tua (filter) */
+    val KATEGORI_ARTIKEL = listOf("Stunting", "Resep Sehat", "Gizi", "Tumbuh Kembang")
 
     fun hitungZScore(berat: Double, usiaBulan: Int): Double {
         val median = when {

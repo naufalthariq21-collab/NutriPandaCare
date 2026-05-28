@@ -46,13 +46,16 @@ class HomeOrangTuaFragment : Fragment() {
 
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
-                _binding?.let { binding ->
+                _binding?.let { b ->
                     val nama = data["nama"] as? String ?: "Bunda"
-                    binding.tvNamaUser.text = "$nama!"
-                    
+                    b.tvNamaUser.text = "$nama!"
+
                     val fotoUrl = data["foto_url"] as? String ?: ""
                     if (fotoUrl.isNotEmpty()) {
-                        Glide.with(this).load(fotoUrl).placeholder(R.drawable.ic_placeholder_avatar).into(binding.ivFotoProfil)
+                        Glide.with(this)
+                            .load(fotoUrl)
+                            .placeholder(R.drawable.ic_placeholder_avatar)
+                            .into(b.ivFotoProfil)
                     }
                 }
             },
@@ -63,30 +66,34 @@ class HomeOrangTuaFragment : Fragment() {
     private fun loadChildData() {
         FirebaseHelper.getDataAnak(
             onSuccess = { _, data ->
-                _binding?.let { binding ->
-                    val namaAnak = data["nama_anak"] as? String ?: "Anak"
-                    val usia = data["usia_anak"] as? String ?: "-"
-                    val statusGizi = data["status_gizi"] as? String ?: "Belum dicek"
-                    val sekolah = data["sekolah_anak"] as? String ?: "-"
+                _binding?.let { b ->
+                    val namaAnak   = data["nama_anak"]     as? String ?: "Anak"
+                    val usia       = data["usia_anak"]     as? String ?: "-"
+                    val statusGizi = data["status_gizi"]   as? String ?: "Belum dicek"
+                    val sekolah    = data["sekolah_anak"]  as? String ?: "-"
+                    val jk         = data["jenis_kelamin"] as? String ?: ""
 
-                    binding.tvNamaAnak.text = namaAnak
-                    binding.tvNamaAnakStatus.text = "$namaAnak • $usia"
-                    binding.tvInfoAnak.text = "$usia • ${data["jenis_kelamin"] ?: ""}"
-                    binding.tvStatusNutrisi.text = statusGizi
-                    binding.tvSekolahAnak.text = sekolah
-                    
+                    b.tvNamaAnak.text       = namaAnak
+                    b.tvNamaAnakStatus.text = "$namaAnak • $usia"
+                    b.tvInfoAnak.text       = "$usia • $jk"
+                    b.tvStatusNutrisi.text  = statusGizi
+                    b.tvSekolahAnak.text    = sekolah
+
                     val fotoAnak = data["foto_anak"] as? String ?: ""
                     if (fotoAnak.isNotEmpty()) {
-                        Glide.with(this).load(fotoAnak).placeholder(R.drawable.ic_placeholder_child).into(binding.ivFotoAnak)
+                        Glide.with(this)
+                            .load(fotoAnak)
+                            .placeholder(R.drawable.ic_placeholder_child)
+                            .into(b.ivFotoAnak)
                     }
                 }
             },
             onError = {
-                _binding?.let { binding ->
-                    binding.tvNamaAnak.text = "Belum ada data anak"
-                    binding.tvStatusNutrisi.text = "Belum dicek"
-                    binding.tvInfoAnak.text = "Silakan tambah data anak"
-                    binding.tvSekolahAnak.text = "-"
+                _binding?.let { b ->
+                    b.tvNamaAnak.text      = "Belum ada data anak"
+                    b.tvStatusNutrisi.text = "Belum dicek"
+                    b.tvInfoAnak.text      = "Silakan tambah data anak"
+                    b.tvSekolahAnak.text   = "-"
                 }
             }
         )
@@ -96,21 +103,20 @@ class HomeOrangTuaFragment : Fragment() {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         FirebaseHelper.getMenuHariIni(today,
             onSuccess = { data ->
-                _binding?.let { binding ->
+                _binding?.let { b ->
                     if (data != null) {
-                        binding.tvNamaMenu.text = data["nama_menu"] as? String ?: "-"
-                        binding.tvKaloriMenu.text = "${data["kalori"] ?: 0} Kkal"
-                        binding.tvProteinMenu.text = "${data["protein"] ?: 0}g Protein"
-                        
+                        b.tvNamaMenu.text          = data["nama_menu"]          as? String ?: "-"
+                        b.tvKaloriMenu.text         = "${data["kalori"] ?: 0} Kkal"
+                        b.tvProteinMenu.text        = "${data["protein"] ?: 0}g Protein"
                         val percent = (data["persentase_nutrisi"] as? Number)?.toInt() ?: 0
-                        binding.tvPersentaseNutrisi.text = "$percent%"
-                        binding.progressNutrisi.progress = percent
+                        b.tvPersentaseNutrisi.text  = "$percent%"
+                        b.progressNutrisi.progress  = percent
                     } else {
-                        binding.tvNamaMenu.text = "Belum ada menu hari ini"
-                        binding.tvKaloriMenu.text = "0 Kkal"
-                        binding.tvProteinMenu.text = "0g Protein"
-                        binding.tvPersentaseNutrisi.text = "0%"
-                        binding.progressNutrisi.progress = 0
+                        b.tvNamaMenu.text          = "Belum ada menu hari ini"
+                        b.tvKaloriMenu.text         = "0 Kkal"
+                        b.tvProteinMenu.text        = "0g Protein"
+                        b.tvPersentaseNutrisi.text  = "0%"
+                        b.progressNutrisi.progress  = 0
                     }
                 }
             },
@@ -121,20 +127,17 @@ class HomeOrangTuaFragment : Fragment() {
     private fun loadPengumuman() {
         FirebaseHelper.getPengumumanTerbaru(1,
             onSuccess = { list ->
-                _binding?.let { binding ->
+                _binding?.let { b ->
                     if (list.isNotEmpty()) {
                         val p = list[0]
-                        binding.tvJudulPengumuman.text = p["judul_pengumuman"] as? String ?: ""
-                        binding.tvIsiPengumuman.text = p["isi_pengumuman"] as? String ?: ""
-                        
+                        b.tvJudulPengumuman.text = p["judul_pengumuman"] as? String ?: ""
+                        b.tvIsiPengumuman.text   = p["isi_pengumuman"]   as? String ?: ""
                         val ts = p["waktu_pengumuman"] as? Timestamp
-                        ts?.let {
-                            binding.tvWaktuPengumuman.text = formatWaktu(it.toDate())
-                        }
+                        ts?.let { b.tvWaktuPengumuman.text = formatWaktu(it.toDate()) }
                     } else {
-                        binding.tvJudulPengumuman.text = "Belum ada pengumuman"
-                        binding.tvIsiPengumuman.text = "Info terbaru akan muncul di sini."
-                        binding.tvWaktuPengumuman.text = "-"
+                        b.tvJudulPengumuman.text = "Belum ada pengumuman"
+                        b.tvIsiPengumuman.text   = "Info terbaru akan muncul di sini."
+                        b.tvWaktuPengumuman.text = "-"
                     }
                 }
             },
@@ -143,63 +146,52 @@ class HomeOrangTuaFragment : Fragment() {
     }
 
     private fun formatWaktu(date: Date): String {
-        val diff = Date().time - date.time
-        val seconds = diff / 1000
-        val minutes = seconds / 60
-        val hours = minutes / 60
-        val days = hours / 24
-
+        val diff    = Date().time - date.time
+        val minutes = diff / 60000
+        val hours   = minutes / 60
+        val days    = hours / 24
         return when {
-            days > 0 -> "$days hari yang lalu"
-            hours > 0 -> "$hours jam yang lalu"
+            days > 0    -> "$days hari yang lalu"
+            hours > 0   -> "$hours jam yang lalu"
             minutes > 0 -> "$minutes menit yang lalu"
-            else -> "Baru saja"
+            else        -> "Baru saja"
         }
     }
 
     private fun setupClickListeners() {
+        // Semua navigate pakai action ID agar aman & type-safe
         binding.btnLihatDetailGizi.setOnClickListener {
-            findNavController().navigate(R.id.giziFragment)
+            findNavController().navigate(R.id.action_home_to_gizi)
         }
-        
         binding.btnQaCekGizi.setOnClickListener {
-            findNavController().navigate(R.id.giziFragment)
+            findNavController().navigate(R.id.action_home_to_gizi)
         }
-
         binding.btnQaMenuMbg.setOnClickListener {
-            findNavController().navigate(R.id.menuMbgFragment)
+            findNavController().navigate(R.id.action_home_to_menu_mbg)
         }
-
         binding.btnQaEdukasi.setOnClickListener {
-            findNavController().navigate(R.id.edukasiFragment)
+            findNavController().navigate(R.id.action_home_to_edukasi)
         }
-
         binding.btnQaNotifikasi.setOnClickListener {
-            findNavController().navigate(R.id.notifikasiFragment)
+            findNavController().navigate(R.id.action_home_to_notifikasi)
         }
-
         binding.btnNotifikasi.setOnClickListener {
-            findNavController().navigate(R.id.notifikasiFragment)
+            findNavController().navigate(R.id.action_home_to_notifikasi)
         }
-
+        binding.tvEditProfilAnak.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_edit_profil_anak)
+        }
+        binding.cardProfilAnak.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_edit_profil_anak)
+        }
+        binding.tvLihatSemuaPengumuman.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_pengumuman)
+        }
+        binding.cardPengumuman.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_pengumuman)
+        }
         binding.btnLogout.setOnClickListener {
             confirmLogout()
-        }
-
-        binding.tvEditProfilAnak.setOnClickListener {
-            findNavController().navigate(R.id.editProfilAnakFragment)
-        }
-
-        binding.cardProfilAnak.setOnClickListener {
-            findNavController().navigate(R.id.editProfilAnakFragment)
-        }
-
-        binding.tvLihatSemuaPengumuman.setOnClickListener {
-            findNavController().navigate(R.id.pengumumanFragment)
-        }
-
-        binding.cardPengumuman.setOnClickListener {
-            findNavController().navigate(R.id.pengumumanFragment)
         }
     }
 

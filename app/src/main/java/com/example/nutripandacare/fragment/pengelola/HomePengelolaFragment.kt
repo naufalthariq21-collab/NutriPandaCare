@@ -31,46 +31,46 @@ class HomePengelolaFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         loadUserData()
         loadSummaryStats()
         loadMenuHariIni()
         setupClickListeners()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Refresh stats tiap kali balik ke home
+        loadSummaryStats()
+        loadMenuHariIni()
+    }
+
     private fun loadUserData() {
         val uid = FirebaseHelper.uid
         if (uid.isEmpty()) return
-
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
-                _binding?.let { binding ->
-                    val nama = data["nama"] as? String ?: "Pengelola"
-                    binding.tvWelcome.text = "Halo, $nama!"
-                }
+                _binding?.tvWelcome?.text = "Halo, ${data["nama"] as? String ?: "Pengelola"}!"
             },
-            onError = { }
+            onError = {}
         )
     }
 
     private fun loadSummaryStats() {
+        // Jumlah akun menunggu verifikasi
         FirebaseHelper.getPendaftarBaru(
             onSuccess = { list ->
-                _binding?.let { binding ->
-                    binding.tvCountVerifikasi.text = list.size.toString()
-                }
+                _binding?.tvCountVerifikasi?.text = list.size.toString()
             },
-            onError = { }
+            onError = {}
         )
 
+        // Jumlah aduan yang masih menunggu balasan
         FirebaseHelper.getAllAduan(
             onSuccess = { list ->
-                _binding?.let { binding ->
-                    val pendingAduan = list.filter { (it.second["status_aduan"] as? String) == "menunggu" }
-                    binding.tvCountAduan.text = pendingAduan.size.toString()
-                }
+                val pending = list.count { (it.second["status_aduan"] as? String) == "menunggu" }
+                _binding?.tvCountAduan?.text = pending.toString()
             },
-            onError = { }
+            onError = {}
         )
     }
 
@@ -78,56 +78,58 @@ class HomePengelolaFragment : Fragment() {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         FirebaseHelper.getMenuHariIni(today,
             onSuccess = { data ->
-                _binding?.let { binding ->
-                    if (data != null) {
-                        binding.tvNamaMenuToday.text = data["nama_menu"] as? String ?: "Menu Tanpa Nama"
-                        binding.tvDescMenuToday.text = "${data["kalori"] ?: 0} kkal • Nutrisi Terjaga"
-                        
-                        val fotoUrl = data["foto_menu"] as? String ?: ""
-                        if (fotoUrl.isNotEmpty()) {
-                            Glide.with(this).load(fotoUrl).placeholder(R.drawable.ic_food_plate).into(binding.ivMenuToday)
-                        }
-                    } else {
-                        binding.tvNamaMenuToday.text = "Belum ada menu hari ini"
-                        binding.tvDescMenuToday.text = "Klik edit untuk menambahkan"
+                val b = _binding ?: return@getMenuHariIni
+                if (data != null) {
+                    b.tvNamaMenuToday.text  = data["nama_menu"] as? String ?: "Menu Tanpa Nama"
+                    b.tvDescMenuToday.text  = "${data["kalori"] ?: 0} kkal • Nutrisi Terjaga"
+                    val fotoUrl = data["foto_menu"] as? String ?: ""
+                    if (fotoUrl.isNotEmpty()) {
+                        Glide.with(this).load(fotoUrl)
+                            .placeholder(R.drawable.ic_food_plate)
+                            .into(b.ivMenuToday)
                     }
+                } else {
+                    b.tvNamaMenuToday.text = "Belum ada menu hari ini"
+                    b.tvDescMenuToday.text = "Klik edit untuk menambahkan"
+                    b.ivMenuToday.setImageResource(R.drawable.ic_food_plate)
                 }
             },
-            onError = { }
+            onError = {}
         )
     }
 
     private fun setupClickListeners() {
         binding.btnKelolaPengguna.setOnClickListener {
-            findNavController().navigate(R.id.fragment_verifikasi_pengelola)
+            navigateSafe(R.id.fragment_verifikasi_pengelola)
         }
-
         binding.cardVerifikasi.setOnClickListener {
-            findNavController().navigate(R.id.fragment_verifikasi_pengelola)
+            navigateSafe(R.id.fragment_verifikasi_pengelola)
         }
-
         binding.btnKelolaAduan.setOnClickListener {
-            findNavController().navigate(R.id.fragment_aduan_pengelola)
+            navigateSafe(R.id.fragment_aduan_pengelola)
         }
-
         binding.cardAduan.setOnClickListener {
-            findNavController().navigate(R.id.fragment_aduan_pengelola)
+            navigateSafe(R.id.fragment_aduan_pengelola)
         }
-
         binding.cardMenuMbg.setOnClickListener {
-            findNavController().navigate(R.id.fragment_menu_mbg)
+            navigateSafe(R.id.fragment_menu_mbg)
         }
-
         binding.btnEditMenu.setOnClickListener {
-            findNavController().navigate(R.id.fragment_menu_mbg)
+            navigateSafe(R.id.fragment_menu_mbg)
         }
-
         binding.btnNotifikasi.setOnClickListener {
-            findNavController().navigate(R.id.fragment_notifikasi)
+            navigateSafe(R.id.fragment_notifikasi)
         }
-
         binding.btnLogout.setOnClickListener {
             confirmLogout()
+        }
+    }
+
+    /** Navigasi aman: hanya lakukan jika masih di fragment home */
+    private fun navigateSafe(destinationId: Int) {
+        val navController = findNavController()
+        if (navController.currentDestination?.id == R.id.fragment_home_pengelola) {
+            navController.navigate(destinationId)
         }
     }
 

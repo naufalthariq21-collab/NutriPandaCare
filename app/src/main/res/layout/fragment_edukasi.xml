@@ -11,61 +11,196 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
+        android:orientation="vertical"
         android:background="@color/green_primary"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="44dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="48dp"
         android:paddingBottom="20dp">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Edukasi NutriPanda"
+            android:text="📚 Edukasi NutriPanda"
             android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.01"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Artikel terpilih untuk tumbuh kembang anak"
+            android:textColor="#CCFFFFFF"
+            android:textSize="13sp"
+            android:layout_marginTop="4dp"/>
     </LinearLayout>
 
-    <!-- Kategori Selector (Optional placeholder) -->
+    <!-- Search Bar -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginBottom="4dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="@color/white">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp">
+
+            <!-- Ganti ic_search dengan built-in Material icon agar tidak error -->
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@android:drawable/ic_menu_search"
+                app:tint="@color/green_primary"/>
+
+            <EditText
+                android:id="@+id/etSearch"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:hint="Cari artikel edukasi..."
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                android:background="@null"
+                android:paddingStart="10dp"
+                android:inputType="text"
+                android:imeOptions="actionSearch"
+                android:maxLines="1"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Kategori Chip Group -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none"
-        android:padding="12dp">
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp">
+
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipGroupKategori"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:singleSelection="true">
+            app:singleSelection="true"
+            app:chipSpacingHorizontal="6dp">
+
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipSemua"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Semua"
-                android:checked="true"/>
+                android:checked="true"
+                android:textSize="13sp"/>
+
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipStunting"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Stunting"/>
+                android:text="Stunting"
+                android:textSize="13sp"/>
+
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipResepSehat"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Resep Sehat"/>
+                android:text="Resep Sehat"
+                android:textSize="13sp"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipGizi"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gizi"
+                android:textSize="13sp"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipTumbuhKembang"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tumbuh Kembang"
+                android:textSize="13sp"/>
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 
-    <!-- List Artikel -->
+    <!-- Jumlah Artikel -->
+    <TextView
+        android:id="@+id/tvJumlahArtikel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Menampilkan semua artikel"
+        android:textSize="12sp"
+        android:textColor="#888888"
+        android:paddingHorizontal="20dp"
+        android:paddingBottom="6dp"/>
+
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/progressLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:indeterminateTint="@color/green_primary"/>
+
+    <!-- Empty State -->
+    <LinearLayout
+        android:id="@+id/layoutEmptyState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="40dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_article_empty"
+            android:alpha="0.4"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tidak ada artikel"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#999999"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Coba kata kunci lain atau pilih kategori berbeda"
+            android:textSize="13sp"
+            android:textColor="#BBBBBB"
+            android:gravity="center"
+            android:layout_marginTop="6dp"/>
+    </LinearLayout>
+
+    <!-- RecyclerView Artikel -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvEdukasi"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:paddingHorizontal="16dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="100dp"
         android:clipToPadding="false"
-        android:paddingBottom="100dp"/>
+        android:scrollbars="none"/>
 
 </LinearLayout>
