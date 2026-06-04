@@ -17,50 +17,58 @@ class SplashActivity : AppCompatActivity() {
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Tunda 2.5 detik lalu cek status login
-        Handler(Looper.getMainLooper()).postDelayed({
-            cekStatusLogin()
-        }, 2500)
+        Handler(Looper.getMainLooper()).postDelayed({ cekStatusLogin() }, 2500)
     }
 
     private fun cekStatusLogin() {
         val currentUser = FirebaseHelper.auth.currentUser
-
-        // Belum login → ke Login
         if (currentUser == null) {
             goTo(LoginActivity::class.java)
             return
         }
 
-        // Reload dulu supaya status email verified up to date
-        currentUser.reload().addOnSuccessListener {
-            val user = FirebaseHelper.auth.currentUser ?: run {
-                goTo(LoginActivity::class.java)
-                return@addOnSuccessListener
-            }
+        // Cek status dari Firestore — bukan isEmailVerified Firebase
+        FirebaseHelper.db.collection("users").document(currentUser.uid).get()
+            .addOnSuccessListener { doc ->
+                val role       = doc.getString("role")          ?: ""
+                val isVerified = doc.getBoolean("is_verified")  ?: false
+                val statusAkun = doc.getString("status_akun")   ?: "aktif"
 
-            if (!user.isEmailVerified) {
-                goTo(WaitingVerificationActivity::class.java)
-                return@addOnSuccessListener
-            }
-
-            // Sudah login & verified → cek role
-            FirebaseHelper.getRole(
-                uid       = user.uid,
-                onSuccess = { role ->
-                    val dest = when (role) {
-                        "orang_tua" -> DashboardOrangTuaActivity::class.java
-                        "guru"      -> DashboardGuruActivity::class.java
-                        "pengelola" -> DashboardPengelolaActivity::class.java
-                        else        -> LoginActivity::class.java
+                when {
+                    role.isEmpty() -> {
+                        // Belum pilih role
+                        startActivity(Intent(this, RoleSelectionActivity::class.java).apply {
+                            putExtra("UID", currentUser.uid)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        })
+                        finish()
                     }
-                    goTo(dest)
-                },
-                onError = { goTo(LoginActivity::class.java) }
-            )
-        }.addOnFailureListener {
-            goTo(LoginActivity::class.java)
-        }
+                    role == "pengelola" -> goTo(DashboardPengelolaActivity::class.java)
+                    isVerified && statusAkun == "aktif" -> {
+                        // Guru/orang tua sudah diverifikasi pengelola
+                        val dest = when (role) {
+                            "orang_tua" -> DashboardOrangTuaActivity::class.java
+                            "guru"      -> DashboardGuruActivity::class.java
+                            else        -> LoginActivity::class.java
+                        }
+                        goTo(dest)
+                    }
+                    statusAkun == "ditolak" -> {
+                        // Akun ditolak — logout paksa
+                        FirebaseHelper.logout()
+                        goTo(LoginActivity::class.java)
+                    }
+                    else -> {
+                        // Menunggu verifikasi pengelola
+                        startActivity(Intent(this, WaitingVerificationActivity::class.java).apply {
+                            putExtra("ROLE", role)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        })
+                        finish()
+                    }
+                }
+            }
+            .addOnFailureListener { goTo(LoginActivity::class.java) }
     }
 
     private fun <T> goTo(dest: Class<T>) {

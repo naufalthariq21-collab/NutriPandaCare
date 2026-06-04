@@ -24,40 +24,32 @@ class RoleSelectionActivity : AppCompatActivity() {
     }
 
     private fun setupPilihRole() {
-        binding.cardOrangTua.setOnClickListener {
-            roleTerpilih = "orang_tua"
-            updateTampilanRole()
-        }
-        binding.cardGuru.setOnClickListener {
-            roleTerpilih = "guru"
-            updateTampilanRole()
-        }
-        binding.cardPengelola.setOnClickListener {
-            roleTerpilih = "pengelola"
-            updateTampilanRole()
-        }
+        binding.cardOrangTua.setOnClickListener  { roleTerpilih = "orang_tua"; updateTampilanRole() }
+        binding.cardGuru.setOnClickListener      { roleTerpilih = "guru";      updateTampilanRole() }
+        binding.cardPengelola.setOnClickListener { roleTerpilih = "pengelola"; updateTampilanRole() }
     }
 
     private fun updateTampilanRole() {
-        binding.cardOrangTua.background = ContextCompat.getDrawable(this, R.drawable.selector_role_card)
-        binding.cardGuru.background = ContextCompat.getDrawable(this, R.drawable.selector_role_card)
+        // Reset semua ke default
+        binding.cardOrangTua.background  = ContextCompat.getDrawable(this, R.drawable.selector_role_card)
+        binding.cardGuru.background      = ContextCompat.getDrawable(this, R.drawable.selector_role_card)
         binding.cardPengelola.background = ContextCompat.getDrawable(this, R.drawable.selector_role_card)
-
         binding.radioOrangTua.background = ContextCompat.getDrawable(this, R.drawable.bg_role_icon)
-        binding.radioGuru.background = ContextCompat.getDrawable(this, R.drawable.bg_clock_circle)
+        binding.radioGuru.background     = ContextCompat.getDrawable(this, R.drawable.bg_clock_circle)
         binding.radioPengelola.background = ContextCompat.getDrawable(this, R.drawable.bg_clock_circle)
 
+        // Highlight yang dipilih
         when (roleTerpilih) {
             "orang_tua" -> {
-                binding.cardOrangTua.background = ContextCompat.getDrawable(this, R.drawable.bg_role_card_selected)
+                binding.cardOrangTua.background  = ContextCompat.getDrawable(this, R.drawable.bg_role_card_selected)
                 binding.radioOrangTua.background = ContextCompat.getDrawable(this, R.drawable.bg_success_circle)
             }
             "guru" -> {
-                binding.cardGuru.background = ContextCompat.getDrawable(this, R.drawable.bg_role_card_selected)
+                binding.cardGuru.background  = ContextCompat.getDrawable(this, R.drawable.bg_role_card_selected)
                 binding.radioGuru.background = ContextCompat.getDrawable(this, R.drawable.bg_success_circle)
             }
             "pengelola" -> {
-                binding.cardPengelola.background = ContextCompat.getDrawable(this, R.drawable.bg_role_card_selected)
+                binding.cardPengelola.background  = ContextCompat.getDrawable(this, R.drawable.bg_role_card_selected)
                 binding.radioPengelola.background = ContextCompat.getDrawable(this, R.drawable.bg_success_circle)
             }
         }
@@ -70,37 +62,39 @@ class RoleSelectionActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val uid = intent.getStringExtra("UID")
+            val uid   = intent.getStringExtra("UID")
                 ?: FirebaseHelper.auth.currentUser?.uid
                 ?: return@setOnClickListener
-
-            val nama = intent.getStringExtra("NAMA") ?: ""
+            val nama  = intent.getStringExtra("NAMA")  ?: ""
             val email = intent.getStringExtra("EMAIL") ?: ""
-            val noHp = intent.getStringExtra("NO_HP") ?: ""
+            val noHp  = intent.getStringExtra("NO_HP") ?: ""
 
             setLoading(true)
 
+            // Pengelola: simpan role + langsung is_verified = true
+            // Guru/OrangTua: simpan role + is_verified = false (menunggu pengelola)
             FirebaseHelper.simpanRole(
-                uid = uid,
-                role = roleTerpilih,
-                onSuccess = {
+                uid        = uid,
+                role       = roleTerpilih,
+                isVerified = (roleTerpilih == "pengelola"),
+                onSuccess  = {
                     setLoading(false)
-                    
-                    val intentNext = if (roleTerpilih == "pengelola") {
-                        // Jika pengelola, langsung ke Dashboard
-                        Intent(this, DashboardPengelolaActivity::class.java)
+
+                    if (roleTerpilih == "pengelola") {
+                        // Langsung masuk dashboard pengelola
+                        startActivity(Intent(this, DashboardPengelolaActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        })
                     } else {
-                        // Jika role lain, ke halaman tunggu verifikasi
-                        Intent(this, WaitingVerificationActivity::class.java).apply {
-                            putExtra("ROLE", roleTerpilih)
-                            putExtra("NAMA", nama)
+                        // Guru / Orang Tua → tunggu verifikasi pengelola
+                        startActivity(Intent(this, WaitingVerificationActivity::class.java).apply {
+                            putExtra("ROLE",  roleTerpilih)
+                            putExtra("NAMA",  nama)
                             putExtra("EMAIL", email)
                             putExtra("NO_HP", noHp)
-                        }
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        })
                     }
-                    
-                    intentNext.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intentNext)
                     finish()
                 },
                 onError = {

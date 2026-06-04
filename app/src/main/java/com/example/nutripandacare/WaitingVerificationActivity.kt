@@ -4,7 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.nutripandacare.databinding.ActivityWaitingVerificationBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
@@ -13,31 +13,56 @@ class WaitingVerificationActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityWaitingVerificationBinding
 
-    // Handler untuk auto-cek verifikasi email tiap 4 detik
+    // Polling tiap 5 detik — cek field is_verified di Firestore (diset pengelola)
     private val handler  = Handler(Looper.getMainLooper())
-    private val interval = 4000L
+    private val interval = 5000L
 
-    private val cekVerifikasi = object : Runnable {
+    private val cekVerifikasiPengelola = object : Runnable {
         override fun run() {
-            FirebaseHelper.cekEmailVerified { sudahVerified ->
-                if (sudahVerified) {
-                    // Email sudah diverifikasi → ke halaman sukses
-                    startActivity(
-                        Intent(this@WaitingVerificationActivity, SuccessActivity::class.java).apply {
-                            putExtra("ROLE",  intent.getStringExtra("ROLE")  ?: "")
-                            putExtra("NAMA",  intent.getStringExtra("NAMA")  ?: "")
-                            putExtra("EMAIL", intent.getStringExtra("EMAIL") ?: "")
-                            putExtra("NO_HP", intent.getStringExtra("NO_HP") ?: "")
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+            val uid = FirebaseHelper.uid
+            if (uid.isEmpty()) { goToLogin(); return }
+
+            FirebaseHelper.db.collection("users").document(uid).get()
+                .addOnSuccessListener { doc ->
+                    if (isFinishing) return@addOnSuccessListener
+
+                    val isVerified = doc.getBoolean("is_verified") ?: false
+                    val statusAkun = doc.getString("status_akun")  ?: "aktif"
+                    val role       = doc.getString("role")          ?: ""
+
+                    when {
+                        isVerified && statusAkun == "aktif" -> {
+                            // Pengelola sudah approve → ke SuccessActivity
+                            startActivity(
+                                Intent(this@WaitingVerificationActivity, SuccessActivity::class.java).apply {
+                                    putExtra("ROLE",  role)
+                                    putExtra("NAMA",  intent.getStringExtra("NAMA")  ?: "")
+                                    putExtra("EMAIL", intent.getStringExtra("EMAIL") ?: "")
+                                    putExtra("NO_HP", intent.getStringExtra("NO_HP") ?: "")
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                }
+                            )
+                            finish()
                         }
-                    )
-                    finish()
-                } else {
-                    // Belum verified → cek lagi setelah interval
-                    handler.postDelayed(this, interval)
+                        statusAkun == "ditolak" -> {
+                            // Pengelola reject → tampilkan alasan dan logout
+                            val alasan = doc.getString("alasan_tolak") ?: "Tidak memenuhi syarat"
+                            AlertDialog.Builder(this@WaitingVerificationActivity)
+                                .setTitle("Pendaftaran Ditolak")
+                                .setMessage("Maaf, pendaftaranmu ditolak oleh pengelola.\n\nAlasan: $alasan")
+                                .setPositiveButton("OK") { _, _ ->
+                                    FirebaseHelper.logout()
+                                    goToLogin()
+                                }
+                                .setCancelable(false)
+                                .show()
+                        }
+                        else -> handler.postDelayed(this, interval) // masih pending
+                    }
                 }
-            }
+                .addOnFailureListener {
+                    handler.postDelayed(this, interval) // coba lagi jika jaringan error
+                }
         }
     }
 
@@ -46,71 +71,52 @@ class WaitingVerificationActivity : AppCompatActivity() {
         binding = ActivityWaitingVerificationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Tampilkan role yang dipilih
-        // XML id: tvSelectedRole
         val role = intent.getStringExtra("ROLE") ?: ""
-        val roleTampil = when (role) {
+        binding.tvSelectedRole.text = when (role) {
             "orang_tua" -> "Orang Tua / Siswa"
             "guru"      -> "Guru"
-            "pengelola" -> "Pengelola MBG"
             else        -> "-"
         }
-        binding.tvSelectedRole.text = roleTampil
 
-        setupTombolBack()
         setupTombolKembaliLogin()
+        setupTombolBack()
     }
 
-    // Mulai auto-cek saat activity tampil
     override fun onResume() {
         super.onResume()
-        handler.post(cekVerifikasi)
+        handler.post(cekVerifikasiPengelola)
     }
 
-    // Stop auto-cek saat activity tidak tampil (hemat baterai)
     override fun onPause() {
         super.onPause()
-        handler.removeCallbacks(cekVerifikasi)
+        handler.removeCallbacks(cekVerifikasiPengelola)
     }
 
-    // ─────────────────────────────────────────────
-    // TOMBOL KEMBALI KE LOGIN
-    // XML id: btnKembaliLogin
-    // ─────────────────────────────────────────────
     private fun setupTombolKembaliLogin() {
         binding.btnKembaliLogin.setOnClickListener {
             FirebaseHelper.logout()
-            startActivity(
-                Intent(this, LoginActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-            )
-            finish()
+            goToLogin()
         }
     }
 
-    // ─────────────────────────────────────────────
-    // TOMBOL BACK
-    // XML id: btnBack
-    // ─────────────────────────────────────────────
     private fun setupTombolBack() {
         binding.btnBack.setOnClickListener {
-            // Konfirmasi logout sebelum kembali
-            androidx.appcompat.app.AlertDialog.Builder(this)
+            AlertDialog.Builder(this)
                 .setTitle("Keluar?")
-                .setMessage("Kamu akan keluar dan harus login ulang nanti.")
+                .setMessage("Kamu akan keluar. Akun tetap dalam antrian verifikasi pengelola.")
                 .setPositiveButton("Keluar") { _, _ ->
                     FirebaseHelper.logout()
-                    startActivity(
-                        Intent(this, LoginActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                                    Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        }
-                    )
-                    finish()
+                    goToLogin()
                 }
                 .setNegativeButton("Batal", null)
                 .show()
         }
+    }
+
+    private fun goToLogin() {
+        startActivity(Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
+        finish()
     }
 }

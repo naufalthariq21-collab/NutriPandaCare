@@ -96,13 +96,12 @@ class DataPenggunaFragment : Fragment() {
                 pendingAdapter.updateData(list)
                 binding.tvPendingEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
 
-                // Update label tab dengan badge jumlah
                 val tab = binding.tabLayout.getTabAt(0)
                 tab?.text = if (list.isEmpty()) "Menunggu Verifikasi"
                 else "Menunggu Verifikasi (${list.size})"
             },
             onError = { err ->
-                context?.let { Toast.makeText(it, "Gagal: $err", Toast.LENGTH_SHORT).show() }
+                context?.let { Toast.makeText(it, "Gagal memuat: $err", Toast.LENGTH_SHORT).show() }
             }
         )
     }
@@ -115,7 +114,7 @@ class DataPenggunaFragment : Fragment() {
                 binding.tvSemuaEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
             },
             onError = { err ->
-                context?.let { Toast.makeText(it, "Gagal: $err", Toast.LENGTH_SHORT).show() }
+                context?.let { Toast.makeText(it, "Gagal memuat: $err", Toast.LENGTH_SHORT).show() }
             }
         )
     }
@@ -125,7 +124,7 @@ class DataPenggunaFragment : Fragment() {
     private fun konfirmasiVerifikasi(uid: String) {
         AlertDialog.Builder(requireContext())
             .setTitle("Verifikasi Akun")
-            .setMessage("Verifikasi akun ini? Pengguna akan bisa login setelah diverifikasi.")
+            .setMessage("Verifikasi akun ini? Pengguna akan bisa login ke dashboard.")
             .setPositiveButton("Verifikasi") { _, _ ->
                 FirebaseHelper.verifikasiAkun(uid,
                     onSuccess = {
@@ -143,26 +142,49 @@ class DataPenggunaFragment : Fragment() {
     }
 
     private fun showTolakDialog(uid: String) {
-        val input = EditText(requireContext()).apply { hint = "Alasan penolakan (opsional)" }
+        val input = EditText(requireContext()).apply {
+            hint    = "Alasan penolakan (opsional)"
+            setPadding(48, 24, 48, 24)
+        }
         AlertDialog.Builder(requireContext())
             .setTitle("Tolak Pendaftaran")
-            .setMessage("Yakin ingin menolak akun ini?")
+            .setMessage("Yakin ingin menolak akun ini? Pengguna akan mendapat notifikasi.")
             .setView(input)
             .setPositiveButton("Tolak") { _, _ ->
                 val alasan = input.text.toString().trim().ifEmpty { "Tidak memenuhi syarat" }
-                FirebaseHelper.tolakAkun(uid, alasan,
-                    onSuccess = {
-                        context?.let { Toast.makeText(it, "Akun ditolak", Toast.LENGTH_SHORT).show() }
-                        loadPendingUsers()
-                        loadSemuaUsers()
-                    },
-                    onError = { err ->
-                        context?.let { Toast.makeText(it, "Gagal: $err", Toast.LENGTH_SHORT).show() }
-                    }
-                )
+                tolakAkun(uid, alasan)
             }
             .setNegativeButton("Batal", null)
             .show()
+    }
+
+    /**
+     * Tolak akun: set status_akun = "ditolak" + simpan alasan.
+     * WaitingVerificationActivity user akan otomatis mendeteksi ini dan tampilkan dialog ditolak.
+     */
+    private fun tolakAkun(uid: String, alasan: String) {
+        FirebaseHelper.db.collection("users").document(uid)
+            .update(
+                "status_akun",  "ditolak",
+                "alasan_tolak", alasan,
+                "is_verified",  false,
+                "updated_at",   com.google.firebase.Timestamp.now()
+            )
+            .addOnSuccessListener {
+                // Kirim notifikasi ke user yang ditolak
+                FirebaseHelper.kirimNotifikasi(
+                    targetUid = uid,
+                    judul     = "Pendaftaran Ditolak",
+                    isi       = "Maaf, pendaftaranmu ditolak. Alasan: $alasan",
+                    tipe      = "akun"
+                )
+                context?.let { Toast.makeText(it, "Akun berhasil ditolak", Toast.LENGTH_SHORT).show() }
+                loadPendingUsers()
+                loadSemuaUsers()
+            }
+            .addOnFailureListener { e ->
+                context?.let { Toast.makeText(it, "Gagal menolak: ${e.message}", Toast.LENGTH_SHORT).show() }
+            }
     }
 
     private fun konfirmasiNonaktifkan(uid: String) {

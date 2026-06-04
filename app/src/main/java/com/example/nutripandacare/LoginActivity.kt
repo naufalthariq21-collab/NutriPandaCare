@@ -18,9 +18,6 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var googleSignInClient: GoogleSignInClient
 
-    // ─────────────────────────────────────────────
-    // Google Sign-In result launcher
-    // ─────────────────────────────────────────────
     private val googleLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -52,9 +49,6 @@ class LoginActivity : AppCompatActivity() {
         setupTombolBack()
     }
 
-    // ─────────────────────────────────────────────
-    // SETUP GOOGLE SIGN-IN CLIENT
-    // ─────────────────────────────────────────────
     private fun setupGoogleSignIn() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
@@ -63,9 +57,6 @@ class LoginActivity : AppCompatActivity() {
         googleSignInClient = GoogleSignIn.getClient(this, gso)
     }
 
-    // ─────────────────────────────────────────────
-    // TOMBOL GOOGLE
-    // ─────────────────────────────────────────────
     private fun setupTombolGoogle() {
         binding.btnGoogle.setOnClickListener {
             setLoading(true)
@@ -75,59 +66,49 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // AUTH GOOGLE TOKEN KE FIREBASE
-    // ─────────────────────────────────────────────
     private fun firebaseAuthWithGoogle(idToken: String) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-
         FirebaseHelper.auth.signInWithCredential(credential)
             .addOnSuccessListener { result ->
-                val uid      = result.user?.uid ?: return@addOnSuccessListener
+                val uid       = result.user?.uid ?: return@addOnSuccessListener
                 val isNewUser = result.additionalUserInfo?.isNewUser ?: false
-                val nama     = result.user?.displayName ?: ""
-                val email    = result.user?.email ?: ""
-                val fotoUrl  = result.user?.photoUrl?.toString() ?: ""
+                val nama      = result.user?.displayName ?: ""
+                val email     = result.user?.email ?: ""
+                val fotoUrl   = result.user?.photoUrl?.toString() ?: ""
 
                 if (isNewUser) {
                     simpanUserBaruGoogle(uid, nama, email, fotoUrl)
                 } else {
-                    cekRoleDanNavigate(uid)
+                    cekStatusDanNavigate(uid)
                 }
             }
             .addOnFailureListener { e ->
                 setLoading(false)
-                Toast.makeText(this,
-                    "Login Google gagal: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Login Google gagal: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
-    private fun simpanUserBaruGoogle(
-        uid: String, nama: String, email: String, fotoUrl: String
-    ) {
+    private fun simpanUserBaruGoogle(uid: String, nama: String, email: String, fotoUrl: String) {
         val data = hashMapOf(
             "nama"        to nama,
             "email"       to email,
             "no_hp"       to "",
             "role"        to "",
             "foto_url"    to fotoUrl,
-            "is_verified" to true,
+            "is_verified" to true,          // Google user auto-verified
             "status_akun" to "aktif",
             "created_at"  to com.google.firebase.Timestamp.now(),
             "updated_at"  to com.google.firebase.Timestamp.now()
         )
-
         FirebaseHelper.db.collection("users").document(uid)
             .set(data)
             .addOnSuccessListener {
                 setLoading(false)
-                startActivity(
-                    Intent(this, RoleSelectionActivity::class.java).apply {
-                        putExtra("UID",   uid)
-                        putExtra("NAMA",  nama)
-                        putExtra("EMAIL", email)
-                    }
-                )
+                startActivity(Intent(this, RoleSelectionActivity::class.java).apply {
+                    putExtra("UID",   uid)
+                    putExtra("NAMA",  nama)
+                    putExtra("EMAIL", email)
+                })
                 finish()
             }
             .addOnFailureListener {
@@ -136,44 +117,32 @@ class LoginActivity : AppCompatActivity() {
             }
     }
 
-    // ─────────────────────────────────────────────
-    // TOMBOL MASUK — Email & Password
-    // ─────────────────────────────────────────────
     private fun setupTombolMasuk() {
         binding.btnMasuk.setOnClickListener {
             val email    = binding.etEmail.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
 
             if (email.isEmpty()) {
-                binding.etEmail.error = "Email wajib diisi"
-                binding.etEmail.requestFocus(); return@setOnClickListener
+                binding.etEmail.error = "Email wajib diisi"; binding.etEmail.requestFocus(); return@setOnClickListener
             }
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                binding.etEmail.error = "Format email tidak valid"
-                binding.etEmail.requestFocus(); return@setOnClickListener
+                binding.etEmail.error = "Format email tidak valid"; binding.etEmail.requestFocus(); return@setOnClickListener
             }
             if (password.isEmpty()) {
-                binding.etPassword.error = "Password wajib diisi"
-                binding.etPassword.requestFocus(); return@setOnClickListener
+                binding.etPassword.error = "Password wajib diisi"; binding.etPassword.requestFocus(); return@setOnClickListener
             }
 
             setLoading(true)
-
             FirebaseHelper.login(
-                email    = email,
-                password = password,
-                onSuccess = { uid -> cekRoleDanNavigate(uid) },
+                email     = email,
+                password  = password,
+                onSuccess = { uid -> cekStatusDanNavigate(uid) },
                 onError   = { pesan ->
                     setLoading(false)
                     val pesanRamah = when {
-                        pesan.contains("password", ignoreCase = true) ->
-                            "Password salah. Coba lagi."
-                        pesan.contains("no user", ignoreCase = true) ->
-                            "Email tidak terdaftar."
-                        pesan.contains("network", ignoreCase = true) ->
-                            "Tidak ada koneksi internet."
-                        pesan.contains("verified", ignoreCase = true) ->
-                            "Email belum diverifikasi. Cek inbox kamu."
+                        pesan.contains("password", ignoreCase = true) -> "Password salah. Coba lagi."
+                        pesan.contains("no user",  ignoreCase = true) -> "Email tidak terdaftar."
+                        pesan.contains("network",  ignoreCase = true) -> "Tidak ada koneksi internet."
                         else -> "Login gagal. Periksa email & password kamu."
                     }
                     Toast.makeText(this, pesanRamah, Toast.LENGTH_LONG).show()
@@ -182,30 +151,72 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun cekRoleDanNavigate(uid: String) {
-        FirebaseHelper.getRole(
-            uid       = uid,
-            onSuccess = { role ->
+    /**
+     * Setelah auth berhasil, cek Firestore untuk tentukan ke mana navigate:
+     * - Belum pilih role            → RoleSelectionActivity
+     * - Pengelola                   → DashboardPengelolaActivity
+     * - Guru/OrangTua + verified    → Dashboard masing-masing
+     * - Guru/OrangTua + not verified→ WaitingVerificationActivity
+     * - Akun ditolak                → Toast + logout
+     */
+    private fun cekStatusDanNavigate(uid: String) {
+        FirebaseHelper.db.collection("users").document(uid).get()
+            .addOnSuccessListener { doc ->
                 setLoading(false)
-                val dest = when (role) {
-                    "orang_tua" -> DashboardOrangTuaActivity::class.java
-                    "guru"      -> DashboardGuruActivity::class.java
-                    "pengelola" -> DashboardPengelolaActivity::class.java
-                    else        -> RoleSelectionActivity::class.java
-                }
-                startActivity(Intent(this, dest).apply {
-                    if (dest == RoleSelectionActivity::class.java) {
-                        putExtra("UID", uid)
+                val role       = doc.getString("role")          ?: ""
+                val isVerified = doc.getBoolean("is_verified")  ?: false
+                val statusAkun = doc.getString("status_akun")   ?: "aktif"
+
+                when {
+                    role.isEmpty() -> {
+                        startActivity(Intent(this, RoleSelectionActivity::class.java).apply {
+                            putExtra("UID", uid)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        })
+                        finish()
                     }
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                })
-                finish()
-            },
-            onError = { pesan ->
-                setLoading(false)
-                Toast.makeText(this, pesan, Toast.LENGTH_SHORT).show()
+                    statusAkun == "ditolak" -> {
+                        val alasan = doc.getString("alasan_tolak") ?: ""
+                        val pesan  = if (alasan.isNotEmpty()) "Akun ditolak: $alasan" else "Akun kamu ditolak oleh pengelola."
+                        Toast.makeText(this, pesan, Toast.LENGTH_LONG).show()
+                        FirebaseHelper.logout()
+                    }
+                    statusAkun == "nonaktif" -> {
+                        Toast.makeText(this, "Akun kamu dinonaktifkan. Hubungi pengelola.", Toast.LENGTH_LONG).show()
+                        FirebaseHelper.logout()
+                    }
+                    role == "pengelola" -> {
+                        startActivity(Intent(this, DashboardPengelolaActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        })
+                        finish()
+                    }
+                    isVerified -> {
+                        // Guru atau orang tua yang sudah diverifikasi pengelola
+                        val dest = when (role) {
+                            "orang_tua" -> DashboardOrangTuaActivity::class.java
+                            "guru"      -> DashboardGuruActivity::class.java
+                            else        -> LoginActivity::class.java
+                        }
+                        startActivity(Intent(this, dest).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        })
+                        finish()
+                    }
+                    else -> {
+                        // Belum diverifikasi pengelola — masuk ke waiting
+                        startActivity(Intent(this, WaitingVerificationActivity::class.java).apply {
+                            putExtra("ROLE", role)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        })
+                        finish()
+                    }
+                }
             }
-        )
+            .addOnFailureListener { e ->
+                setLoading(false)
+                Toast.makeText(this, "Gagal cek status: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun setupLupaPassword() {
@@ -217,14 +228,8 @@ class LoginActivity : AppCompatActivity() {
             }
             FirebaseHelper.resetPassword(
                 email     = email,
-                onSuccess = {
-                    Toast.makeText(this,
-                        "Link reset password dikirim ke $email",
-                        Toast.LENGTH_LONG).show()
-                },
-                onError = {
-                    Toast.makeText(this, "Email tidak ditemukan.", Toast.LENGTH_SHORT).show()
-                }
+                onSuccess = { Toast.makeText(this, "Link reset password dikirim ke $email", Toast.LENGTH_LONG).show() },
+                onError   = { Toast.makeText(this, "Email tidak ditemukan.", Toast.LENGTH_SHORT).show() }
             )
         }
     }
@@ -242,9 +247,7 @@ class LoginActivity : AppCompatActivity() {
     private fun setLoading(loading: Boolean) {
         binding.btnMasuk.isEnabled  = !loading
         binding.btnGoogle.isEnabled = !loading
-        binding.btnMasuk.text =
-            if (loading) "Memproses..." else getString(R.string.masuk)
-        binding.btnGoogle.text =
-            if (loading) "Memproses..." else "Masuk dengan Google"
+        binding.btnMasuk.text  = if (loading) "Memproses..." else getString(R.string.masuk)
+        binding.btnGoogle.text = if (loading) "Memproses..." else "Masuk dengan Google"
     }
 }
