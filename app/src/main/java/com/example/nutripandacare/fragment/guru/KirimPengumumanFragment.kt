@@ -36,7 +36,9 @@ class KirimPengumumanFragment : Fragment() {
         // Jika masuk dari KontenEdukasiFragment, isi pesan awal otomatis
         arguments?.getString("judul_artikel")?.let { judulArtikel ->
             if (judulArtikel.isNotEmpty()) {
-                binding.etPesanNotif.setText("Baca artikel terbaru: \"$judulArtikel\" di aplikasi NutriPanda Care!")
+                binding.etPesanNotif.setText(
+                    "Baca artikel terbaru: \"$judulArtikel\" di aplikasi NutriPanda Care! 📚"
+                )
             }
         }
 
@@ -56,12 +58,10 @@ class KirimPengumumanFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {
                 val len = s?.length ?: 0
                 binding.tvCharCount.text = "$len / $MAX_CHAR karakter"
-
-                val warna = if (len > MAX_CHAR)
-                    requireContext().getColor(R.color.badge_red)
-                else
-                    requireContext().getColor(R.color.text_hint)
-                binding.tvCharCount.setTextColor(warna)
+                binding.tvCharCount.setTextColor(
+                    if (len > MAX_CHAR) requireContext().getColor(R.color.badge_red)
+                    else requireContext().getColor(R.color.text_hint)
+                )
             }
         })
     }
@@ -87,24 +87,27 @@ class KirimPengumumanFragment : Fragment() {
 
         isLoading = true
         binding.btnKirim.isEnabled = false
-        binding.btnKirim.text = "Mengirim..."
+        binding.btnKirim.text      = "Mengirim..."
 
         val judulNotif = "Pesan dari Guru 📢"
 
+        // Guru kirim notifikasi ke orang_tua saja
         FirebaseHelper.blastNotifikasi(
             judul      = judulNotif,
             isi        = pesan,
             tipe       = "pengumuman",
             targetRole = "orang_tua",
             onSuccess  = {
+                if (_binding == null) return@blastNotifikasi
                 isLoading = false
-                Toast.makeText(requireContext(), "Notifikasi berhasil dikirim!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Notifikasi berhasil dikirim ke orang tua! ✅", Toast.LENGTH_SHORT).show()
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             },
             onError = { err ->
+                if (_binding == null) return@blastNotifikasi
                 isLoading = false
                 binding.btnKirim.isEnabled = true
-                binding.btnKirim.text = "📤  Kirim ke Orang Tua"
+                binding.btnKirim.text      = "📤  Kirim ke Orang Tua"
                 Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_LONG).show()
             }
         )

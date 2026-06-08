@@ -2,22 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/homeOrangTuaFragment"
+        android:id="@+id/nav_home_ortu"
         android:icon="@drawable/ic_home"
         android:title="Home"/>
 
     <item
-        android:id="@+id/edukasiFragment"
+        android:id="@+id/nav_edukasi"
         android:icon="@drawable/ic_edukasi"
         android:title="Edukasi"/>
 
     <item
-        android:id="@+id/giziFragment"
+        android:id="@+id/nav_gizi"
         android:icon="@drawable/ic_gizi"
         android:title="Gizi"/>
 
     <item
-        android:id="@+id/menuMbgFragment"
+        android:id="@+id/nav_menu_mbg"
         android:icon="@drawable/ic_calendar"
         android:title="Kalender"/>
 

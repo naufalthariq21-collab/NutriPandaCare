@@ -188,7 +188,15 @@
                 style="@style/Widget.NutriPandaCare.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Kirim Notifikasi ke Orang Tua" />
+                android:text="Kirim Notifikasi ke Orang Tua"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btnAduan"
+                style="@style/Widget.NutriPandaCare.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Aduan MBG" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

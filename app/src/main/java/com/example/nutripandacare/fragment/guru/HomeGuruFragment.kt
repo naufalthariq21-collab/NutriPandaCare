@@ -28,18 +28,23 @@ class HomeGuruFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         resetUI()
         loadUserData()
         loadClassStats()
         setupClickListeners()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Refresh statistik setiap kembali ke home
+        loadClassStats()
+    }
+
     private fun resetUI() {
-        binding.tvWelcome.text = "Memuat..."
-        binding.tvCountSiswa.text = "-"
-        binding.tvCountNormal.text = "-"
-        binding.tvCountResiko.text = "-"
+        binding.tvWelcome.text      = "Memuat..."
+        binding.tvCountSiswa.text   = "-"
+        binding.tvCountNormal.text  = "-"
+        binding.tvCountResiko.text  = "-"
     }
 
     private fun loadUserData() {
@@ -50,7 +55,7 @@ class HomeGuruFragment : Fragment() {
             onSuccess = { data ->
                 _binding?.let { b ->
                     val nama = data["nama"] as? String ?: "Guru"
-                    b.tvWelcome.text = "Selamat Pagi, $nama 👋"
+                    b.tvWelcome.text = "Selamat Datang, $nama 👋"
                 }
             },
             onError = { }
@@ -62,8 +67,7 @@ class HomeGuruFragment : Fragment() {
             onSuccess = { list ->
                 _binding?.let { b ->
                     if (list.isNotEmpty()) {
-                        // Agregasi semua rekap, bukan hanya yang pertama
-                        var totalSiswa = 0
+                        var totalSiswa  = 0
                         var totalNormal = 0
                         var totalResiko = 0
 
@@ -90,20 +94,45 @@ class HomeGuruFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
+        // Navigasi ke Rekap Gizi
         binding.btnRekapGizi.setOnClickListener {
-            findNavController().navigate(R.id.nav_rekap_gizi)
+            navigateSafe(R.id.nav_rekap_gizi)
         }
 
+        // Navigasi ke Kirim Pengumuman
         binding.btnKirimPengumuman.setOnClickListener {
-            findNavController().navigate(R.id.nav_buat_pengumuman)
+            navigateSafe(R.id.nav_buat_pengumuman)
         }
 
+        // Navigasi ke Aduan MBG
+        binding.btnAduan.setOnClickListener {
+            navigateSafe(R.id.nav_aduan)
+        }
+
+        // Tombol notifikasi (opsional, bisa arahkan ke fragment notifikasi jika ada)
         binding.btnNotifikasi.setOnClickListener {
-            // Navigasi ke fragment notifikasi jika diperlukan
+            // Notifikasi guru bisa ditambahkan ke nav_guru jika diperlukan
+            // Saat ini cukup tampilkan toast
+            android.widget.Toast.makeText(
+                requireContext(),
+                "Fitur notifikasi akan segera hadir",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
         }
 
+        // Logout
         binding.btnLogout.setOnClickListener {
             confirmLogout()
+        }
+    }
+
+    /**
+     * Navigasi aman: hanya lakukan jika masih berada di fragment home (nav_home).
+     */
+    private fun navigateSafe(destinationId: Int) {
+        val nav = findNavController()
+        if (nav.currentDestination?.id == R.id.nav_home) {
+            nav.navigate(destinationId)
         }
     }
 

@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentBuatKontenBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import com.google.firebase.storage.FirebaseStorage
@@ -22,14 +21,18 @@ class BuatKontenFragment : Fragment() {
     private var thumbnailUri: Uri? = null
     private var isLoading = false
 
-    private val kategoriList = listOf("Pilih kategori...", "Stunting", "Resep", "Vitamin", "MPASI")
+    // Mode edit: jika artikelId tidak null, kita sedang mengedit artikel yang ada
+    private var artikelId: String? = null
+
+    // Konsisten dengan FirebaseHelper.KATEGORI_ARTIKEL
+    private val kategoriList = listOf("Pilih kategori...") + FirebaseHelper.KATEGORI_ARTIKEL
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
                 thumbnailUri = it
                 binding.ivThumbnailPreview.setImageURI(it)
-                binding.ivThumbnailPreview.visibility   = View.VISIBLE
+                binding.ivThumbnailPreview.visibility    = View.VISIBLE
                 binding.layoutUploadThumbnail.visibility = View.GONE
             }
         }
@@ -45,11 +48,23 @@ class BuatKontenFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        artikelId = arguments?.getString("artikel_id")
+
         setupSpinner()
         setupClickListeners()
 
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+
+        if (artikelId != null) {
+            // Mode Edit
+            binding.toolbar.title  = "Edit Konten"
+            binding.btnPublish.text = "Simpan Perubahan"
+            loadArtikelUntukEdit(artikelId!!)
+        } else {
+            binding.toolbar.title  = "Buat Konten Baru"
+            binding.btnPublish.text = "Publish"
         }
     }
 
@@ -59,8 +74,43 @@ class BuatKontenFragment : Fragment() {
         binding.spinnerKategoriKonten.adapter = adapter
     }
 
+    private fun loadArtikelUntukEdit(id: String) {
+        binding.btnPublish.isEnabled = false
+        FirebaseHelper.getArtikelById(id,
+            onSuccess = { data ->
+                if (_binding == null) return@getArtikelById
+                binding.etJudul.setText(data["judul"] as? String ?: "")
+                binding.etDeskripsiKonten.setText(data["deskripsi"] as? String ?: "")
+                binding.etIsiKonten.setText(data["isi_konten"] as? String ?: "")
+                binding.etMenitBaca.setText((data["menit_baca"] as? Number)?.toInt()?.toString() ?: "")
+
+                val kategori = data["kategori"] as? String ?: ""
+                val idx = kategoriList.indexOf(kategori)
+                if (idx >= 0) binding.spinnerKategoriKonten.setSelection(idx)
+
+                val thumbUrl = data["thumbnail_url"] as? String ?: ""
+                if (thumbUrl.isNotEmpty()) {
+                    binding.ivThumbnailPreview.visibility    = View.VISIBLE
+                    binding.layoutUploadThumbnail.visibility = View.GONE
+                    com.bumptech.glide.Glide.with(this).load(thumbUrl).into(binding.ivThumbnailPreview)
+                }
+
+                binding.btnPublish.isEnabled = true
+            },
+            onError = { err ->
+                if (_binding == null) return@getArtikelById
+                Toast.makeText(requireContext(), "Gagal memuat artikel: $err", Toast.LENGTH_SHORT).show()
+                binding.btnPublish.isEnabled = true
+            }
+        )
+    }
+
     private fun setupClickListeners() {
         binding.layoutUploadThumbnail.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
+        binding.ivThumbnailPreview.setOnClickListener {
+            // Klik thumbnail yang sudah ada → ganti gambar
             pickImageLauncher.launch("image/*")
         }
         binding.btnPublish.setOnClickListener { publishKonten() }
@@ -76,54 +126,56 @@ class BuatKontenFragment : Fragment() {
         val menitStr  = binding.etMenitBaca.text.toString().trim()
 
         if (judul.isEmpty()) {
-            binding.etJudul.error = "Judul wajib diisi"
-            return
+            binding.etJudul.error = "Judul wajib diisi"; return
         }
         if (katPos == 0) {
-            Toast.makeText(requireContext(), "Pilih kategori", Toast.LENGTH_SHORT).show()
-            return
+            Toast.makeText(requireContext(), "Pilih kategori terlebih dahulu", Toast.LENGTH_SHORT).show(); return
         }
         if (deskripsi.isEmpty()) {
-            binding.etDeskripsiKonten.error = "Deskripsi wajib diisi"
-            return
+            binding.etDeskripsiKonten.error = "Deskripsi wajib diisi"; return
         }
         if (isi.isEmpty()) {
-            binding.etIsiKonten.error = "Isi konten wajib diisi"
-            return
+            binding.etIsiKonten.error = "Isi konten wajib diisi"; return
         }
 
         val menit    = menitStr.toIntOrNull() ?: 5
         val kategori = kategoriList[katPos]
 
         isLoading = true
-        binding.btnPublish.isEnabled = false
-        binding.btnPublish.text = "Mempublikasikan..."
+        setLoading(true)
 
         if (thumbnailUri != null) {
             uploadThumbnail(thumbnailUri!!) { url ->
-                // url bisa null jika upload gagal, lanjut simpan dengan url kosong
-                simpanArtikel(judul, kategori, deskripsi, isi, menit, url)
+                if (artikelId != null) {
+                    editArtikel(judul, kategori, deskripsi, isi, menit, url)
+                } else {
+                    simpanArtikel(judul, kategori, deskripsi, isi, menit, url)
+                }
             }
         } else {
-            simpanArtikel(judul, kategori, deskripsi, isi, menit, null)
+            if (artikelId != null) {
+                editArtikel(judul, kategori, deskripsi, isi, menit, null)
+            } else {
+                simpanArtikel(judul, kategori, deskripsi, isi, menit, null)
+            }
         }
     }
 
     private fun uploadThumbnail(uri: Uri, onComplete: (String?) -> Unit) {
-        val artikelId = UUID.randomUUID().toString()
+        val fileName = UUID.randomUUID().toString()
         val ref = FirebaseStorage.getInstance().reference
-            .child("thumbnail_artikel/$artikelId.jpg")
+            .child("thumbnail_artikel/$fileName.jpg")
 
         ref.putFile(uri)
             .addOnSuccessListener {
-                // Ambil download URL setelah upload sukses
                 ref.downloadUrl
                     .addOnSuccessListener { url -> onComplete(url.toString()) }
                     .addOnFailureListener { onComplete(null) }
             }
             .addOnFailureListener {
-                // Upload gagal, tetap lanjut tanpa thumbnail
-                Toast.makeText(requireContext(), "Gagal upload thumbnail, artikel tetap disimpan", Toast.LENGTH_SHORT).show()
+                if (_binding != null) {
+                    Toast.makeText(requireContext(), "Gagal upload thumbnail, artikel tetap disimpan", Toast.LENGTH_SHORT).show()
+                }
                 onComplete(null)
             }
     }
@@ -141,16 +193,57 @@ class BuatKontenFragment : Fragment() {
             menitBaca    = menit,
             onSuccess    = { _ ->
                 isLoading = false
-                Toast.makeText(requireContext(), "Konten berhasil dipublikasikan!", Toast.LENGTH_SHORT).show()
+                if (_binding == null) return@tambahArtikel
+                Toast.makeText(requireContext(), "Konten berhasil dipublikasikan! 🎉", Toast.LENGTH_SHORT).show()
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             },
             onError = { err ->
                 isLoading = false
-                binding.btnPublish.isEnabled = true
-                binding.btnPublish.text = "Publish"
-                Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show()
+                if (_binding == null) return@tambahArtikel
+                setLoading(false)
+                Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_SHORT).show()
             }
         )
+    }
+
+    private fun editArtikel(
+        judul: String, kategori: String, deskripsi: String,
+        isi: String, menit: Int, thumbnailUrl: String?
+    ) {
+        val updates = mutableMapOf<String, Any>(
+            "judul"      to judul,
+            "kategori"   to kategori,
+            "deskripsi"  to deskripsi,
+            "isi_konten" to isi,
+            "menit_baca" to menit
+        )
+        if (thumbnailUrl != null) updates["thumbnail_url"] = thumbnailUrl
+
+        FirebaseHelper.updateArtikel(
+            artikelId  = artikelId!!,
+            dataUpdate = updates,
+            onSuccess  = {
+                isLoading = false
+                if (_binding == null) return@updateArtikel
+                Toast.makeText(requireContext(), "Konten berhasil diperbarui! ✅", Toast.LENGTH_SHORT).show()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
+            },
+            onError = { err ->
+                isLoading = false
+                if (_binding == null) return@updateArtikel
+                setLoading(false)
+                Toast.makeText(requireContext(), "Gagal update: $err", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    private fun setLoading(loading: Boolean) {
+        binding.btnPublish.isEnabled = !loading
+        binding.btnPublish.text = when {
+            loading           -> "Memproses..."
+            artikelId != null -> "Simpan Perubahan"
+            else              -> "Publish"
+        }
     }
 
     override fun onDestroyView() {

@@ -16,7 +16,6 @@ object FirebaseHelper {
     val db   = FirebaseFirestore.getInstance()
     val uid  get() = auth.currentUser?.uid ?: ""
 
-
     // ════════════════════════════════════════════════════════════
     // [A] AUTH — Login, Register, Logout
     // ════════════════════════════════════════════════════════════
@@ -46,8 +45,6 @@ object FirebaseHelper {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnSuccessListener { result ->
                 val uid  = result.user?.uid ?: return@addOnSuccessListener
-                val user = result.user
-
                 val data = hashMapOf(
                     "nama"        to nama,
                     "email"       to email,
@@ -59,12 +56,8 @@ object FirebaseHelper {
                     "created_at"  to Timestamp.now(),
                     "updated_at"  to Timestamp.now()
                 )
-
                 db.collection("users").document(uid).set(data)
-                    .addOnSuccessListener {
-                        user?.sendEmailVerification()
-                        onSuccess(uid)
-                    }
+                    .addOnSuccessListener { onSuccess(uid) }
                     .addOnFailureListener { onError(it.message ?: "Gagal simpan data") }
             }
             .addOnFailureListener { onError(it.message ?: "Registrasi gagal") }
@@ -78,10 +71,12 @@ object FirebaseHelper {
         onError: (String) -> Unit
     ) {
         val updates = hashMapOf<String, Any>(
-            "role" to role,
+            "role"       to role,
             "updated_at" to Timestamp.now()
         )
+        // Pengelola langsung verified; guru/ortu menunggu verifikasi pengelola
         if (isVerified || role == "pengelola") updates["is_verified"] = true
+        else updates["is_verified"] = false
 
         db.collection("users").document(uid)
             .update(updates)
@@ -94,36 +89,12 @@ object FirebaseHelper {
         onSuccess: (role: String) -> Unit,
         onError: (String) -> Unit
     ) {
-        db.collection("users").document(uid)
-            .get()
-            .addOnSuccessListener { doc ->
-                onSuccess(doc.getString("role") ?: "")
-            }
+        db.collection("users").document(uid).get()
+            .addOnSuccessListener { doc -> onSuccess(doc.getString("role") ?: "") }
             .addOnFailureListener { onError(it.message ?: "Gagal ambil role") }
     }
 
     fun logout() = auth.signOut()
-
-    fun kirimUlangVerifikasi(
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        auth.currentUser?.sendEmailVerification()
-            ?.addOnSuccessListener { onSuccess() }
-            ?.addOnFailureListener { onError(it.message ?: "Gagal kirim email") }
-    }
-
-    fun cekEmailVerified(onResult: (Boolean) -> Unit) {
-        auth.currentUser?.reload()
-            ?.addOnSuccessListener {
-                val verified = auth.currentUser?.isEmailVerified ?: false
-                if (verified) {
-                    db.collection("users").document(uid)
-                        .update("is_verified", true)
-                }
-                onResult(verified)
-            }
-    }
 
     fun resetPassword(
         email: String,
@@ -135,7 +106,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal kirim reset password") }
     }
 
-
     // ════════════════════════════════════════════════════════════
     // LOGIN DENGAN GOOGLE
     // ════════════════════════════════════════════════════════════
@@ -146,12 +116,10 @@ object FirebaseHelper {
         onError: (String) -> Unit
     ) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-
         auth.signInWithCredential(credential)
             .addOnSuccessListener { result ->
                 val user      = result.user ?: return@addOnSuccessListener
                 val isNewUser = result.additionalUserInfo?.isNewUser ?: false
-
                 if (isNewUser) {
                     val data = hashMapOf(
                         "nama"        to (user.displayName ?: ""),
@@ -159,7 +127,7 @@ object FirebaseHelper {
                         "no_hp"       to "",
                         "foto_url"    to (user.photoUrl?.toString() ?: ""),
                         "role"        to "",
-                        "is_verified" to true,
+                        "is_verified" to false,  // Tetap false, harus pilih role dulu
                         "status_akun" to "aktif",
                         "created_at"  to Timestamp.now(),
                         "updated_at"  to Timestamp.now()
@@ -174,7 +142,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Google Sign-In gagal") }
     }
 
-
     // ════════════════════════════════════════════════════════════
     // [B] USER — Data profil user
     // ════════════════════════════════════════════════════════════
@@ -184,8 +151,7 @@ object FirebaseHelper {
         onSuccess: (data: Map<String, Any?>) -> Unit,
         onError: (String) -> Unit
     ) {
-        db.collection("users").document(uid)
-            .get()
+        db.collection("users").document(uid).get()
             .addOnSuccessListener { onSuccess(it.data ?: emptyMap()) }
             .addOnFailureListener { onError(it.message ?: "Gagal ambil data user") }
     }
@@ -198,13 +164,10 @@ object FirebaseHelper {
     ) {
         val data = dataUpdate.toMutableMap()
         data["updated_at"] = Timestamp.now()
-
-        db.collection("users").document(uid)
-            .update(data)
+        db.collection("users").document(uid).update(data)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal update data") }
     }
-
 
     // ════════════════════════════════════════════════════════════
     // [C] DATA ANAK — Khusus Orang Tua
@@ -257,14 +220,16 @@ object FirebaseHelper {
             "tanggal_cek"        to null,
             "updated_at"         to Timestamp.now()
         )
-
         db.collection("users").document(uid)
-            .collection("anak")
-            .add(data)
+            .collection("anak").add(data)
             .addOnSuccessListener { onSuccess(it.id) }
             .addOnFailureListener { onError(it.message ?: "Gagal tambah data anak") }
     }
 
+    /**
+     * Simpan hasil pengecekan gizi anak.
+     * Sekaligus update dokumen anak & tambah riwayat.
+     */
     fun simpanHasilGizi(
         anakId: String,
         berat: Double,
@@ -293,7 +258,6 @@ object FirebaseHelper {
         val batch = db.batch()
         batch.update(anakRef, dataGizi as Map<String, Any>)
         batch.set(anakRef.collection("riwayat_gizi").document(), dataGizi)
-
         batch.commit()
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal simpan gizi") }
@@ -317,7 +281,6 @@ object FirebaseHelper {
             }
             .addOnFailureListener { onError(it.message ?: "Gagal ambil riwayat") }
     }
-
 
     // ════════════════════════════════════════════════════════════
     // [D] MENU MBG — Pengelola (CRUD) & Orang Tua (Read)
@@ -353,7 +316,6 @@ object FirebaseHelper {
             "dibuat_oleh"        to uid,
             "created_at"         to Timestamp.now()
         )
-
         db.collection("menu_mbg").document(tanggal)
             .set(data)
             .addOnSuccessListener { onSuccess() }
@@ -365,11 +327,8 @@ object FirebaseHelper {
         onSuccess: (data: Map<String, Any?>?) -> Unit,
         onError: (String) -> Unit
     ) {
-        db.collection("menu_mbg").document(tanggal)
-            .get()
-            .addOnSuccessListener { doc ->
-                onSuccess(if (doc.exists()) doc.data else null)
-            }
+        db.collection("menu_mbg").document(tanggal).get()
+            .addOnSuccessListener { doc -> onSuccess(if (doc.exists()) doc.data else null) }
             .addOnFailureListener { onError(it.message ?: "Gagal ambil menu") }
     }
 
@@ -396,8 +355,7 @@ object FirebaseHelper {
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        db.collection("menu_mbg").document(tanggal)
-            .delete()
+        db.collection("menu_mbg").document(tanggal).delete()
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal hapus menu") }
     }
@@ -408,17 +366,18 @@ object FirebaseHelper {
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        db.collection("menu_mbg").document(tanggal)
-            .update(dataUpdate)
+        db.collection("menu_mbg").document(tanggal).update(dataUpdate)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal update menu") }
     }
-
 
     // ════════════════════════════════════════════════════════════
     // [E] ARTIKEL EDUKASI — Guru (CRUD) & Orang Tua (Read)
     // Kategori valid: "Stunting", "Resep Sehat", "Gizi", "Tumbuh Kembang"
     // ════════════════════════════════════════════════════════════
+
+    /** Kategori artikel yang valid — harus konsisten antara guru (input) & orang tua (filter) */
+    val KATEGORI_ARTIKEL = listOf("Stunting", "Resep Sehat", "Gizi", "Tumbuh Kembang")
 
     fun tambahArtikel(
         judul: String,
@@ -434,7 +393,7 @@ object FirebaseHelper {
             "judul"         to judul,
             "deskripsi"     to deskripsi,
             "isi_konten"    to isiKonten,
-            "kategori"      to kategori,   // harus salah satu dari KATEGORI_VALID
+            "kategori"      to kategori,
             "thumbnail_url" to thumbnailUrl,
             "menit_baca"    to menitBaca,
             "penulis"       to uid,
@@ -442,17 +401,11 @@ object FirebaseHelper {
             "waktu_publish" to Timestamp.now(),
             "dibuat_oleh"   to uid
         )
-
         db.collection("artikel").add(data)
             .addOnSuccessListener { onSuccess(it.id) }
             .addOnFailureListener { onError(it.message ?: "Gagal tambah artikel") }
     }
 
-    /**
-     * Ambil artikel dari koleksi "artikel".
-     * @param kategori "Semua" untuk semua artikel, atau salah satu dari:
-     *   "Stunting", "Resep Sehat", "Gizi", "Tumbuh Kembang"
-     */
     fun getArtikel(
         kategori: String = "Semua",
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
@@ -468,8 +421,25 @@ object FirebaseHelper {
                 .whereEqualTo("kategori", kategori)
                 .orderBy("waktu_publish", Query.Direction.DESCENDING)
         }
-
         query.get()
+            .addOnSuccessListener { snapshot ->
+                val list = snapshot.documents.map { Pair(it.id, it.data ?: emptyMap()) }
+                onSuccess(list)
+            }
+            .addOnFailureListener { onError(it.message ?: "Gagal ambil artikel") }
+    }
+
+    /**
+     * Ambil artikel milik guru yang sedang login (untuk CRUD di dashboard guru)
+     */
+    fun getArtikelSaya(
+        onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        db.collection("artikel")
+            .whereEqualTo("dibuat_oleh", uid)
+            .orderBy("waktu_publish", Query.Direction.DESCENDING)
+            .get()
             .addOnSuccessListener { snapshot ->
                 val list = snapshot.documents.map { Pair(it.id, it.data ?: emptyMap()) }
                 onSuccess(list)
@@ -483,8 +453,9 @@ object FirebaseHelper {
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        db.collection("artikel").document(artikelId)
-            .update(dataUpdate)
+        val data = dataUpdate.toMutableMap()
+        data["updated_at"] = Timestamp.now()
+        db.collection("artikel").document(artikelId).update(data)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal update artikel") }
     }
@@ -494,29 +465,23 @@ object FirebaseHelper {
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        db.collection("artikel").document(artikelId)
-            .delete()
+        db.collection("artikel").document(artikelId).delete()
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal hapus artikel") }
     }
 
-    /**
-     * Ambil satu artikel by ID — untuk PreviewKontenFragment
-     */
     fun getArtikelById(
         artikelId: String,
         onSuccess: (Map<String, Any?>) -> Unit,
         onError: (String) -> Unit
     ) {
-        db.collection("artikel").document(artikelId)
-            .get()
+        db.collection("artikel").document(artikelId).get()
             .addOnSuccessListener { doc ->
                 if (doc.exists()) onSuccess(doc.data ?: emptyMap())
                 else onError("Artikel tidak ditemukan")
             }
             .addOnFailureListener { onError(it.message ?: "Gagal ambil artikel") }
     }
-
 
     // ════════════════════════════════════════════════════════════
     // [F] PENGUMUMAN — Pengelola (CRUD)
@@ -525,21 +490,21 @@ object FirebaseHelper {
     fun kirimPengumuman(
         judul: String,
         isi: String,
-        targetRole: String,
+        targetRole: String,  // "orang_tua", "guru", atau "semua"
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         val data = hashMapOf(
-            "judul_pengumuman"  to judul,
-            "isi_pengumuman"    to isi,
-            "target_role"       to targetRole,
-            "is_published"      to true,
-            "waktu_pengumuman"  to Timestamp.now(),
-            "dibuat_oleh"       to uid
+            "judul_pengumuman" to judul,
+            "isi_pengumuman"   to isi,
+            "target_role"      to targetRole,
+            "is_published"     to true,
+            "waktu_pengumuman" to Timestamp.now(),
+            "dibuat_oleh"      to uid
         )
-
         db.collection("pengumuman").add(data)
             .addOnSuccessListener {
+                // Blast notifikasi ke semua user dengan role yang dituju
                 blastNotifikasi(
                     judul      = judul,
                     isi        = isi,
@@ -569,7 +534,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil pengumuman") }
     }
 
-
     // ════════════════════════════════════════════════════════════
     // [G] NOTIFIKASI — Semua Role
     // ════════════════════════════════════════════════════════════
@@ -585,9 +549,7 @@ object FirebaseHelper {
         val ref = storage.reference.child(path)
         ref.putFile(uri)
             .addOnSuccessListener {
-                ref.downloadUrl.addOnSuccessListener { url ->
-                    onSuccess(url.toString())
-                }
+                ref.downloadUrl.addOnSuccessListener { url -> onSuccess(url.toString()) }
             }
             .addOnFailureListener { onError(it.message ?: "Upload gagal") }
     }
@@ -608,12 +570,15 @@ object FirebaseHelper {
             "is_read" to false,
             "waktu"   to Timestamp.now()
         )
-
         db.collection("notifikasi").add(data)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal kirim notifikasi") }
     }
 
+    /**
+     * Blast notifikasi ke semua user berdasarkan role.
+     * targetRole: "orang_tua", "guru", "pengelola", atau "semua"
+     */
     fun blastNotifikasi(
         judul: String,
         isi: String,
@@ -629,11 +594,9 @@ object FirebaseHelper {
                 .whereEqualTo("role", targetRole)
                 .whereEqualTo("status_akun", "aktif")
         }
-
         query.get()
             .addOnSuccessListener { snapshot ->
                 if (snapshot.isEmpty) { onSuccess(); return@addOnSuccessListener }
-
                 val batch = db.batch()
                 snapshot.documents.forEach { userDoc ->
                     val notifRef = db.collection("notifikasi").document()
@@ -646,7 +609,6 @@ object FirebaseHelper {
                         "waktu"   to Timestamp.now()
                     ))
                 }
-
                 batch.commit()
                     .addOnSuccessListener { onSuccess() }
                     .addOnFailureListener { onError(it.message ?: "Gagal blast notifikasi") }
@@ -667,8 +629,7 @@ object FirebaseHelper {
         }
 
     fun tandaiDibaca(notifId: String) {
-        db.collection("notifikasi").document(notifId)
-            .update("is_read", true)
+        db.collection("notifikasi").document(notifId).update("is_read", true)
     }
 
     fun tandaiSemuaDibaca(onSuccess: () -> Unit = {}) {
@@ -683,12 +644,7 @@ object FirebaseHelper {
             }
     }
 
-    /**
-     * Hitung jumlah notifikasi yang belum dibaca — untuk badge di bottom nav
-     */
-    fun getJumlahNotifBelumDibaca(
-        onResult: (Int) -> Unit
-    ) {
+    fun getJumlahNotifBelumDibaca(onResult: (Int) -> Unit) {
         db.collection("notifikasi")
             .whereEqualTo("user_id", uid)
             .whereEqualTo("is_read", false)
@@ -696,7 +652,6 @@ object FirebaseHelper {
             .addOnSuccessListener { onResult(it.size()) }
             .addOnFailureListener { onResult(0) }
     }
-
 
     // ════════════════════════════════════════════════════════════
     // [H] ADUAN — Orang Tua & Guru (Create + Read)
@@ -725,7 +680,6 @@ object FirebaseHelper {
             "created_at"     to Timestamp.now(),
             "updated_at"     to Timestamp.now()
         )
-
         db.collection("aduan").add(data)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal kirim aduan") }
@@ -776,7 +730,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal balas aduan") }
     }
 
-
     // ════════════════════════════════════════════════════════════
     // [I] REKAP GIZI — Guru (CRUD)
     // ════════════════════════════════════════════════════════════
@@ -806,7 +759,6 @@ object FirebaseHelper {
             "created_at"   to Timestamp.now(),
             "updated_at"   to Timestamp.now()
         )
-
         db.collection("rekap_gizi").add(data)
             .addOnSuccessListener { onSuccess(it.id) }
             .addOnFailureListener { onError(it.message ?: "Gagal simpan rekap") }
@@ -834,10 +786,8 @@ object FirebaseHelper {
             "status_gizi"  to statusGizi,
             "tanggal_ukur" to Timestamp.now()
         )
-
         db.collection("rekap_gizi").document(rekapId)
-            .collection("detail_siswa")
-            .add(data)
+            .collection("detail_siswa").add(data)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal tambah siswa") }
     }
@@ -873,7 +823,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil detail siswa") }
     }
 
-
     // ════════════════════════════════════════════════════════════
     // [J] DATA PENGGUNA — Khusus Pengelola
     // ════════════════════════════════════════════════════════════
@@ -884,13 +833,15 @@ object FirebaseHelper {
         onError: (String) -> Unit
     ) {
         val query = if (role == "semua") {
-            db.collection("users").orderBy("created_at", Query.Direction.DESCENDING)
+            db.collection("users")
+                .whereEqualTo("is_verified", true)
+                .orderBy("created_at", Query.Direction.DESCENDING)
         } else {
             db.collection("users")
                 .whereEqualTo("role", role)
+                .whereEqualTo("is_verified", true)
                 .orderBy("created_at", Query.Direction.DESCENDING)
         }
-
         query.get()
             .addOnSuccessListener { snapshot ->
                 val list = snapshot.documents.map { Pair(it.id, it.data ?: emptyMap()) }
@@ -899,16 +850,28 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil data pengguna") }
     }
 
+    /**
+     * Pendaftar baru = user dengan is_verified=false DAN status_akun != "ditolak"
+     */
     fun getPendaftarBaru(
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
         onError: (String) -> Unit
     ) {
+        // Query sederhana tanpa orderBy di level Firestore untuk menghindari kebutuhan composite index yang kompleks
         db.collection("users")
             .whereEqualTo("is_verified", false)
-            .orderBy("created_at", Query.Direction.DESCENDING)
+            .whereEqualTo("status_akun", "aktif")
             .get()
             .addOnSuccessListener { snapshot ->
-                val list = snapshot.documents.map { Pair(it.id, it.data ?: emptyMap()) }
+                // Filter role dan urutkan secara manual di memori
+                val list = snapshot.documents
+                    .filter { doc ->
+                        val role = doc.getString("role") ?: ""
+                        role == "guru" || role == "orang_tua"
+                    }
+                    .map { Pair(it.id, it.data ?: emptyMap()) }
+                    .sortedByDescending { (it.second["created_at"] as? Timestamp) ?: Timestamp.now() }
+
                 onSuccess(list)
             }
             .addOnFailureListener { onError(it.message ?: "Gagal ambil pendaftar baru") }
@@ -928,8 +891,8 @@ object FirebaseHelper {
             .addOnSuccessListener {
                 kirimNotifikasi(
                     targetUid = targetUid,
-                    judul     = "Akun Berhasil Diverifikasi",
-                    isi       = "Selamat! Akun kamu sudah aktif. Silakan login sekarang.",
+                    judul     = "Akun Berhasil Diverifikasi 🎉",
+                    isi       = "Selamat! Akun kamu sudah diverifikasi oleh pengelola. Silakan login sekarang.",
                     tipe      = "akun"
                 )
                 onSuccess()
@@ -945,9 +908,10 @@ object FirebaseHelper {
     ) {
         db.collection("users").document(targetUid)
             .update(
-                "status_akun", "ditolak",
+                "status_akun",  "ditolak",
                 "alasan_tolak", alasan,
-                "updated_at",  Timestamp.now()
+                "is_verified",  false,
+                "updated_at",   Timestamp.now()
             )
             .addOnSuccessListener {
                 kirimNotifikasi(
@@ -972,43 +936,174 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal nonaktifkan akun") }
     }
 
-    fun hapusAkunPengguna(
+    fun aktifkanAkun(
         targetUid: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         db.collection("users").document(targetUid)
-            .delete()
+            .update("status_akun", "aktif", "updated_at", Timestamp.now())
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { onError(it.message ?: "Gagal hapus akun") }
+            .addOnFailureListener { onError(it.message ?: "Gagal aktifkan akun") }
     }
 
-
     // ════════════════════════════════════════════════════════════
-    // [K] HELPER UMUM
+    // [K] KALKULASI GIZI — WHO Standard
     // ════════════════════════════════════════════════════════════
 
-    /** Kategori artikel yang valid — harus konsisten antara guru (input) & orang tua (filter) */
-    val KATEGORI_ARTIKEL = listOf("Stunting", "Resep Sehat", "Gizi", "Tumbuh Kembang")
-
+    /**
+     * Hitung Z-Score WHO berdasarkan BB/U (Weight-for-Age).
+     * Menggunakan tabel median & SD WHO untuk anak 0–60 bulan.
+     * Rumus: Z = (X - Median) / SD
+     */
     fun hitungZScore(berat: Double, usiaBulan: Int): Double {
-        val median = when {
-            usiaBulan <= 6  -> 6.4
-            usiaBulan <= 12 -> 9.6
-            usiaBulan <= 24 -> 12.2
-            usiaBulan <= 36 -> 14.3
-            usiaBulan <= 48 -> 16.3
-            usiaBulan <= 60 -> 18.3
-            else            -> 20.0
+        // Tabel WHO BB/U: Pair(median, SD) berdasarkan usia bulan
+        // Data diambil dari WHO Child Growth Standards (unisex simplified)
+        val (median, sd) = when {
+            usiaBulan <= 1  -> Pair(4.5,  0.60)
+            usiaBulan <= 2  -> Pair(5.6,  0.70)
+            usiaBulan <= 3  -> Pair(6.4,  0.75)
+            usiaBulan <= 4  -> Pair(7.0,  0.80)
+            usiaBulan <= 5  -> Pair(7.5,  0.85)
+            usiaBulan <= 6  -> Pair(7.9,  0.88)
+            usiaBulan <= 7  -> Pair(8.3,  0.92)
+            usiaBulan <= 8  -> Pair(8.6,  0.95)
+            usiaBulan <= 9  -> Pair(8.9,  0.97)
+            usiaBulan <= 10 -> Pair(9.2,  0.99)
+            usiaBulan <= 11 -> Pair(9.4,  1.01)
+            usiaBulan <= 12 -> Pair(9.6,  1.03)
+            usiaBulan <= 15 -> Pair(10.2, 1.08)
+            usiaBulan <= 18 -> Pair(10.8, 1.13)
+            usiaBulan <= 21 -> Pair(11.3, 1.17)
+            usiaBulan <= 24 -> Pair(12.2, 1.25)
+            usiaBulan <= 27 -> Pair(12.6, 1.28)
+            usiaBulan <= 30 -> Pair(13.0, 1.32)
+            usiaBulan <= 33 -> Pair(13.4, 1.36)
+            usiaBulan <= 36 -> Pair(14.3, 1.43)
+            usiaBulan <= 42 -> Pair(15.2, 1.52)
+            usiaBulan <= 48 -> Pair(16.3, 1.63)
+            usiaBulan <= 54 -> Pair(17.1, 1.71)
+            usiaBulan <= 60 -> Pair(18.3, 1.83)
+            else            -> Pair(20.0, 2.00)
         }
-        return (berat - median) / (median * 0.12)
+        return (berat - median) / sd
     }
 
+    /**
+     * Hitung Z-Score TB/U (Height-for-Age) WHO.
+     * Untuk deteksi stunting (pendek kronik).
+     */
+    fun hitungZScoreTbu(tinggi: Double, usiaBulan: Int): Double {
+        val (median, sd) = when {
+            usiaBulan <= 3  -> Pair(59.8, 2.2)
+            usiaBulan <= 6  -> Pair(67.6, 2.4)
+            usiaBulan <= 9  -> Pair(72.0, 2.6)
+            usiaBulan <= 12 -> Pair(75.7, 2.7)
+            usiaBulan <= 18 -> Pair(82.3, 2.9)
+            usiaBulan <= 24 -> Pair(87.8, 3.1)
+            usiaBulan <= 36 -> Pair(96.1, 3.5)
+            usiaBulan <= 48 -> Pair(103.3, 3.8)
+            usiaBulan <= 60 -> Pair(110.0, 4.0)
+            else            -> Pair(116.0, 4.2)
+        }
+        return (tinggi - median) / sd
+    }
+
+    /**
+     * Klasifikasi status gizi berdasarkan Z-Score BB/U (WHO).
+     */
     fun kategoriGizi(zScore: Double): String = when {
         zScore < -3.0 -> "Gizi Buruk"
         zScore < -2.0 -> "Gizi Kurang"
-        zScore <= 2.0 -> "Normal"
+        zScore <= 1.0 -> "Normal"
+        zScore <= 2.0 -> "Berisiko Gizi Lebih"
         zScore <= 3.0 -> "Gizi Lebih"
         else          -> "Obesitas"
+    }
+
+    /**
+     * Hitung persentase kecukupan nutrisi (simplified).
+     * Normal = 100%, makin jauh dari normal makin rendah.
+     */
+    fun hitungPersentaseNutrisi(zScore: Double): Int {
+        return when {
+            zScore < -3.0 -> 30
+            zScore < -2.0 -> 55
+            zScore < -1.0 -> 75
+            zScore <= 1.0 -> 100
+            zScore <= 2.0 -> 85
+            zScore <= 3.0 -> 70
+            else          -> 60
+        }
+    }
+
+    /**
+     * Rekomendasi makanan berdasarkan status gizi & usia anak.
+     * Mengikuti pedoman Kemenkes & WHO.
+     */
+    fun rekomendasiMakanan(statusGizi: String, usiaBulan: Int): List<String> {
+        val isBalita = usiaBulan <= 60
+        return when (statusGizi.lowercase()) {
+            "gizi buruk" -> listOf(
+                "🥛 Susu formula/ASI intensif minimal 8x/hari",
+                "🥚 Telur rebus 1–2 butir per hari (tinggi protein)",
+                "🐟 Ikan kukus atau ayam tanpa lemak setiap makan",
+                "🥜 Kacang-kacangan halus (kacang merah, tempe, tahu)",
+                "🥣 Bubur nasi dengan kuah kaldu ayam/sapi",
+                "🧀 Keju atau yoghurt sebagai camilan",
+                "🫘 RUTF (Ready-to-Use Therapeutic Food) jika tersedia",
+                "⚠️ Segera konsultasi ke dokter atau Puskesmas terdekat"
+            )
+            "gizi kurang" -> listOf(
+                "🍗 Tambah porsi protein: ayam, ikan, telur, atau daging",
+                "🥚 Telur 1 butir setiap hari wajib",
+                "🥛 Susu atau produk susu (keju, yoghurt) setiap hari",
+                "🥜 Kacang-kacangan: tempe, tahu, edamame",
+                "🍚 Nasi atau kentang dengan porsi cukup setiap makan",
+                "🥑 Tambahkan alpukat atau minyak zaitun untuk kalori sehat",
+                "🍌 Buah-buahan manis: pisang, mangga, pepaya",
+                "📅 Makan teratur 3x utama + 2x selingan sehat"
+            )
+            "berisiko gizi lebih" -> listOf(
+                "🥦 Perbanyak sayuran hijau: bayam, brokoli, kangkung",
+                "🍎 Pilih buah rendah gula: apel, pir, jeruk",
+                "🐟 Protein rendah lemak: ikan, ayam tanpa kulit",
+                "🌾 Ganti nasi putih dengan nasi merah atau ubi",
+                "💧 Perbanyak minum air putih, kurangi jus buah",
+                "🚫 Kurangi camilan manis dan gorengan",
+                "🏃 Tingkatkan aktivitas fisik: bermain aktif 1 jam/hari"
+            )
+            "gizi lebih" -> listOf(
+                "🥦 Sayuran harus isi setengah piring setiap makan",
+                "🍎 Buah segar 2–3 porsi per hari sebagai camilan",
+                "🐟 Protein tanpa lemak: ikan kukus/panggang, tahu, tempe",
+                "🌾 Karbohidrat kompleks: ubi, jagung, nasi merah",
+                "🚫 Hindari: gorengan, fast food, minuman bersoda",
+                "💧 Minum air putih 6–8 gelas per hari",
+                "🏃 Aktivitas fisik 60 menit per hari",
+                "📋 Konsultasi ke ahli gizi untuk program diet anak"
+            )
+            "obesitas" -> listOf(
+                "🥗 Perbanyak sayuran segar: salad, tumisan tanpa minyak",
+                "🍎 Buah rendah kalori: semangka, melon, jeruk, apel",
+                "🐟 Protein tanpa lemak: ikan rebus/kukus, putih telur",
+                "🚫 Hindari: gula, tepung putih, makanan olahan, fast food",
+                "🥛 Susu rendah lemak atau skim, batasi 2 gelas/hari",
+                "💧 Air putih 8 gelas per hari, hindari minuman manis",
+                "🏃 Olahraga teratur minimal 60 menit per hari",
+                "⚠️ Wajib konsultasi dokter anak dan ahli gizi",
+                "📊 Pantau berat badan setiap 2 minggu"
+            )
+            else -> listOf( // Normal
+                "🍚 Nasi + lauk-pauk bergizi 3 porsi per hari",
+                "🥩 Protein hewani: ayam, ikan, telur, daging sapi",
+                "🌱 Protein nabati: tempe, tahu, kacang-kacangan",
+                "🥦 Sayuran berwarna-warni minimal 2–3 porsi/hari",
+                "🍎 Buah segar 2–3 porsi per hari",
+                "🥛 Susu atau produk susu setiap hari",
+                "💧 Air putih cukup sesuai usia",
+                "✅ Status gizi baik! Pertahankan pola makan sehat"
+            )
+        }
     }
 }

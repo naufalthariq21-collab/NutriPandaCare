@@ -39,9 +39,10 @@ class ProfilPengelolaFragment : Fragment() {
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
                 val b = _binding ?: return@getDataUser
-                b.tvNama.text  = data["nama"] as? String ?: "Admin NutriPanda"
+                b.tvNama.text  = data["nama"]  as? String ?: "Admin NutriPanda"
                 b.tvEmail.text = data["email"] as? String ?: ""
-                val fotoUrl    = data["foto_url"] as? String ?: ""
+
+                val fotoUrl = data["foto_url"] as? String ?: ""
                 if (fotoUrl.isNotEmpty()) {
                     Glide.with(this).load(fotoUrl)
                         .placeholder(R.drawable.ic_placeholder_avatar)
@@ -55,8 +56,10 @@ class ProfilPengelolaFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.btnNotifikasi.setOnClickListener {
-            if (findNavController().currentDestination?.id == R.id.fragment_profil_pengelola) {
-                findNavController().navigate(R.id.fragment_notifikasi)
+            val nav = findNavController()
+            // Gunakan action ID yang sudah didefinisikan di nav_pengelola.xml
+            if (nav.currentDestination?.id == R.id.fragment_profil_pengelola) {
+                nav.navigate(R.id.action_profil_to_notifikasi)
             }
         }
         binding.btnLogout.setOnClickListener {
@@ -70,9 +73,11 @@ class ProfilPengelolaFragment : Fragment() {
             .setMessage("Yakin ingin keluar?")
             .setPositiveButton("Ya") { _, _ ->
                 FirebaseHelper.logout()
-                val intent = Intent(requireContext(), LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
+                startActivity(
+                    Intent(requireContext(), LoginActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                )
             }
             .setNegativeButton("Tidak", null)
             .show()

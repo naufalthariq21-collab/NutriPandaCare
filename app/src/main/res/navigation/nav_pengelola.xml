@@ -1,54 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/nav_pengelola"
-    app:startDestination="@id/fragment_home_pengelola">
-
-    <fragment
-        android:id="@+id/fragment_home_pengelola"
-        android:name="com.example.nutripandacare.fragment.pengelola.HomePengelolaFragment"
-        android:label="Home"
-        tools:layout="@layout/fragment_home_pengelola" />
-
-    <fragment
-        android:id="@+id/fragment_verifikasi_pengelola"
-        android:name="com.example.nutripandacare.fragment.pengelola.DataPenggunaFragment"
-        android:label="Verifikasi"
-        tools:layout="@layout/fragment_data_pengguna" />
-
-    <fragment
-        android:id="@+id/fragment_aduan_pengelola"
-        android:name="com.example.nutripandacare.fragment.pengelola.AduanGuruFragment"
-        android:label="Aduan"
-        tools:layout="@layout/fragment_aduan_guru" />
-
-    <fragment
-        android:id="@+id/fragment_menu_mbg"
-        android:name="com.example.nutripandacare.fragment.pengelola.KelolaMenuFragment"
-        android:label="Menu MBG"
-        tools:layout="@layout/fragment_kelola_menu">
-        <action
-            android:id="@+id/action_fragment_menu_mbg_to_tambahMenuFragment"
-            app:destination="@id/fragment_tambah_menu" />
+<navigation xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools" android:id="@+id/nav_pengelola" app:startDestination="@id/fragment_home_pengelola">
+    <!--  HOME PENGELOLA  -->
+    <fragment android:id="@+id/fragment_home_pengelola" android:name="com.example.nutripandacare.fragment.pengelola.HomePengelolaFragment" android:label="Home" tools:layout="@layout/fragment_home_pengelola">
+        <action android:id="@+id/action_home_to_verifikasi" app:destination="@id/fragment_verifikasi_pengelola"/>
+        <action android:id="@+id/action_home_to_aduan" app:destination="@id/fragment_aduan_pengelola"/>
+        <action android:id="@+id/action_home_to_menu" app:destination="@id/fragment_menu_mbg"/>
+        <action android:id="@+id/action_home_to_notifikasi" app:destination="@id/fragment_notifikasi"/>
     </fragment>
-
-    <fragment
-        android:id="@+id/fragment_tambah_menu"
-        android:name="com.example.nutripandacare.fragment.pengelola.TambahMenuFragment"
-        android:label="Tambah Menu"
-        tools:layout="@layout/fragment_tambah_menu" />
-
-    <fragment
-        android:id="@+id/fragment_notifikasi"
-        android:name="com.example.nutripandacare.fragment.pengelola.NotifikasiFragment"
-        android:label="Notifikasi"
-        tools:layout="@layout/fragment_notifikasi" />
-
-    <fragment
-        android:id="@+id/fragment_profil_pengelola"
-        android:name="com.example.nutripandacare.fragment.pengelola.ProfilPengelolaFragment"
-        android:label="Profil"
-        tools:layout="@layout/fragment_profil_pengelola" />
-
+    <!--  DATA PENGGUNA / VERIFIKASI  -->
+    <fragment android:id="@+id/fragment_verifikasi_pengelola" android:name="com.example.nutripandacare.fragment.pengelola.DataPenggunaFragment" android:label="Data Pengguna" tools:layout="@layout/fragment_data_pengguna"/>
+    <!--  ADUAN GURU  -->
+    <fragment android:id="@+id/fragment_aduan_pengelola" android:name="com.example.nutripandacare.fragment.pengelola.AduanGuruFragment" android:label="Aduan Guru" tools:layout="@layout/fragment_aduan_guru"/>
+    <!--  KELOLA MENU MBG  -->
+    <fragment android:id="@+id/fragment_menu_mbg" android:name="com.example.nutripandacare.fragment.pengelola.KelolaMenuFragment" android:label="Kelola Menu MBG" tools:layout="@layout/fragment_kelola_menu">
+        <action android:id="@+id/action_fragment_menu_mbg_to_tambahMenuFragment" app:destination="@id/tambahMenuFragment"/>
+    </fragment>
+    <!--  TAMBAH / EDIT MENU MBG  -->
+    <fragment android:id="@+id/tambahMenuFragment" android:name="com.example.nutripandacare.fragment.pengelola.TambahMenuFragment" android:label="Tambah Menu" tools:layout="@layout/fragment_tambah_menu">
+        <argument android:name="tanggal_edit" app:argType="string" app:nullable="true" android:defaultValue="@null"/>
+    </fragment>
+    <!--  NOTIFIKASI PENGELOLA  -->
+    <fragment android:id="@+id/fragment_notifikasi" android:name="com.example.nutripandacare.fragment.pengelola.NotifikasiFragment" android:label="Notifikasi" tools:layout="@layout/fragment_notifikasi"/>
+    <!--  PROFIL PENGELOLA  -->
+    <fragment android:id="@+id/fragment_profil_pengelola" android:name="com.example.nutripandacare.fragment.pengelola.ProfilPengelolaFragment" android:label="Profil" tools:layout="@layout/fragment_profil_pengelola">
+        <action android:id="@+id/action_profil_to_notifikasi" app:destination="@id/fragment_notifikasi"/>
+    </fragment>
 </navigation>

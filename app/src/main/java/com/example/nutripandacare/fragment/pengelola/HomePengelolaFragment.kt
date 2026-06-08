@@ -39,7 +39,6 @@ class HomePengelolaFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh stats tiap kali balik ke home
         loadSummaryStats()
         loadMenuHariIni()
     }
@@ -49,22 +48,17 @@ class HomePengelolaFragment : Fragment() {
         if (uid.isEmpty()) return
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
-                _binding?.tvWelcome?.text = "Halo, ${data["nama"] as? String ?: "Pengelola"}!"
+                _binding?.tvWelcome?.text = "Halo, ${data["nama"] as? String ?: "Pengelola"}! 👋"
             },
             onError = {}
         )
     }
 
     private fun loadSummaryStats() {
-        // Jumlah akun menunggu verifikasi
         FirebaseHelper.getPendaftarBaru(
-            onSuccess = { list ->
-                _binding?.tvCountVerifikasi?.text = list.size.toString()
-            },
-            onError = {}
+            onSuccess = { list -> _binding?.tvCountVerifikasi?.text = list.size.toString() },
+            onError   = {}
         )
-
-        // Jumlah aduan yang masih menunggu balasan
         FirebaseHelper.getAllAduan(
             onSuccess = { list ->
                 val pending = list.count { (it.second["status_aduan"] as? String) == "menunggu" }
@@ -80,8 +74,8 @@ class HomePengelolaFragment : Fragment() {
             onSuccess = { data ->
                 val b = _binding ?: return@getMenuHariIni
                 if (data != null) {
-                    b.tvNamaMenuToday.text  = data["nama_menu"] as? String ?: "Menu Tanpa Nama"
-                    b.tvDescMenuToday.text  = "${data["kalori"] ?: 0} kkal • Nutrisi Terjaga"
+                    b.tvNamaMenuToday.text = data["nama_menu"] as? String ?: "Menu Tanpa Nama"
+                    b.tvDescMenuToday.text = "${data["kalori"] ?: 0} kkal • Nutrisi Terjaga"
                     val fotoUrl = data["foto_menu"] as? String ?: ""
                     if (fotoUrl.isNotEmpty()) {
                         Glide.with(this).load(fotoUrl)
@@ -125,11 +119,10 @@ class HomePengelolaFragment : Fragment() {
         }
     }
 
-    /** Navigasi aman: hanya lakukan jika masih di fragment home */
     private fun navigateSafe(destinationId: Int) {
-        val navController = findNavController()
-        if (navController.currentDestination?.id == R.id.fragment_home_pengelola) {
-            navController.navigate(destinationId)
+        val nav = findNavController()
+        if (nav.currentDestination?.id == R.id.fragment_home_pengelola) {
+            nav.navigate(destinationId)
         }
     }
 
@@ -139,9 +132,11 @@ class HomePengelolaFragment : Fragment() {
             .setMessage("Apakah Anda yakin ingin keluar?")
             .setPositiveButton("Ya") { _, _ ->
                 FirebaseHelper.logout()
-                val intent = Intent(requireContext(), LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
+                startActivity(
+                    Intent(requireContext(), LoginActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                )
             }
             .setNegativeButton("Tidak", null)
             .show()

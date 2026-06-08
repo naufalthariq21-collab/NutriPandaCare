@@ -4,7 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.ImageView
+import android.widget.PopupMenu
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -37,7 +40,6 @@ class KontenEdukasiFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupRecyclerView()
         setupClickListeners()
         loadArtikel()
@@ -45,6 +47,7 @@ class KontenEdukasiFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        // Reload setiap kali kembali ke fragment (misal setelah edit/tambah)
         loadArtikel()
     }
 
@@ -52,12 +55,15 @@ class KontenEdukasiFragment : Fragment() {
         adapter = KontenAdapter(
             data = daftarArtikel,
             onPreview = { artikelId ->
-                // Navigasi ke preview dengan kirim artikel_id sebagai argumen
                 val args = bundleOf("artikel_id" to artikelId)
                 findNavController().navigate(R.id.nav_preview_konten, args)
             },
+            onEdit = { artikelId ->
+                // Navigasi ke BuatKontenFragment dengan mode edit
+                val args = bundleOf("artikel_id" to artikelId)
+                findNavController().navigate(R.id.nav_buat_konten, args)
+            },
             onKirimNotif = { _, judulArtikel ->
-                // Kirim judul artikel sebagai pesan awal ke KirimPengumumanFragment
                 val args = bundleOf("judul_artikel" to judulArtikel)
                 findNavController().navigate(R.id.nav_buat_pengumuman, args)
             },
@@ -74,10 +80,10 @@ class KontenEdukasiFragment : Fragment() {
         binding.rvKonten.visibility    = View.GONE
         binding.tvEmpty.visibility     = View.GONE
 
-        FirebaseHelper.getArtikel(
-            kategori = "Semua",
+        // Guru hanya lihat artikel miliknya sendiri
+        FirebaseHelper.getArtikelSaya(
             onSuccess = { list ->
-                if (_binding == null) return@getArtikel
+                if (_binding == null) return@getArtikelSaya
                 binding.progressBar.visibility = View.GONE
 
                 daftarArtikel.clear()
@@ -93,7 +99,7 @@ class KontenEdukasiFragment : Fragment() {
                 }
             },
             onError = { err ->
-                if (_binding == null) return@getArtikel
+                if (_binding == null) return@getArtikelSaya
                 binding.progressBar.visibility = View.GONE
                 Toast.makeText(requireContext(), "Gagal memuat konten: $err", Toast.LENGTH_SHORT).show()
             }
@@ -124,8 +130,8 @@ class KontenEdukasiFragment : Fragment() {
         binding.ivBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-
         binding.btnTambah.setOnClickListener {
+            // Mode tambah: tidak kirim artikel_id
             findNavController().navigate(R.id.nav_buat_konten)
         }
     }
@@ -136,11 +142,12 @@ class KontenEdukasiFragment : Fragment() {
     }
 
     // ─────────────────────────────────────────────────
-    // Inner Adapter
+    // Inner Adapter — sekarang ada callback onEdit
     // ─────────────────────────────────────────────────
     inner class KontenAdapter(
         private val data: List<Pair<String, Map<String, Any?>>>,
         private val onPreview: (artikelId: String) -> Unit,
+        private val onEdit: (artikelId: String) -> Unit,
         private val onKirimNotif: (artikelId: String, judulArtikel: String) -> Unit,
         private val onHapus: (artikelId: String) -> Unit
     ) : RecyclerView.Adapter<KontenAdapter.VH>() {
@@ -192,22 +199,17 @@ class KontenEdukasiFragment : Fragment() {
             // Tap card → preview
             holder.itemView.setOnClickListener { onPreview(artikelId) }
 
-            // Tap menu (⋮)
+            // Tap menu (⋮) → Edit / Kirim Notifikasi / Hapus
             holder.tvMenu.setOnClickListener { anchor ->
                 val popup = PopupMenu(anchor.context, anchor)
-                popup.menu.add(0, 0, 0, "📤  Kirim Notifikasi ke Ortu")
-                popup.menu.add(0, 1, 1, "🗑️  Hapus Artikel")
+                popup.menu.add(0, 0, 0, "✏️  Edit Artikel")
+                popup.menu.add(0, 1, 1, "📤  Kirim Notifikasi ke Ortu")
+                popup.menu.add(0, 2, 2, "🗑️  Hapus Artikel")
                 popup.setOnMenuItemClickListener { menuItem ->
                     when (menuItem.itemId) {
-                        0 -> {
-                            val judul = item["judul"] as? String ?: ""
-                            onKirimNotif(artikelId, judul)
-                            true
-                        }
-                        1 -> {
-                            onHapus(artikelId)
-                            true
-                        }
+                        0 -> { onEdit(artikelId); true }
+                        1 -> { onKirimNotif(artikelId, item["judul"] as? String ?: ""); true }
+                        2 -> { onHapus(artikelId); true }
                         else -> false
                     }
                 }

@@ -21,8 +21,8 @@ class EdukasiFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: ArtikelAdapter
-    private val artikelList     = mutableListOf<Pair<String, Map<String, Any?>>>()
-    private val allArtikelList  = mutableListOf<Pair<String, Map<String, Any?>>>()
+    private val artikelList    = mutableListOf<Pair<String, Map<String, Any?>>>()
+    private val allArtikelList = mutableListOf<Pair<String, Map<String, Any?>>>()
     private var selectedKategori = "Semua"
 
     override fun onCreateView(
@@ -35,11 +35,16 @@ class EdukasiFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupRecyclerView()
         setupChipListeners()
         setupSearchBar()
         loadArtikel("Semua")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh setiap kali kembali (misal guru baru upload artikel)
+        loadArtikel(selectedKategori)
     }
 
     private fun setupRecyclerView() {
@@ -52,7 +57,8 @@ class EdukasiFragment : Fragment() {
     }
 
     private fun setupChipListeners() {
-        // ID chip sesuai fragment_edukasi.xml
+        // Kategori konsisten dengan FirebaseHelper.KATEGORI_ARTIKEL:
+        // "Stunting", "Resep Sehat", "Gizi", "Tumbuh Kembang"
         binding.chipSemua.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) { selectedKategori = "Semua"; loadArtikel("Semua") }
         }
@@ -96,8 +102,8 @@ class EdukasiFragment : Fragment() {
     }
 
     private fun loadArtikel(kategori: String) {
-        binding.progressLoading.visibility = View.VISIBLE
-        binding.rvEdukasi.visibility       = View.GONE
+        binding.progressLoading.visibility  = View.VISIBLE
+        binding.rvEdukasi.visibility        = View.GONE
         binding.layoutEmptyState.visibility = View.GONE
 
         FirebaseHelper.getArtikel(kategori,
@@ -108,7 +114,6 @@ class EdukasiFragment : Fragment() {
                 allArtikelList.clear()
                 allArtikelList.addAll(list)
 
-                // Terapkan filter search jika ada teks
                 val query = binding.etSearch.text?.toString() ?: ""
                 filterByQuery(query)
 

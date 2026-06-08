@@ -62,7 +62,7 @@ class DataPenggunaFragment : Fragment() {
             userList          = semuaList,
             showVerifikasiBtn = false,
             onVerifikasiClick = {},
-            onTolakClick      = { uid -> konfirmasiNonaktifkan(uid) }
+            onTolakClick      = { uid -> konfirmasiToggleAktif(uid) }
         )
         binding.rvSemuaList.layoutManager = LinearLayoutManager(requireContext())
         binding.rvSemuaList.adapter       = semuaAdapter
@@ -87,7 +87,7 @@ class DataPenggunaFragment : Fragment() {
         binding.panelSemua.visibility   = if (pending) View.GONE   else View.VISIBLE
     }
 
-    // ─── LOAD DATA ────────────────────────────────────────────────────────────
+    // ─── LOAD DATA ───────────────────────────────────────────────
 
     private fun loadPendingUsers() {
         FirebaseHelper.getPendaftarBaru(
@@ -119,7 +119,7 @@ class DataPenggunaFragment : Fragment() {
         )
     }
 
-    // ─── AKSI ─────────────────────────────────────────────────────────────────
+    // ─── AKSI ────────────────────────────────────────────────────
 
     private fun konfirmasiVerifikasi(uid: String) {
         AlertDialog.Builder(requireContext())
@@ -128,7 +128,7 @@ class DataPenggunaFragment : Fragment() {
             .setPositiveButton("Verifikasi") { _, _ ->
                 FirebaseHelper.verifikasiAkun(uid,
                     onSuccess = {
-                        context?.let { Toast.makeText(it, "Akun berhasil diverifikasi!", Toast.LENGTH_SHORT).show() }
+                        context?.let { Toast.makeText(it, "Akun berhasil diverifikasi! ✅", Toast.LENGTH_SHORT).show() }
                         loadPendingUsers()
                         loadSemuaUsers()
                     },
@@ -143,58 +143,19 @@ class DataPenggunaFragment : Fragment() {
 
     private fun showTolakDialog(uid: String) {
         val input = EditText(requireContext()).apply {
-            hint    = "Alasan penolakan (opsional)"
+            hint = "Alasan penolakan (opsional)"
             setPadding(48, 24, 48, 24)
         }
         AlertDialog.Builder(requireContext())
             .setTitle("Tolak Pendaftaran")
-            .setMessage("Yakin ingin menolak akun ini? Pengguna akan mendapat notifikasi.")
+            .setMessage("Yakin ingin menolak akun ini?")
             .setView(input)
             .setPositiveButton("Tolak") { _, _ ->
                 val alasan = input.text.toString().trim().ifEmpty { "Tidak memenuhi syarat" }
-                tolakAkun(uid, alasan)
-            }
-            .setNegativeButton("Batal", null)
-            .show()
-    }
-
-    /**
-     * Tolak akun: set status_akun = "ditolak" + simpan alasan.
-     * WaitingVerificationActivity user akan otomatis mendeteksi ini dan tampilkan dialog ditolak.
-     */
-    private fun tolakAkun(uid: String, alasan: String) {
-        FirebaseHelper.db.collection("users").document(uid)
-            .update(
-                "status_akun",  "ditolak",
-                "alasan_tolak", alasan,
-                "is_verified",  false,
-                "updated_at",   com.google.firebase.Timestamp.now()
-            )
-            .addOnSuccessListener {
-                // Kirim notifikasi ke user yang ditolak
-                FirebaseHelper.kirimNotifikasi(
-                    targetUid = uid,
-                    judul     = "Pendaftaran Ditolak",
-                    isi       = "Maaf, pendaftaranmu ditolak. Alasan: $alasan",
-                    tipe      = "akun"
-                )
-                context?.let { Toast.makeText(it, "Akun berhasil ditolak", Toast.LENGTH_SHORT).show() }
-                loadPendingUsers()
-                loadSemuaUsers()
-            }
-            .addOnFailureListener { e ->
-                context?.let { Toast.makeText(it, "Gagal menolak: ${e.message}", Toast.LENGTH_SHORT).show() }
-            }
-    }
-
-    private fun konfirmasiNonaktifkan(uid: String) {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Nonaktifkan Akun")
-            .setMessage("Pengguna tidak bisa login setelah dinonaktifkan. Lanjutkan?")
-            .setPositiveButton("Nonaktifkan") { _, _ ->
-                FirebaseHelper.nonaktifkanAkun(uid,
+                FirebaseHelper.tolakAkun(uid, alasan,
                     onSuccess = {
-                        context?.let { Toast.makeText(it, "Akun dinonaktifkan", Toast.LENGTH_SHORT).show() }
+                        context?.let { Toast.makeText(it, "Akun berhasil ditolak", Toast.LENGTH_SHORT).show() }
+                        loadPendingUsers()
                         loadSemuaUsers()
                     },
                     onError = { err ->
@@ -204,6 +165,51 @@ class DataPenggunaFragment : Fragment() {
             }
             .setNegativeButton("Batal", null)
             .show()
+    }
+
+    /**
+     * Toggle akun antara aktif <-> nonaktif (untuk tab Semua Pengguna)
+     */
+    private fun konfirmasiToggleAktif(uid: String) {
+        // Cek status akun dari list yang sudah diload
+        val userData = semuaList.find { it.first == uid }?.second
+        val statusAkun = userData?.get("status_akun") as? String ?: "aktif"
+
+        if (statusAkun == "nonaktif") {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Aktifkan Akun")
+                .setMessage("Aktifkan kembali akun ini?")
+                .setPositiveButton("Aktifkan") { _, _ ->
+                    FirebaseHelper.aktifkanAkun(uid,
+                        onSuccess = {
+                            context?.let { Toast.makeText(it, "Akun berhasil diaktifkan ✅", Toast.LENGTH_SHORT).show() }
+                            loadSemuaUsers()
+                        },
+                        onError = { err ->
+                            context?.let { Toast.makeText(it, "Gagal: $err", Toast.LENGTH_SHORT).show() }
+                        }
+                    )
+                }
+                .setNegativeButton("Batal", null)
+                .show()
+        } else {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Nonaktifkan Akun")
+                .setMessage("Pengguna tidak bisa login setelah dinonaktifkan. Lanjutkan?")
+                .setPositiveButton("Nonaktifkan") { _, _ ->
+                    FirebaseHelper.nonaktifkanAkun(uid,
+                        onSuccess = {
+                            context?.let { Toast.makeText(it, "Akun dinonaktifkan", Toast.LENGTH_SHORT).show() }
+                            loadSemuaUsers()
+                        },
+                        onError = { err ->
+                            context?.let { Toast.makeText(it, "Gagal: $err", Toast.LENGTH_SHORT).show() }
+                        }
+                    )
+                }
+                .setNegativeButton("Batal", null)
+                .show()
+        }
     }
 
     override fun onDestroyView() {

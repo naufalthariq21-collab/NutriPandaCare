@@ -1,119 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/nav_guru"
-    app:startDestination="@id/nav_home">
-
-    <!-- ═══════════════════════════════════════════════════
-         HOME GURU
-         Navigasi ke: Rekap Gizi, Kirim Pengumuman, Aduan
-         ═══════════════════════════════════════════════════ -->
-    <fragment
-        android:id="@+id/nav_home"
-        android:name="com.example.nutripandacare.fragment.guru.HomeGuruFragment"
-        android:label="Home"
-        tools:layout="@layout/fragment_home_guru">
-
-        <action
-            android:id="@+id/action_home_to_rekap_gizi"
-            app:destination="@id/nav_rekap_gizi" />
-
-        <action
-            android:id="@+id/action_home_to_buat_pengumuman"
-            app:destination="@id/nav_buat_pengumuman" />
-
-        <action
-            android:id="@+id/action_home_to_aduan"
-            app:destination="@id/nav_aduan" />
-
+<navigation xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools" android:id="@+id/nav_guru" app:startDestination="@id/nav_home">
+    <!--  HOME GURU  -->
+    <fragment android:id="@+id/nav_home" android:name="com.example.nutripandacare.fragment.guru.HomeGuruFragment" android:label="Home" tools:layout="@layout/fragment_home_guru"/>
+    <!--  REKAP GIZI  -->
+    <fragment android:id="@+id/nav_rekap_gizi" android:name="com.example.nutripandacare.fragment.guru.RekapGiziFragment" android:label="Rekap Gizi" tools:layout="@layout/fragment_rekap_gizi">
+        <action android:id="@+id/action_rekap_gizi_to_home" app:destination="@id/nav_home" app:popUpTo="@id/nav_home" app:popUpToInclusive="false"/>
     </fragment>
-
-    <!-- ═══════════════════════════════════════════════════
-         KONTEN EDUKASI
-         Navigasi ke: Buat Konten, Preview Konten, Kirim Pengumuman
-         ═══════════════════════════════════════════════════ -->
-    <fragment
-        android:id="@+id/nav_konten"
-        android:name="com.example.nutripandacare.fragment.guru.KontenEdukasiFragment"
-        android:label="Konten Edukasi"
-        tools:layout="@layout/fragment_konten_edukasi">
-
-        <action
-            android:id="@+id/nav_buat_konten"
-            app:destination="@id/nav_buat_konten" />
-
-        <action
-            android:id="@+id/nav_preview_konten"
-            app:destination="@id/nav_preview_konten" />
-
-        <!-- Dipakai saat kirim notif artikel ke orang tua -->
-        <action
-            android:id="@+id/nav_buat_pengumuman"
-            app:destination="@id/nav_buat_pengumuman" />
-
+    <!--  KONTEN EDUKASI (daftar artikel milik guru)  -->
+    <fragment android:id="@+id/nav_konten_edukasi" android:name="com.example.nutripandacare.fragment.guru.KontenEdukasiFragment" android:label="Konten Edukasi" tools:layout="@layout/fragment_konten_edukasi">
+        <action android:id="@+id/action_konten_to_buat_konten" app:destination="@id/nav_buat_konten"/>
+        <action android:id="@+id/action_konten_to_preview" app:destination="@id/nav_preview_konten"/>
     </fragment>
-
-    <!-- ═══════════════════════════════════════════════════
-         BUAT KONTEN (tidak ada outgoing action)
-         ═══════════════════════════════════════════════════ -->
-    <fragment
-        android:id="@+id/nav_buat_konten"
-        android:name="com.example.nutripandacare.fragment.guru.BuatKontenFragment"
-        android:label="Buat Konten"
-        tools:layout="@layout/fragment_buat_konten" />
-
-    <!-- ═══════════════════════════════════════════════════
-         PREVIEW KONTEN
-         Menerima artikel_id dari KontenEdukasiFragment
-         ═══════════════════════════════════════════════════ -->
-    <fragment
-        android:id="@+id/nav_preview_konten"
-        android:name="com.example.nutripandacare.fragment.guru.PreviewKontenFragment"
-        android:label="Preview Konten"
-        tools:layout="@layout/fragment_preview_konten">
-
-        <argument
-            android:name="artikel_id"
-            app:argType="string"
-            android:defaultValue="" />
-
+    <!--  BUAT / EDIT KONTEN  -->
+    <fragment android:id="@+id/nav_buat_konten" android:name="com.example.nutripandacare.fragment.guru.BuatKontenFragment" android:label="Buat Konten" tools:layout="@layout/fragment_buat_konten">
+        <!--  artikel_id: null = mode tambah, isi = mode edit  -->
+        <argument android:name="artikel_id" app:argType="string" app:nullable="true" android:defaultValue="@null"/>
     </fragment>
-
-    <!-- ═══════════════════════════════════════════════════
-         REKAP GIZI (tidak ada outgoing action)
-         ═══════════════════════════════════════════════════ -->
-    <fragment
-        android:id="@+id/nav_rekap_gizi"
-        android:name="com.example.nutripandacare.fragment.guru.RekapGiziFragment"
-        android:label="Rekap Gizi"
-        tools:layout="@layout/fragment_rekap_gizi" />
-
-    <!-- ═══════════════════════════════════════════════════
-         ADUAN MBG (tidak ada outgoing action)
-         ═══════════════════════════════════════════════════ -->
-    <fragment
-        android:id="@+id/nav_aduan"
-        android:name="com.example.nutripandacare.fragment.guru.AduanMbgFragment"
-        android:label="Aduan MBG"
-        tools:layout="@layout/fragment_aduan_mbg" />
-
-    <!-- ═══════════════════════════════════════════════════
-         KIRIM PENGUMUMAN
-         Menerima judul_artikel opsional dari KontenEdukasi
-         ═══════════════════════════════════════════════════ -->
-    <fragment
-        android:id="@+id/nav_buat_pengumuman"
-        android:name="com.example.nutripandacare.fragment.guru.KirimPengumumanFragment"
-        android:label="Kirim Pengumuman"
-        tools:layout="@layout/fragment_kirim_pengumuman">
-
-        <!-- defaultValue="" agar tetap opsional (tidak wajib diisi) -->
-        <argument
-            android:name="judul_artikel"
-            app:argType="string"
-            android:defaultValue="" />
-
+    <!--  PREVIEW KONTEN  -->
+    <fragment android:id="@+id/nav_preview_konten" android:name="com.example.nutripandacare.fragment.guru.PreviewKontenFragment" android:label="Preview Konten" tools:layout="@layout/fragment_preview_konten">
+        <argument android:name="artikel_id" app:argType="string" app:nullable="true" android:defaultValue="@null"/>
     </fragment>
-
+    <!--  KIRIM PENGUMUMAN / NOTIFIKASI KE ORANG TUA  -->
+    <fragment android:id="@+id/nav_buat_pengumuman" android:name="com.example.nutripandacare.fragment.guru.KirimPengumumanFragment" android:label="Kirim Pengumuman" tools:layout="@layout/fragment_kirim_pengumuman">
+        <argument android:name="judul_artikel" app:argType="string" app:nullable="true" android:defaultValue="@null"/>
+    </fragment>
+    <!--  ADUAN MBG  -->
+    <fragment android:id="@+id/nav_aduan" android:name="com.example.nutripandacare.fragment.guru.AduanMbgFragment" android:label="Aduan MBG" tools:layout="@layout/fragment_aduan_mbg"/>
 </navigation>
