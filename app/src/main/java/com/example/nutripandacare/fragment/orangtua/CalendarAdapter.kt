@@ -1,6 +1,7 @@
 package com.example.nutripandacare.fragment.orangtua
 
 import android.graphics.Color
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +20,13 @@ class CalendarAdapter(
     private val onItemClick: (Date) -> Unit
 ) : RecyclerView.Adapter<CalendarAdapter.CalendarViewHolder>() {
 
+    private val today = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.time
+
     inner class CalendarViewHolder(private val binding: ItemCalendarDayBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
@@ -28,11 +36,24 @@ class CalendarAdapter(
             val dayOfMonth = cal.get(Calendar.DAY_OF_MONTH)
             binding.tvDay.text = dayOfMonth.toString()
 
+            // Reset styles
+            binding.tvDay.setTypeface(null, Typeface.NORMAL)
+            
             // Warna abu-abu untuk tanggal di luar bulan yang sedang aktif
             if (cal.get(Calendar.MONTH) != currentMonth) {
                 binding.tvDay.setTextColor(Color.LTGRAY)
             } else {
                 binding.tvDay.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_primary))
+            }
+
+            // Tandai jika hari ini
+            val isToday = date == today
+            if (isToday) {
+                binding.tvDay.setTextColor(ContextCompat.getColor(itemView.context, R.color.green_primary))
+                binding.tvDay.setTypeface(null, Typeface.BOLD)
+                binding.viewToday.visibility = View.VISIBLE
+            } else {
+                binding.viewToday.visibility = View.GONE
             }
 
             // Tandai jika tanggal dipilih
@@ -45,6 +66,7 @@ class CalendarAdapter(
             if (isSelected) {
                 binding.viewSelected.visibility = View.VISIBLE
                 binding.tvDay.setTextColor(Color.WHITE)
+                binding.viewToday.visibility = View.GONE // Hide today indicator if selected to avoid overlap
             } else {
                 binding.viewSelected.visibility = View.GONE
             }

@@ -32,14 +32,13 @@
                 android:layout_gravity="center"
                 android:layout_marginBottom="24dp">
 
-                <ImageView
+                <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/iv_foto_anak"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
                     android:src="@drawable/ic_placeholder_child"
-                    android:background="@drawable/bg_circle_green_pastel"
-                    android:padding="12dp"
-                    android:scaleType="centerCrop" />
+                    app:civ_circle_background_color="@color/green_pastel"
+                    android:contentDescription="Foto anak" />
 
                 <ImageButton
                     android:id="@+id/btn_pilih_foto"

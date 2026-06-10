@@ -1,9 +1,13 @@
 package com.example.nutripandacare.fragment.orangtua
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
@@ -35,6 +39,7 @@ class MenuMbgFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupCalendarHeader()
+        setupSwipeGesture()
         fetchMenuData()
         
         binding.toolbar.setNavigationOnClickListener {
@@ -46,15 +51,50 @@ class MenuMbgFragment : Fragment() {
         updateMonthYearDisplay()
 
         binding.btnPrevMonth.setOnClickListener {
-            calendar.add(Calendar.MONTH, -1)
-            updateMonthYearDisplay()
-            fetchMenuData()
+            changeMonth(-1)
         }
 
         binding.btnNextMonth.setOnClickListener {
-            calendar.add(Calendar.MONTH, 1)
-            updateMonthYearDisplay()
-            fetchMenuData()
+            changeMonth(1)
+        }
+    }
+
+    private fun changeMonth(offset: Int) {
+        calendar.add(Calendar.MONTH, offset)
+        updateMonthYearDisplay()
+        fetchMenuData()
+        
+        // Animasi saat ganti bulan
+        val animId = if (offset > 0) R.anim.slide_in_right else R.anim.slide_in_left
+        try {
+            val animation = AnimationUtils.loadAnimation(requireContext(), animId)
+            binding.rvCalendar.startAnimation(animation)
+        } catch (e: Exception) {}
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupSwipeGesture() {
+        val gestureDetector = GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+                if (e1 == null) return false
+                val deltaX = e2.x - e1.x
+                if (Math.abs(deltaX) > 100 && Math.abs(velocityX) > 100) {
+                    if (deltaX > 0) {
+                        changeMonth(-1) // Swipe kanan -> bulan sebelumnya
+                    } else {
+                        changeMonth(1)  // Swipe kiri -> bulan berikutnya
+                    }
+                    return true
+                }
+                return false
+            }
+        })
+
+        // Terapkan touch listener pada area kalender
+        binding.rvCalendar.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            // Biarkan RecyclerView tetap menangani klik item
+            false 
         }
     }
 
@@ -67,11 +107,10 @@ class MenuMbgFragment : Fragment() {
         val tempCal = calendar.clone() as Calendar
         tempCal.set(Calendar.DAY_OF_MONTH, 1)
         
-        // Load some margin to show dots on adjacent month days too if visible
         tempCal.add(Calendar.DAY_OF_MONTH, -7)
         val start = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(tempCal.time)
         
-        tempCal.add(Calendar.DAY_OF_MONTH, 45) // cover the whole grid
+        tempCal.add(Calendar.DAY_OF_MONTH, 45)
         val end = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(tempCal.time)
 
         FirebaseHelper.getDaftarMenu(start, end,
@@ -98,13 +137,9 @@ class MenuMbgFragment : Fragment() {
         val cal = calendar.clone() as Calendar
         cal.set(Calendar.DAY_OF_MONTH, 1)
 
-        // Find the first day of the week (Sunday is 1)
         val firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1
-        
-        // Roll back to the start of the week
         cal.add(Calendar.DAY_OF_MONTH, -firstDayOfWeek)
         
-        // Fill exactly 42 days (6 rows of 7 days)
         for (i in 0 until 42) {
             days.add(cal.time)
             cal.add(Calendar.DAY_OF_MONTH, 1)
@@ -123,6 +158,7 @@ class MenuMbgFragment : Fragment() {
         
         binding.rvCalendar.layoutManager = GridLayoutManager(requireContext(), 7)
         binding.rvCalendar.adapter = adapter
+        binding.rvCalendar.isNestedScrollingEnabled = false // Biarkan NestedScrollView yang handle scroll utama
     }
 
     private fun updateMenuDetail(date: Date) {

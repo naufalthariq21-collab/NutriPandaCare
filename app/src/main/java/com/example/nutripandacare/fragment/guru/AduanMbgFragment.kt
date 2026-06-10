@@ -1,14 +1,18 @@
 package com.example.nutripandacare.fragment.guru
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.example.nutripandacare.databinding.FragmentAduanMbgBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
+import java.io.File
 
 class AduanMbgFragment : Fragment() {
 
@@ -17,6 +21,16 @@ class AduanMbgFragment : Fragment() {
 
     private var userNama: String = ""
     private var isLoading = false
+    private var imageUri: Uri? = null
+
+    // Launcher untuk mengambil foto dari kamera
+    private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            binding.ivAduan.visibility = View.VISIBLE
+            binding.layoutPlaceholder.visibility = View.GONE
+            binding.ivAduan.setImageURI(imageUri)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,11 +69,15 @@ class AduanMbgFragment : Fragment() {
             onSuccess = { data ->
                 userNama = data["nama"] as? String ?: "Guru"
             },
-            onError = { /* Gunakan nama default "Guru" */ }
+            onError = { }
         )
     }
 
     private fun setupClickListeners() {
+        binding.cardPilihFoto.setOnClickListener {
+            openCamera()
+        }
+
         binding.btnKirimAduan.setOnClickListener {
             val judul    = binding.etJudulAduan.text.toString().trim()
             val isi      = binding.etIsiAduan.text.toString().trim()
@@ -74,22 +92,52 @@ class AduanMbgFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            kirimAduan(judul, isi, kategori)
+            prepareKirimAduan(judul, isi, kategori)
         }
     }
 
-    private fun kirimAduan(judul: String, isi: String, kategori: String) {
+    private fun openCamera() {
+        val photoFile = File(requireContext().cacheDir, "temp_aduan_${System.currentTimeMillis()}.jpg")
+        imageUri = FileProvider.getUriForFile(
+            requireContext(),
+            "${requireContext().packageName}.fileprovider",
+            photoFile
+        )
+        takePictureLauncher.launch(imageUri)
+    }
+
+    private fun prepareKirimAduan(judul: String, isi: String, kategori: String) {
         if (isLoading) return
         isLoading = true
         binding.btnKirimAduan.isEnabled = false
         binding.btnKirimAduan.text = "Mengirim..."
 
+        if (imageUri != null) {
+            val fileName = "aduan/${FirebaseHelper.uid}_${System.currentTimeMillis()}.jpg"
+            FirebaseHelper.uploadImage(fileName, imageUri!!,
+                onSuccess = { url ->
+                    executeKirimAduan(judul, isi, kategori, url)
+                },
+                onError = { err ->
+                    isLoading = false
+                    binding.btnKirimAduan.isEnabled = true
+                    binding.btnKirimAduan.text = "Kirim Aduan Sekarang"
+                    Toast.makeText(requireContext(), "Gagal upload foto: $err", Toast.LENGTH_SHORT).show()
+                }
+            )
+        } else {
+            executeKirimAduan(judul, isi, kategori, "")
+        }
+    }
+
+    private fun executeKirimAduan(judul: String, isi: String, kategori: String, fotoUrl: String) {
         FirebaseHelper.kirimAduan(
             judul         = judul,
             isi           = isi,
             kategori      = kategori,
             pengirimNama  = userNama.ifEmpty { "Guru" },
             pengirimRole  = "guru",
+            fotoAduan     = fotoUrl,
             onSuccess     = {
                 isLoading = false
                 Toast.makeText(requireContext(), "Aduan berhasil terkirim", Toast.LENGTH_SHORT).show()
@@ -97,11 +145,8 @@ class AduanMbgFragment : Fragment() {
             },
             onError = { err ->
                 isLoading = false
-                // Kembalikan tombol ke state semula
-                _binding?.let { b ->
-                    b.btnKirimAduan.isEnabled = true
-                    b.btnKirimAduan.text      = "Kirim Aduan Sekarang"
-                }
+                binding.btnKirimAduan.isEnabled = true
+                binding.btnKirimAduan.text      = "Kirim Aduan Sekarang"
                 Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_LONG).show()
             }
         )

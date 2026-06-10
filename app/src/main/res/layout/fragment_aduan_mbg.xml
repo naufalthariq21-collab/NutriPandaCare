@@ -23,6 +23,7 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -37,12 +38,20 @@
                 android:layout_height="wrap_content"
                 android:text="Judul Aduan" />
 
-            <EditText
-                android:id="@+id/etJudulAduan"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Contoh: Menu Hari Ini Kurang Matang"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="@color/green_primary"
+                app:hintTextColor="@color/green_primary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etJudulAduan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Contoh: Menu Hari Ini Kurang Matang" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
                 style="@style/Widget.NutriPandaCare.FieldLabel"
@@ -50,11 +59,18 @@
                 android:layout_height="wrap_content"
                 android:text="Kategori" />
 
-            <Spinner
-                android:id="@+id/spinnerKategoriAduan"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider">
+                <Spinner
+                    android:id="@+id/spinnerKategoriAduan"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp" />
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 style="@style/Widget.NutriPandaCare.FieldLabel"
@@ -62,21 +78,84 @@
                 android:layout_height="wrap_content"
                 android:text="Isi Aduan" />
 
-            <EditText
-                android:id="@+id/etIsiAduan"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Jelaskan detail aduan kamu..."
-                android:gravity="top"
-                android:minLines="5"
-                android:layout_marginBottom="24dp"/>
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="@color/green_primary"
+                app:hintTextColor="@color/green_primary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etIsiAduan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Jelaskan detail aduan kamu..."
+                    android:gravity="top"
+                    android:minLines="4" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                style="@style/Widget.NutriPandaCare.FieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Foto Pendukung (Opsional)" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPilihFoto"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/white"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/ivAduan"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutPlaceholder"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_photo_camera"
+                            app:tint="@color/green_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Klik untuk pilih foto"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:layout_marginTop="8dp" />
+                    </LinearLayout>
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <Button
                 android:id="@+id/btnKirimAduan"
                 style="@style/Widget.NutriPandaCare.Button"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Kirim Aduan Sekarang" />
+                android:layout_height="56dp"
+                android:text="Kirim Aduan Sekarang"
+                app:cornerRadius="12dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

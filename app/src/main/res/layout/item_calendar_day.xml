@@ -6,6 +6,16 @@
     android:clickable="true"
     android:focusable="true">
 
+    <!-- Indikator Hari Ini -->
+    <View
+        android:id="@+id/view_today"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_circle_green_outline"
+        android:visibility="gone" />
+
+    <!-- Indikator Terpilih -->
     <View
         android:id="@+id/view_selected"
         android:layout_width="36dp"
