@@ -2,6 +2,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/cream_primary">
@@ -31,6 +32,15 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="20dp">
+
+            <TextView
+                style="@style/Widget.NutriPandaCare.FieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Buat Aduan Baru"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp"/>
 
             <TextView
                 style="@style/Widget.NutriPandaCare.FieldLabel"
@@ -99,7 +109,7 @@
                 style="@style/Widget.NutriPandaCare.FieldLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Foto Pendukung (Opsional)" />
+                android:text="Foto Pendukung" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardPilihFoto"
@@ -135,7 +145,7 @@
                         <ImageView
                             android:layout_width="48dp"
                             android:layout_height="48dp"
-                            android:src="@drawable/ic_photo_camera"
+                            android:src="@android:drawable/ic_menu_camera"
                             app:tint="@color/green_primary" />
 
                         <TextView
@@ -155,7 +165,43 @@
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:text="Kirim Aduan Sekarang"
-                app:cornerRadius="12dp" />
+                app:cornerRadius="12dp"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="16dp"
+                android:background="@color/cream_medium"/>
+
+            <!-- Judul seksi riwayat -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Riwayat Aduan Saya"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"/>
+
+            <!-- Empty state riwayat -->
+            <TextView
+                android:id="@+id/tvRiwayatEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:gravity="center"
+                android:textColor="@color/text_hint"
+                android:text="Belum ada aduan yang dikirim"
+                android:visibility="gone"/>
+
+            <!-- RecyclerView riwayat aduan -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvRiwayatAduan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"/>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

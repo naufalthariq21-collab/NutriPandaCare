@@ -330,6 +330,45 @@
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
 
+            <!-- ── Summary Stats (PATCH) ── -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/tvTotalSiswa"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:text="Total: 0 siswa"/>
+
+                <TextView
+                    android:id="@+id/tvNormalCount"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="13sp"
+                    android:textColor="@color/green_primary"
+                    android:gravity="center"
+                    android:text="Normal: 0"/>
+
+                <TextView
+                    android:id="@+id/tvResikoCount"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="13sp"
+                    android:textColor="@color/pending_text"
+                    android:gravity="end"
+                    android:text="Berisiko: 0"/>
+            </LinearLayout>
+
             <!-- LIST SISWA -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -453,4 +492,16 @@
                 android:nestedScrollingEnabled="false"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- FAB Tambah Siswa (PATCH) -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/btnTambahSiswa"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="20dp"
+        android:text="+ Tambah Siswa"
+        app:icon="@drawable/ic_add"
+        style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

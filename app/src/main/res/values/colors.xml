@@ -56,7 +56,6 @@
     <color name="nav_active">#2D6A4F</color>
     <color name="nav_indicator">#D8F3DC</color>
     <color name="nav_bg">#FFFFFF</color>
-    <color name="nav_selector">#2D6A4F</color>
 
     <!-- Pastel & Surface -->
     <color name="green_pastel">#B7E4C7</color>

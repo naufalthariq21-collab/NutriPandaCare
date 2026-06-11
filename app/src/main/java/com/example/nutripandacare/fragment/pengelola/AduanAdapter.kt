@@ -11,7 +11,8 @@ import com.example.nutripandacare.databinding.ItemAduanBinding
 
 class AduanAdapter(
     private val aduanList: MutableList<Pair<String, Map<String, Any?>>>,
-    private val onBalasClick: (String, String, String) -> Unit // id, judul, balasanLama
+    private val isPengelola: Boolean = true,
+    private val onBalasClick: (String, String, String) -> Unit = { _, _, _ -> } // id, judul, balasanLama
 ) : RecyclerView.Adapter<AduanAdapter.AduanViewHolder>() {
 
     inner class AduanViewHolder(private val binding: ItemAduanBinding) :
@@ -28,11 +29,6 @@ class AduanAdapter(
             binding.tvStatus.text = status.replaceFirstChar { it.uppercase() }
 
             // Chip warna status
-            val statusColor = when (status) {
-                "selesai"  -> R.color.status_selesai
-                "menunggu" -> R.color.status_menunggu
-                else       -> R.color.status_menunggu
-            }
             binding.tvStatus.setBackgroundResource(
                 if (status == "selesai") R.drawable.bg_status_selesai
                 else R.drawable.bg_status_menunggu
@@ -44,7 +40,7 @@ class AduanAdapter(
                 binding.ivAduan.visibility = View.VISIBLE
                 Glide.with(itemView.context)
                     .load(fotoUrl)
-                    .placeholder(R.drawable.ic_food_plate)
+                    .placeholder(R.drawable.ic_photo_camera)
                     .into(binding.ivAduan)
             } else {
                 binding.ivAduan.visibility = View.GONE
@@ -56,11 +52,21 @@ class AduanAdapter(
                 binding.layoutBalasan.visibility  = View.VISIBLE
                 binding.dividerBalasan.visibility = View.VISIBLE
                 binding.tvBalasan.text            = balasan
-                binding.btnBalas.text             = "Ubah Balasan"
+                if (isPengelola) {
+                    binding.btnBalas.visibility = View.VISIBLE
+                    binding.btnBalas.text = "Ubah Balasan"
+                } else {
+                    binding.btnBalas.visibility = View.GONE
+                }
             } else {
                 binding.layoutBalasan.visibility  = View.GONE
                 binding.dividerBalasan.visibility = View.GONE
-                binding.btnBalas.text             = "Beri Balasan"
+                if (isPengelola) {
+                    binding.btnBalas.visibility = View.VISIBLE
+                    binding.btnBalas.text = "Beri Balasan"
+                } else {
+                    binding.btnBalas.visibility = View.GONE
+                }
             }
 
             binding.btnBalas.setOnClickListener {

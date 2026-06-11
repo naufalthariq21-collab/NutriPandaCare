@@ -7,10 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.nutripandacare.databinding.FragmentBuatKontenBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import com.google.firebase.storage.FirebaseStorage
+import java.io.File
 import java.util.UUID
 
 class BuatKontenFragment : Fragment() {
@@ -19,19 +23,30 @@ class BuatKontenFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var thumbnailUri: Uri? = null
+    private var cameraImageUri: Uri? = null
     private var isLoading = false
 
-    // Mode edit: jika artikelId tidak null, kita sedang mengedit artikel yang ada
     private var artikelId: String? = null
 
-    // Konsisten dengan FirebaseHelper.KATEGORI_ARTIKEL
     private val kategoriList = listOf("Pilih kategori...") + FirebaseHelper.KATEGORI_ARTIKEL
 
+    // Launcher untuk galeri
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
                 thumbnailUri = it
                 binding.ivThumbnailPreview.setImageURI(it)
+                binding.ivThumbnailPreview.visibility    = View.VISIBLE
+                binding.layoutUploadThumbnail.visibility = View.GONE
+            }
+        }
+
+    // Launcher untuk kamera
+    private val takePictureLauncher =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success && cameraImageUri != null) {
+                thumbnailUri = cameraImageUri
+                binding.ivThumbnailPreview.setImageURI(cameraImageUri)
                 binding.ivThumbnailPreview.visibility    = View.VISIBLE
                 binding.layoutUploadThumbnail.visibility = View.GONE
             }
@@ -58,7 +73,6 @@ class BuatKontenFragment : Fragment() {
         }
 
         if (artikelId != null) {
-            // Mode Edit
             binding.toolbar.title  = "Edit Konten"
             binding.btnPublish.text = "Simpan Perubahan"
             loadArtikelUntukEdit(artikelId!!)
@@ -106,14 +120,36 @@ class BuatKontenFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        binding.layoutUploadThumbnail.setOnClickListener {
-            pickImageLauncher.launch("image/*")
-        }
-        binding.ivThumbnailPreview.setOnClickListener {
-            // Klik thumbnail yang sudah ada → ganti gambar
-            pickImageLauncher.launch("image/*")
-        }
+        // Tap area upload / thumbnail → tampilkan pilihan kamera atau galeri
+        binding.layoutUploadThumbnail.setOnClickListener { showImageSourceDialog() }
+        binding.ivThumbnailPreview.setOnClickListener    { showImageSourceDialog() }
         binding.btnPublish.setOnClickListener { publishKonten() }
+    }
+
+    /**
+     * Dialog pilihan sumber gambar: Kamera atau Galeri
+     */
+    private fun showImageSourceDialog() {
+        val options = arrayOf("📷  Ambil dari Kamera", "🖼️  Pilih dari Galeri")
+        AlertDialog.Builder(requireContext())
+            .setTitle("Pilih Sumber Gambar")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> openCamera()
+                    1 -> pickImageLauncher.launch("image/*")
+                }
+            }
+            .show()
+    }
+
+    private fun openCamera() {
+        val photoFile = File(requireContext().cacheDir, "thumbnail_${System.currentTimeMillis()}.jpg")
+        cameraImageUri = FileProvider.getUriForFile(
+            requireContext(),
+            "${requireContext().packageName}.fileprovider",
+            photoFile
+        )
+        takePictureLauncher.launch(cameraImageUri)
     }
 
     private fun publishKonten() {
@@ -125,18 +161,12 @@ class BuatKontenFragment : Fragment() {
         val isi       = binding.etIsiKonten.text.toString().trim()
         val menitStr  = binding.etMenitBaca.text.toString().trim()
 
-        if (judul.isEmpty()) {
-            binding.etJudul.error = "Judul wajib diisi"; return
-        }
+        if (judul.isEmpty()) { binding.etJudul.error = "Judul wajib diisi"; return }
         if (katPos == 0) {
             Toast.makeText(requireContext(), "Pilih kategori terlebih dahulu", Toast.LENGTH_SHORT).show(); return
         }
-        if (deskripsi.isEmpty()) {
-            binding.etDeskripsiKonten.error = "Deskripsi wajib diisi"; return
-        }
-        if (isi.isEmpty()) {
-            binding.etIsiKonten.error = "Isi konten wajib diisi"; return
-        }
+        if (deskripsi.isEmpty()) { binding.etDeskripsiKonten.error = "Deskripsi wajib diisi"; return }
+        if (isi.isEmpty()) { binding.etIsiKonten.error = "Isi konten wajib diisi"; return }
 
         val menit    = menitStr.toIntOrNull() ?: 5
         val kategori = kategoriList[katPos]
@@ -146,18 +176,12 @@ class BuatKontenFragment : Fragment() {
 
         if (thumbnailUri != null) {
             uploadThumbnail(thumbnailUri!!) { url ->
-                if (artikelId != null) {
-                    editArtikel(judul, kategori, deskripsi, isi, menit, url)
-                } else {
-                    simpanArtikel(judul, kategori, deskripsi, isi, menit, url)
-                }
+                if (artikelId != null) editArtikel(judul, kategori, deskripsi, isi, menit, url)
+                else simpanArtikel(judul, kategori, deskripsi, isi, menit, url)
             }
         } else {
-            if (artikelId != null) {
-                editArtikel(judul, kategori, deskripsi, isi, menit, null)
-            } else {
-                simpanArtikel(judul, kategori, deskripsi, isi, menit, null)
-            }
+            if (artikelId != null) editArtikel(judul, kategori, deskripsi, isi, menit, null)
+            else simpanArtikel(judul, kategori, deskripsi, isi, menit, null)
         }
     }
 
@@ -191,11 +215,21 @@ class BuatKontenFragment : Fragment() {
             kategori     = kategori,
             thumbnailUrl = thumbnailUrl ?: "",
             menitBaca    = menit,
-            onSuccess    = { _ ->
+            onSuccess    = { artikelId ->
                 isLoading = false
                 if (_binding == null) return@tambahArtikel
                 Toast.makeText(requireContext(), "Konten berhasil dipublikasikan! 🎉", Toast.LENGTH_SHORT).show()
-                requireActivity().onBackPressedDispatcher.onBackPressed()
+                // Navigasi ke preview konten setelah publish
+                val args = android.os.Bundle().apply {
+                    putString("artikel_id", artikelId)
+                }
+                try {
+                    findNavController().navigate(
+                        com.example.nutripandacare.R.id.nav_preview_konten, args
+                    )
+                } catch (e: Exception) {
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                }
             },
             onError = { err ->
                 isLoading = false

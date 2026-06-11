@@ -36,21 +36,21 @@ class HomeGuruFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh statistik setiap kembali ke home
         loadClassStats()
+        // Badge notifikasi
+        loadNotifBadge()
     }
 
     private fun resetUI() {
-        binding.tvWelcome.text      = "Memuat..."
-        binding.tvCountSiswa.text   = "-"
-        binding.tvCountNormal.text  = "-"
-        binding.tvCountResiko.text  = "-"
+        binding.tvWelcome.text     = "Memuat..."
+        binding.tvCountSiswa.text  = "-"
+        binding.tvCountNormal.text = "-"
+        binding.tvCountResiko.text = "-"
     }
 
     private fun loadUserData() {
         val uid = FirebaseHelper.uid
         if (uid.isEmpty()) return
-
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
                 _binding?.let { b ->
@@ -93,42 +93,35 @@ class HomeGuruFragment : Fragment() {
         )
     }
 
-    private fun setupClickListeners() {
-        // Navigasi ke Rekap Gizi
-        binding.btnRekapGizi.setOnClickListener {
-            navigateSafe(R.id.nav_rekap_gizi)
-        }
-
-        // Navigasi ke Kirim Pengumuman
-        binding.btnKirimPengumuman.setOnClickListener {
-            navigateSafe(R.id.nav_buat_pengumuman)
-        }
-
-        // Navigasi ke Aduan MBG
-        binding.btnAduan.setOnClickListener {
-            navigateSafe(R.id.nav_aduan)
-        }
-
-        // Tombol notifikasi (opsional, bisa arahkan ke fragment notifikasi jika ada)
-        binding.btnNotifikasi.setOnClickListener {
-            // Notifikasi guru bisa ditambahkan ke nav_guru jika diperlukan
-            // Saat ini cukup tampilkan toast
-            android.widget.Toast.makeText(
-                requireContext(),
-                "Fitur notifikasi akan segera hadir",
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
-        }
-
-        // Logout
-        binding.btnLogout.setOnClickListener {
-            confirmLogout()
+    private fun loadNotifBadge() {
+        FirebaseHelper.getJumlahNotifBelumDibaca { count ->
+            _binding?.let { b ->
+                try {
+                    // Tampilkan badge jika ada notif yang belum dibaca
+                    // Sesuaikan dengan ID badge di layout kamu
+                    if (count > 0) {
+                        b.btnNotifikasi.text = "🔔 ($count)"
+                    } else {
+                        b.btnNotifikasi.text = "🔔"
+                    }
+                } catch (_: Exception) {}
+            }
         }
     }
 
-    /**
-     * Navigasi aman: hanya lakukan jika masih berada di fragment home (nav_home).
-     */
+    private fun setupClickListeners() {
+        binding.btnRekapGizi.setOnClickListener     { navigateSafe(R.id.nav_rekap_gizi) }
+        binding.btnKirimPengumuman.setOnClickListener { navigateSafe(R.id.nav_buat_pengumuman) }
+        binding.btnAduan.setOnClickListener         { navigateSafe(R.id.nav_aduan) }
+
+        // Notifikasi → nav_notifikasi_guru (sudah ditambahkan di nav_guru.xml)
+        binding.btnNotifikasi.setOnClickListener {
+            navigateSafe(R.id.nav_notifikasi_guru)
+        }
+
+        binding.btnLogout.setOnClickListener { confirmLogout() }
+    }
+
     private fun navigateSafe(destinationId: Int) {
         val nav = findNavController()
         if (nav.currentDestination?.id == R.id.nav_home) {
