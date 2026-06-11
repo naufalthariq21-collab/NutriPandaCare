@@ -1,5 +1,6 @@
 package com.example.nutripandacare.fragment.pengelola
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -17,24 +18,22 @@ import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentProfilPengelolaBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.storage.FirebaseStorage
+import java.util.UUID
 
 class ProfilPengelolaFragment : Fragment() {
 
     private var _binding: FragmentProfilPengelolaBinding? = null
     private val binding get() = _binding!!
 
-    private var currentNama  = ""
-    private var currentEmail = ""
     private var fotoUri: Uri? = null
+    private var existingFotoUrl = ""
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
                 fotoUri = it
-                Glide.with(this).load(it)
-                    .placeholder(R.drawable.ic_placeholder_avatar)
-                    .circleCrop()
-                    .into(binding.ivProfil)
+                binding.ivProfil.setImageURI(it)
             }
         }
 
@@ -58,14 +57,11 @@ class ProfilPengelolaFragment : Fragment() {
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
                 val b = _binding ?: return@getDataUser
-                currentNama  = data["nama"]  as? String ?: ""
-                currentEmail = data["email"] as? String ?: ""
-                b.tvNama.text  = currentNama.ifEmpty { "Admin NutriPanda" }
-                b.tvEmail.text = currentEmail
-
-                val fotoUrl = data["foto_url"] as? String ?: ""
-                if (fotoUrl.isNotEmpty()) {
-                    Glide.with(this).load(fotoUrl)
+                b.tvNama.text  = data["nama"]  as? String ?: "Admin NutriPanda"
+                b.tvEmail.text = data["email"] as? String ?: ""
+                existingFotoUrl = data["foto_url"] as? String ?: ""
+                if (existingFotoUrl.isNotEmpty()) {
+                    Glide.with(this).load(existingFotoUrl)
                         .placeholder(R.drawable.ic_placeholder_avatar)
                         .circleCrop()
                         .into(b.ivProfil)
@@ -76,10 +72,11 @@ class ProfilPengelolaFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // FIX: Edit profil sekarang buka dialog edit
-        binding.btnEditProfil.setOnClickListener {
-            showEditProfilDialog()
-        }
+        // FIX #2: Edit profil
+        binding.btnEditProfil.setOnClickListener { showEditProfilDialog() }
+
+        // Ganti foto langsung tap avatar
+        binding.ivProfil.setOnClickListener { pickImageLauncher.launch("image/*") }
 
         binding.btnNotifikasi.setOnClickListener {
             val nav = findNavController()
@@ -88,72 +85,82 @@ class ProfilPengelolaFragment : Fragment() {
             }
         }
 
-        binding.btnLogout.setOnClickListener {
-            confirmLogout()
-        }
-
-        // Tap foto profil untuk ganti foto
-        binding.ivProfil.setOnClickListener {
-            pickImageLauncher.launch("image/*")
-        }
+        binding.btnLogout.setOnClickListener { confirmLogout() }
     }
+
+    // ─── EDIT PROFIL ─────────────────────────────────────────────────────────
 
     private fun showEditProfilDialog() {
         val dialogView = LayoutInflater.from(requireContext())
             .inflate(R.layout.dialog_edit_profil, null)
 
-        val etNama = dialogView.findViewById<TextInputEditText>(R.id.etNamaPengelola)
-        etNama?.setText(currentNama)
+        val etNama = dialogView.findViewById<TextInputEditText>(R.id.etEditNama)
+        val etHp   = dialogView.findViewById<TextInputEditText>(R.id.etEditNoHp)
+
+        // Isi dengan data saat ini
+        etNama.setText(binding.tvNama.text.toString())
 
         AlertDialog.Builder(requireContext())
             .setTitle("Edit Profil")
             .setView(dialogView)
             .setPositiveButton("Simpan") { _, _ ->
-                val namaBaru = etNama?.text?.toString()?.trim() ?: ""
+                val namaBaru = etNama.text.toString().trim()
+                val hpBaru   = etHp.text.toString().trim()
                 if (namaBaru.isEmpty()) {
                     Toast.makeText(requireContext(), "Nama tidak boleh kosong", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-                simpanProfil(namaBaru)
+                simpanProfil(namaBaru, hpBaru)
             }
             .setNegativeButton("Batal", null)
             .show()
     }
 
-    private fun simpanProfil(namaBaru: String) {
+    private fun simpanProfil(nama: String, noHp: String) {
         val uid = FirebaseHelper.uid
-        val updates = mutableMapOf<String, Any>("nama" to namaBaru)
+        if (uid.isEmpty()) return
 
         if (fotoUri != null) {
-            FirebaseHelper.uploadImage("profil/$uid.jpg", fotoUri!!,
-                onSuccess = { url ->
-                    updates["foto_url"] = url
-                    updateFirestore(uid, updates, namaBaru)
-                },
-                onError = {
-                    // Simpan tanpa foto jika upload gagal
-                    updateFirestore(uid, updates, namaBaru)
+            // Upload foto baru dulu
+            val ref = FirebaseStorage.getInstance().reference
+                .child("profil/$uid/${UUID.randomUUID()}.jpg")
+            ref.putFile(fotoUri!!)
+                .addOnSuccessListener {
+                    ref.downloadUrl.addOnSuccessListener { url ->
+                        updateDataUser(nama, noHp, url.toString())
+                    }
                 }
-            )
+                .addOnFailureListener {
+                    // Gagal upload foto tapi tetap update nama
+                    updateDataUser(nama, noHp, existingFotoUrl)
+                }
         } else {
-            updateFirestore(uid, updates, namaBaru)
+            updateDataUser(nama, noHp, existingFotoUrl)
         }
     }
 
-    private fun updateFirestore(uid: String, updates: Map<String, Any>, namaBaru: String) {
-        FirebaseHelper.updateDataUser(uid, updates,
-            onSuccess = {
-                if (_binding == null) return@updateDataUser
-                currentNama = namaBaru
-                binding.tvNama.text = namaBaru
+    private fun updateDataUser(nama: String, noHp: String, fotoUrl: String) {
+        val uid = FirebaseHelper.uid
+        val updates = mutableMapOf<String, Any>("nama" to nama)
+        if (noHp.isNotEmpty()) updates["no_hp"] = noHp
+        if (fotoUrl.isNotEmpty()) updates["foto_url"] = fotoUrl
+
+        FirebaseHelper.db.collection("users").document(uid)
+            .update(updates)
+            .addOnSuccessListener {
+                if (_binding == null) return@addOnSuccessListener
                 Toast.makeText(requireContext(), "Profil berhasil diperbarui ✅", Toast.LENGTH_SHORT).show()
+                binding.tvNama.text = nama
+                existingFotoUrl = fotoUrl
+                if (fotoUrl.isNotEmpty()) {
+                    Glide.with(this).load(fotoUrl).circleCrop().into(binding.ivProfil)
+                }
                 fotoUri = null
-            },
-            onError = { err ->
-                if (_binding == null) return@updateDataUser
-                Toast.makeText(requireContext(), "Gagal simpan: $err", Toast.LENGTH_SHORT).show()
             }
-        )
+            .addOnFailureListener { e ->
+                if (_binding == null) return@addOnFailureListener
+                Toast.makeText(requireContext(), "Gagal update: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun confirmLogout() {

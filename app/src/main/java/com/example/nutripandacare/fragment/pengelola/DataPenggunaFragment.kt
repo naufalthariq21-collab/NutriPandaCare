@@ -87,18 +87,18 @@ class DataPenggunaFragment : Fragment() {
         binding.panelSemua.visibility   = if (pending) View.GONE   else View.VISIBLE
     }
 
-    // ─── LOAD DATA ───────────────────────────────────────────────
+    // ─── LOAD ────────────────────────────────────────────────────────────────
 
     private fun loadPendingUsers() {
         FirebaseHelper.getPendaftarBaru(
             onSuccess = { list ->
                 if (_binding == null) return@getPendaftarBaru
                 pendingAdapter.updateData(list)
-                binding.tvPendingEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-
-                val tab = binding.tabLayout.getTabAt(0)
-                tab?.text = if (list.isEmpty()) "Menunggu Verifikasi"
-                else "Menunggu Verifikasi (${list.size})"
+                binding.tvPendingEmpty.visibility =
+                    if (list.isEmpty()) View.VISIBLE else View.GONE
+                binding.tabLayout.getTabAt(0)?.text =
+                    if (list.isEmpty()) "Menunggu Verifikasi"
+                    else "Menunggu Verifikasi (${list.size})"
             },
             onError = { err ->
                 context?.let { Toast.makeText(it, "Gagal memuat: $err", Toast.LENGTH_SHORT).show() }
@@ -106,12 +106,32 @@ class DataPenggunaFragment : Fragment() {
         )
     }
 
+    /**
+     * FIX #8 (pengelola): getAllPengguna harus mengembalikan semua user aktif
+     * termasuk field nama, email, role, status_akun.
+     * Jika nama kosong di Firestore (misal field-nya "name" bukan "nama"),
+     * kita fallback ke field alternatif.
+     */
     private fun loadSemuaUsers() {
         FirebaseHelper.getAllPengguna(
             onSuccess = { list ->
                 if (_binding == null) return@getAllPengguna
-                semuaAdapter.updateData(list)
-                binding.tvSemuaEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+
+                // FIX: normalisasi data — pastikan field "nama" ada,
+                // coba fallback ke "name" atau "displayName" jika kosong
+                val normalizedList = list.map { (uid, data) ->
+                    val nama = (data["nama"] as? String)?.takeIf { it.isNotEmpty() }
+                        ?: (data["name"] as? String)?.takeIf { it.isNotEmpty() }
+                        ?: (data["displayName"] as? String)?.takeIf { it.isNotEmpty() }
+                        ?: "Pengguna"
+                    val normalized = data.toMutableMap()
+                    normalized["nama"] = nama
+                    Pair(uid, normalized as Map<String, Any?>)
+                }
+
+                semuaAdapter.updateData(normalizedList)
+                binding.tvSemuaEmpty.visibility =
+                    if (normalizedList.isEmpty()) View.VISIBLE else View.GONE
             },
             onError = { err ->
                 context?.let { Toast.makeText(it, "Gagal memuat: $err", Toast.LENGTH_SHORT).show() }
@@ -119,7 +139,7 @@ class DataPenggunaFragment : Fragment() {
         )
     }
 
-    // ─── AKSI ────────────────────────────────────────────────────
+    // ─── AKSI ────────────────────────────────────────────────────────────────
 
     private fun konfirmasiVerifikasi(uid: String) {
         AlertDialog.Builder(requireContext())
@@ -167,18 +187,15 @@ class DataPenggunaFragment : Fragment() {
             .show()
     }
 
-    /**
-     * Toggle akun antara aktif <-> nonaktif (untuk tab Semua Pengguna)
-     */
     private fun konfirmasiToggleAktif(uid: String) {
-        // Cek status akun dari list yang sudah diload
-        val userData = semuaList.find { it.first == uid }?.second
+        val userData   = semuaList.find { it.first == uid }?.second
         val statusAkun = userData?.get("status_akun") as? String ?: "aktif"
+        val namaPengguna = userData?.get("nama") as? String ?: "Pengguna ini"
 
         if (statusAkun == "nonaktif") {
             AlertDialog.Builder(requireContext())
                 .setTitle("Aktifkan Akun")
-                .setMessage("Aktifkan kembali akun ini?")
+                .setMessage("Aktifkan kembali akun $namaPengguna?")
                 .setPositiveButton("Aktifkan") { _, _ ->
                     FirebaseHelper.aktifkanAkun(uid,
                         onSuccess = {

@@ -63,6 +63,21 @@
     <string name="user_role">Orang Tua</string>
     <string name="user_email">ayu.ningtias@email.com</string>
 
+    <!-- Buat Konten -->
+    <string name="edit_konten">Edit Konten</string>
+    <string name="simpan_perubahan">Simpan Perubahan</string>
+    <string name="menit_baca_format">%1$s menit baca</string>
+    <string name="lengkapi_data_preview">Lengkapi judul, isi, dan kategori untuk preview</string>
+    <string name="pilih_kategori_hint">Pilih kategori...</string>
+    <string name="harap_lengkapi_semua_data">Harap lengkapi semua data</string>
+    <string name="konten_berhasil_dipublikasikan">Konten berhasil dipublikasikan! 🎉</string>
+    <string name="berhasil_diperbarui">Berhasil diperbarui</string>
+    <string name="pilih_gambar">Pilih Gambar</string>
+    <string name="kamera_label">📷 Kamera</string>
+    <string name="galeri_label">🖼️ Galeri</string>
+    <string name="memproses">Memproses...</string>
+    <string name="publish">Publish</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

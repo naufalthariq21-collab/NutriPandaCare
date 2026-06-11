@@ -35,18 +35,19 @@ class NotifikasiFragment : Fragment() {
         setupRecyclerView()
         observeNotifikasi()
 
-        binding.tvTandaiBaca.setOnClickListener {
-            tandaiSemuaDibaca()
-        }
+        binding.tvTandaiBaca.setOnClickListener { tandaiSemuaDibaca() }
 
-        // FIX: Tombol back di toolbar — navigasi balik ke home sesuai role
-        try {
-            binding.toolbar?.setNavigationOnClickListener {
-                if (!findNavController().navigateUp()) {
-                    requireActivity().onBackPressedDispatcher.onBackPressed()
-                }
+        // FIX #5: tombol back di notifikasi → balik ke home pengelola
+        binding.toolbar.setNavigationOnClickListener {
+            try {
+                val popped = findNavController().popBackStack(
+                    com.example.nutripandacare.R.id.fragment_home_pengelola, false
+                )
+                if (!popped) requireActivity().onBackPressedDispatcher.onBackPressed()
+            } catch (e: Exception) {
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
-        } catch (_: Exception) {}
+        }
     }
 
     private fun setupRecyclerView() {

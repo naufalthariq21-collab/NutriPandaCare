@@ -5,14 +5,14 @@
     android:id="@+id/nav_guru"
     app:startDestination="@id/nav_home">
 
-    <!--  HOME GURU  -->
+    <!-- HOME -->
     <fragment
         android:id="@+id/nav_home"
         android:name="com.example.nutripandacare.fragment.guru.HomeGuruFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home_guru"/>
 
-    <!--  REKAP GIZI  -->
+    <!-- REKAP GIZI -->
     <fragment
         android:id="@+id/nav_rekap_gizi"
         android:name="com.example.nutripandacare.fragment.guru.RekapGiziFragment"
@@ -25,7 +25,7 @@
             app:popUpToInclusive="false"/>
     </fragment>
 
-    <!--  KONTEN EDUKASI (daftar artikel milik guru)  -->
+    <!-- KONTEN EDUKASI -->
     <fragment
         android:id="@+id/nav_konten_edukasi"
         android:name="com.example.nutripandacare.fragment.guru.KontenEdukasiFragment"
@@ -35,7 +35,7 @@
         <action android:id="@+id/action_konten_to_preview"     app:destination="@id/nav_preview_konten"/>
     </fragment>
 
-    <!--  BUAT / EDIT KONTEN  -->
+    <!-- BUAT / EDIT KONTEN -->
     <fragment
         android:id="@+id/nav_buat_konten"
         android:name="com.example.nutripandacare.fragment.guru.BuatKontenFragment"
@@ -48,7 +48,9 @@
             android:defaultValue="@null"/>
     </fragment>
 
-    <!--  PREVIEW KONTEN  -->
+    <!-- PREVIEW KONTEN
+         FIX #8: popUpTo nav_konten_edukasi saat back dari preview,
+         supaya tidak balik ke form buat konten -->
     <fragment
         android:id="@+id/nav_preview_konten"
         android:name="com.example.nutripandacare.fragment.guru.PreviewKontenFragment"
@@ -61,7 +63,7 @@
             android:defaultValue="@null"/>
     </fragment>
 
-    <!--  KIRIM PENGUMUMAN / NOTIFIKASI KE ORANG TUA  -->
+    <!-- KIRIM PENGUMUMAN -->
     <fragment
         android:id="@+id/nav_buat_pengumuman"
         android:name="com.example.nutripandacare.fragment.guru.KirimPengumumanFragment"
@@ -74,18 +76,25 @@
             android:defaultValue="@null"/>
     </fragment>
 
-    <!--  ADUAN MBG  -->
+    <!-- ADUAN MBG -->
     <fragment
         android:id="@+id/nav_aduan"
         android:name="com.example.nutripandacare.fragment.guru.AduanMbgFragment"
         android:label="Aduan MBG"
         tools:layout="@layout/fragment_aduan_mbg"/>
 
-    <!--  NOTIFIKASI GURU  -->
+    <!-- NOTIFIKASI GURU
+         FIX #4 #5: destination ada di graph supaya bottom nav bisa navigate dan bisa back -->
     <fragment
         android:id="@+id/nav_notifikasi_guru"
         android:name="com.example.nutripandacare.fragment.guru.NotifikasiGuruFragment"
         android:label="Notifikasi"
-        tools:layout="@layout/fragment_notifikasi"/>
+        tools:layout="@layout/fragment_notifikasi">
+        <action
+            android:id="@+id/action_notifikasi_to_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@id/nav_home"
+            app:popUpToInclusive="false"/>
+    </fragment>
 
 </navigation>

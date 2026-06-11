@@ -48,7 +48,8 @@ class HomePengelolaFragment : Fragment() {
         if (uid.isEmpty()) return
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data ->
-                _binding?.tvWelcome?.text = "Halo, ${data["nama"] as? String ?: "Pengelola"}! 👋"
+                _binding?.tvWelcome?.text =
+                    "Halo, ${data["nama"] as? String ?: "Pengelola"}! 👋"
             },
             onError = {}
         )
@@ -61,7 +62,9 @@ class HomePengelolaFragment : Fragment() {
         )
         FirebaseHelper.getAllAduan(
             onSuccess = { list ->
-                val pending = list.count { (it.second["status_aduan"] as? String) == "menunggu" }
+                val pending = list.count {
+                    (it.second["status_aduan"] as? String) == "menunggu"
+                }
                 _binding?.tvCountAduan?.text = pending.toString()
             },
             onError = {}
@@ -93,35 +96,36 @@ class HomePengelolaFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        binding.btnKelolaPengguna.setOnClickListener {
-            navigateSafe(R.id.fragment_verifikasi_pengelola)
-        }
-        binding.cardVerifikasi.setOnClickListener {
-            navigateSafe(R.id.fragment_verifikasi_pengelola)
-        }
-        binding.btnKelolaAduan.setOnClickListener {
-            navigateSafe(R.id.fragment_aduan_pengelola)
-        }
-        binding.cardAduan.setOnClickListener {
-            navigateSafe(R.id.fragment_aduan_pengelola)
-        }
-        binding.cardMenuMbg.setOnClickListener {
-            navigateSafe(R.id.fragment_menu_mbg)
-        }
-        binding.btnEditMenu.setOnClickListener {
-            navigateSafe(R.id.fragment_menu_mbg)
-        }
-        binding.btnNotifikasi.setOnClickListener {
-            navigateSafe(R.id.fragment_notifikasi)
-        }
-        binding.btnLogout.setOnClickListener {
-            confirmLogout()
-        }
+        binding.btnKelolaPengguna.setOnClickListener  { navigateSafe(R.id.fragment_verifikasi_pengelola) }
+        binding.cardVerifikasi.setOnClickListener     { navigateSafe(R.id.fragment_verifikasi_pengelola) }
+        binding.btnKelolaAduan.setOnClickListener     { navigateSafe(R.id.fragment_aduan_pengelola) }
+        binding.cardAduan.setOnClickListener          { navigateSafe(R.id.fragment_aduan_pengelola) }
+        binding.cardMenuMbg.setOnClickListener        { navigateSafe(R.id.fragment_menu_mbg) }
+        binding.btnEditMenu.setOnClickListener        { navigateSafe(R.id.fragment_menu_mbg) }
+        binding.btnNotifikasi.setOnClickListener      { navigateSafe(R.id.fragment_notifikasi) }
+        binding.btnLogout.setOnClickListener          { confirmLogout() }
     }
 
+    /**
+     * FIX #1 pengelola: navigateSafe sekarang juga menangani kasus
+     * bottom nav mengklik "Home" saat sudah di home — popBackStack ke root
+     * supaya tidak stuck / tidak bereaksi.
+     */
     private fun navigateSafe(destinationId: Int) {
         val nav = findNavController()
-        if (nav.currentDestination?.id == R.id.fragment_home_pengelola) {
+        val currentId = nav.currentDestination?.id
+
+        // Jika tujuan = home dan sudah di home, tidak perlu navigate
+        if (destinationId == R.id.fragment_home_pengelola &&
+            currentId == R.id.fragment_home_pengelola) return
+
+        // Jika dari sub-fragment klik home di bottom nav → pop ke home
+        if (destinationId == R.id.fragment_home_pengelola) {
+            nav.popBackStack(R.id.fragment_home_pengelola, false)
+            return
+        }
+
+        if (currentId == R.id.fragment_home_pengelola) {
             nav.navigate(destinationId)
         }
     }

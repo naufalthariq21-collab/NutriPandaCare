@@ -35,8 +35,7 @@ class HomeGuruFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Reload stats setiap kali kembali ke home
-        // (misal setelah tambah siswa di RekapGizi, angka langsung update)
+        // Reload stats setiap kali kembali ke home supaya sinkron dengan rekap gizi
         loadClassStats()
         loadNotifBadge()
     }
@@ -58,34 +57,39 @@ class HomeGuruFragment : Fragment() {
                     b.tvWelcome.text = "Selamat Datang, $nama 👋"
                 }
             },
-            onError = { }
+            onError = {}
         )
     }
 
+    /**
+     * Baca aggregate field dari dokumen rekap_gizi:
+     *   total_siswa, normal, gizi_kurang, gizi_buruk, gizi_lebih, obesitas
+     * Field ini di-update setiap kali guru tambah siswa di RekapGiziFragment.
+     */
     private fun loadClassStats() {
         FirebaseHelper.getRekapGizi(
             onSuccess = { rekapList ->
                 _binding?.let { b ->
                     if (rekapList.isEmpty()) {
-                        // Belum ada rekap sama sekali — tampil 0 semua
                         b.tvCountSiswa.text  = "0"
                         b.tvCountNormal.text = "0"
                         b.tvCountResiko.text = "0"
                         return@getRekapGizi
                     }
 
-                    // Hitung langsung dari aggregate field yang di-update RekapGiziFragment
-                    var totalSiswa   = 0
-                    var totalNormal  = 0
-                    var totalResiko  = 0
+                    var totalSiswa  = 0
+                    var totalNormal = 0
+                    var totalResiko = 0
 
                     rekapList.forEach { (_, data) ->
                         totalSiswa  += (data["total_siswa"] as? Number)?.toInt() ?: 0
                         totalNormal += (data["normal"]      as? Number)?.toInt() ?: 0
-                        // Jumlah berisiko = gizi_kurang + gizi_buruk + stunting + obesitas
-                        totalResiko += ((data["gizi_kurang"] as? Number)?.toInt() ?: 0) +
-                                ((data["stunting"]    as? Number)?.toInt() ?: 0) +
-                                ((data["obesitas"]    as? Number)?.toInt() ?: 0)
+                        // berisiko = gizi_kurang + gizi_buruk + gizi_lebih + obesitas
+                        totalResiko +=
+                            ((data["gizi_kurang"] as? Number)?.toInt() ?: 0) +
+                                    ((data["gizi_buruk"]  as? Number)?.toInt() ?: 0) +
+                                    ((data["gizi_lebih"]  as? Number)?.toInt() ?: 0) +
+                                    ((data["obesitas"]    as? Number)?.toInt() ?: 0)
                     }
 
                     b.tvCountSiswa.text  = totalSiswa.toString()
@@ -93,7 +97,7 @@ class HomeGuruFragment : Fragment() {
                     b.tvCountResiko.text = totalResiko.toString()
                 }
             },
-            onError = { /* abaikan, tampil 0 */ }
+            onError = {}
         )
     }
 
@@ -128,9 +132,11 @@ class HomeGuruFragment : Fragment() {
             .setMessage("Apakah Anda yakin ingin keluar?")
             .setPositiveButton("Ya") { _, _ ->
                 FirebaseHelper.logout()
-                val intent = Intent(requireContext(), LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
+                startActivity(
+                    Intent(requireContext(), LoginActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                )
             }
             .setNegativeButton("Tidak", null)
             .show()

@@ -1,5 +1,6 @@
 package com.example.nutripandacare.fragment.orangtua
 
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,27 +8,45 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentEditProfilAnakBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
-import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.FirebaseStorage
+import java.io.File
+import java.io.FileOutputStream
+import java.util.UUID
 
 class EditProfilAnakFragment : Fragment() {
 
     private var _binding: FragmentEditProfilAnakBinding? = null
     private val binding get() = _binding!!
-    private var anakId: String = ""
-    private var imageUri: Uri? = null
 
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            imageUri = uri
-            binding.ivFotoAnak.setImageURI(uri)
+    private var fotoUri: Uri? = null
+    private var cameraImageUri: Uri? = null
+    private var existingFotoUrl = ""
+    private var anakId: String? = null
+
+    private val pickImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                val cached = copyUriToCache(requireContext(), it, "foto_anak")
+                fotoUri = cached ?: it
+                binding.ivFotoAnak.setImageURI(fotoUri)
+            }
         }
-    }
+
+    private val takePictureLauncher =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success && cameraImageUri != null) {
+                fotoUri = cameraImageUri
+                binding.ivFotoAnak.setImageURI(cameraImageUri)
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,142 +59,173 @@ class EditProfilAnakFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupToolbar()
+        anakId = arguments?.getString("anak_id")
+
+        setupClickListeners()
         loadDataAnak()
-        setupAction()
     }
 
-    private fun setupToolbar() {
+    private fun setupClickListeners() {
         binding.toolbar.setNavigationOnClickListener {
-            findNavController().navigateUp()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        
-        binding.toolbar.inflateMenu(R.menu.menu_save)
-        binding.toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_save) {
-                performSave()
-                true
-            } else {
-                false
+
+        binding.ivFotoAnak.setOnClickListener { showImageSourceDialog() }
+        binding.btnPilihFoto.setOnClickListener { showImageSourceDialog() }
+
+        binding.btnSimpan.setOnClickListener { simpanProfil() }
+    }
+
+    private fun showImageSourceDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Pilih Sumber Foto")
+            .setItems(arrayOf("📷  Ambil dari Kamera", "🖼️  Pilih dari Galeri")) { _, which ->
+                when (which) {
+                    0 -> openCamera()
+                    1 -> pickImageLauncher.launch("image/*")
+                }
             }
-        }
+            .show()
+    }
+
+    private fun openCamera() {
+        val photoFile = File(requireContext().cacheDir, "foto_anak_${System.currentTimeMillis()}.jpg")
+        cameraImageUri = FileProvider.getUriForFile(
+            requireContext(),
+            "${requireContext().packageName}.fileprovider",
+            photoFile
+        )
+        takePictureLauncher.launch(cameraImageUri)
     }
 
     private fun loadDataAnak() {
-        // Biarkan tombol simpan menyala agar bisa input data baru jika kosong
-        binding.btnSimpan.isEnabled = true
-        
-        FirebaseHelper.getDataAnak(
-            onSuccess = { id, data ->
-                if (_binding == null) return@getDataAnak
-                anakId = id
-                
-                binding.etNamaAnak.setText(data["nama_anak"] as? String ?: "")
-                binding.etUsiaAnak.setText(data["usia_anak"] as? String ?: "")
-                binding.etUsiaBulan.setText((data["usia_bulan"] as? Number)?.toLong()?.toString() ?: "")
-                binding.etSekolahAnak.setText(data["sekolah_anak"] as? String ?: "")
-                binding.etKelasAnak.setText(data["kelas"] as? String ?: "")
+        val uid = FirebaseHelper.uid
+        if (uid.isEmpty()) return
 
-                val jk = data["jenis_kelamin"] as? String ?: ""
-                if (jk.contains("Laki", true)) {
-                    binding.rbLakiLaki.isChecked = true
-                } else if (jk.contains("Perempuan", true)) {
-                    binding.rbPerempuan.isChecked = true
-                }
+        val id = anakId ?: return
+        FirebaseHelper.db
+            .collection("users").document(uid)
+            .collection("anak").document(id)
+            .get()
+            .addOnSuccessListener { doc ->
+                if (_binding == null || !doc.exists()) return@addOnSuccessListener
+                binding.etNamaAnak.setText(doc.getString("nama") ?: "")
+                binding.etUsiaAnak.setText(doc.getString("usia") ?: "")
+                binding.etUsiaBulan.setText(doc.getString("usia_bulan") ?: "")
+                binding.etSekolahAnak.setText(doc.getString("sekolah") ?: "")
+                binding.etKelasAnak.setText(doc.getString("kelas") ?: "")
 
-                val foto = data["foto_anak"] as? String ?: ""
-                if (foto.isNotEmpty()) {
-                    Glide.with(this).load(foto).placeholder(R.drawable.ic_placeholder_child).into(binding.ivFotoAnak)
+                val jk = doc.getString("jenis_kelamin") ?: ""
+                if (jk.equals("Laki-laki", true)) binding.rbLakiLaki.isChecked = true
+                else if (jk.equals("Perempuan", true)) binding.rbPerempuan.isChecked = true
+
+                existingFotoUrl = doc.getString("foto_url") ?: ""
+                if (existingFotoUrl.isNotEmpty()) {
+                    Glide.with(this).load(existingFotoUrl)
+                        .placeholder(R.drawable.ic_child_avatar)
+                        .circleCrop()
+                        .into(binding.ivFotoAnak)
                 }
-            },
-            onError = {
-                if (_binding == null) return@getDataAnak
-                // Jika error karena data belum ada, tidak perlu tampilkan toast error yang mengganggu
-                if (!it.contains("belum ada", true)) {
-                    Toast.makeText(requireContext(), "Info: $it", Toast.LENGTH_SHORT).show()
-                }
-                anakId = "" // Menandakan data baru
             }
-        )
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Gagal memuat data: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
-    private fun setupAction() {
-        binding.btnSimpan.setOnClickListener {
-            performSave()
-        }
-
-        binding.btnPilihFoto.setOnClickListener {
-            pickImageLauncher.launch("image/*")
-        }
-    }
-
-    private fun performSave() {
+    private fun simpanProfil() {
         val nama = binding.etNamaAnak.text.toString().trim()
-        val usiaStr = binding.etUsiaAnak.text.toString().trim()
-        val usiaBulan = binding.etUsiaBulan.text.toString().toIntOrNull() ?: 0
-        val sekolah = binding.etSekolahAnak.text.toString().trim()
-        val kelas = binding.etKelasAnak.text.toString().trim()
-        val jk = if (binding.rbLakiLaki.isChecked) "Laki-laki" else "Perempuan"
-
-        if (nama.isEmpty() || usiaStr.isEmpty() || sekolah.isEmpty()) {
-            Toast.makeText(requireContext(), "Harap isi semua data utama", Toast.LENGTH_SHORT).show()
+        if (nama.isEmpty()) {
+            binding.etNamaAnak.error = "Nama anak wajib diisi"
             return
         }
 
-        binding.btnSimpan.isEnabled = false
-        binding.btnSimpan.text = "Menyimpan..."
+        setLoading(true)
 
-        // Jika data baru, buat ID dokumen baru
-        if (anakId.isEmpty()) {
-            anakId = FirebaseHelper.db.collection("users").document(FirebaseHelper.uid)
-                .collection("anak").document().id
-        }
-
-        val updates = mutableMapOf<String, Any>(
-            "nama_anak" to nama,
-            "usia_anak" to usiaStr,
-            "usia_bulan" to usiaBulan,
-            "sekolah_anak" to sekolah,
-            "kelas" to kelas,
-            "jenis_kelamin" to jk,
-            "updated_at" to com.google.firebase.Timestamp.now()
-        )
-
-        if (imageUri != null) {
-            FirebaseHelper.uploadImage("anak/$anakId.jpg", imageUri!!,
-                onSuccess = { url ->
-                    updates["foto_anak"] = url
-                    saveToFirestore(updates)
-                },
-                onError = {
-                    Toast.makeText(requireContext(), "Gagal upload foto: $it", Toast.LENGTH_SHORT).show()
-                    saveToFirestore(updates)
-                }
-            )
+        if (fotoUri != null) {
+            uploadFoto(fotoUri!!) { url ->
+                updateFirestore(url ?: existingFotoUrl)
+            }
         } else {
-            saveToFirestore(updates)
+            updateFirestore(existingFotoUrl)
         }
     }
 
-    private fun saveToFirestore(updates: Map<String, Any>) {
-        if (anakId.isEmpty()) return
+    private fun uploadFoto(uri: Uri, onComplete: (String?) -> Unit) {
+        val uid = FirebaseHelper.uid
+        val ref = FirebaseStorage.getInstance().reference
+            .child("foto_anak/$uid/${UUID.randomUUID()}.jpg")
 
-        FirebaseHelper.db.collection("users").document(FirebaseHelper.uid)
-            .collection("anak").document(anakId)
-            .set(updates, SetOptions.merge()) // Gunakan set merge agar bisa create atau update
+        try {
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+            if (inputStream == null) {
+                onComplete(null)
+                return
+            }
+            val bytes = inputStream.readBytes()
+            inputStream.close()
+
+            ref.putBytes(bytes)
+                .addOnSuccessListener {
+                    ref.downloadUrl
+                        .addOnSuccessListener { url -> onComplete(url.toString()) }
+                        .addOnFailureListener { onComplete(null) }
+                }
+                .addOnFailureListener { onComplete(null) }
+        } catch (e: Exception) {
+            onComplete(null)
+        }
+    }
+
+    private fun updateFirestore(fotoUrl: String) {
+        val uid = FirebaseHelper.uid
+        val id  = anakId ?: return
+
+        val jk = if (binding.rbLakiLaki.isChecked) "Laki-laki" 
+                 else if (binding.rbPerempuan.isChecked) "Perempuan" 
+                 else ""
+
+        val updates = mutableMapOf<String, Any>(
+            "nama" to binding.etNamaAnak.text.toString().trim(),
+            "usia" to binding.etUsiaAnak.text.toString().trim(),
+            "usia_bulan" to binding.etUsiaBulan.text.toString().trim(),
+            "jenis_kelamin" to jk,
+            "sekolah" to binding.etSekolahAnak.text.toString().trim(),
+            "kelas" to binding.etKelasAnak.text.toString().trim()
+        )
+        if (fotoUrl.isNotEmpty()) updates["foto_url"] = fotoUrl
+
+        FirebaseHelper.db
+            .collection("users").document(uid)
+            .collection("anak").document(id)
+            .update(updates)
             .addOnSuccessListener {
-                if (_binding != null) {
-                    Toast.makeText(requireContext(), "Data anak berhasil disimpan", Toast.LENGTH_SHORT).show()
-                    findNavController().navigateUp()
-                }
+                if (_binding == null) return@addOnSuccessListener
+                setLoading(false)
+                Toast.makeText(requireContext(), "Profil anak berhasil disimpan ✅", Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
             }
-            .addOnFailureListener {
-                if (_binding != null) {
-                    binding.btnSimpan.isEnabled = true
-                    binding.btnSimpan.text = "Simpan Perubahan"
-                    Toast.makeText(requireContext(), "Gagal menyimpan: ${it.message}", Toast.LENGTH_SHORT).show()
-                }
+            .addOnFailureListener { e ->
+                if (_binding == null) return@addOnFailureListener
+                setLoading(false)
+                Toast.makeText(requireContext(), "Gagal simpan: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    private fun setLoading(loading: Boolean) {
+        binding.btnSimpan.isEnabled = !loading
+        binding.btnSimpan.text = if (loading) "Menyimpan..." else "Simpan Perubahan"
+    }
+
+    private fun copyUriToCache(context: Context, uri: Uri, prefix: String): Uri? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+            val outFile = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg")
+            FileOutputStream(outFile).use { out -> inputStream.copyTo(out) }
+            inputStream.close()
+            Uri.fromFile(outFile)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override fun onDestroyView() {

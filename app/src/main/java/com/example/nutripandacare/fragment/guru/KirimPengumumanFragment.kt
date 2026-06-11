@@ -44,11 +44,12 @@ class KirimPengumumanFragment : Fragment() {
         }
 
         setupCharCounter()
-        setupClickListeners()
 
         binding.ivBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+
+        binding.btnKirim.setOnClickListener { kirimNotifikasi() }
     }
 
     private fun setupCharCounter() {
@@ -67,20 +68,12 @@ class KirimPengumumanFragment : Fragment() {
         })
     }
 
-    private fun setupClickListeners() {
-        binding.btnKirim.setOnClickListener { kirimNotifikasi() }
-    }
-
     @SuppressLint("SetTextI18n")
     private fun kirimNotifikasi() {
         if (isLoading) return
 
         val pesan = binding.etPesanNotif.text.toString().trim()
-
-        if (pesan.isEmpty()) {
-            binding.etPesanNotif.error = "Pesan tidak boleh kosong"
-            return
-        }
+        if (pesan.isEmpty()) { binding.etPesanNotif.error = "Pesan tidak boleh kosong"; return }
         if (pesan.length > MAX_CHAR) {
             Toast.makeText(requireContext(), "Pesan melebihi $MAX_CHAR karakter", Toast.LENGTH_SHORT).show()
             return
@@ -90,12 +83,10 @@ class KirimPengumumanFragment : Fragment() {
         binding.btnKirim.isEnabled = false
         binding.btnKirim.text      = "Mengirim..."
 
-        val judulNotif = "Pesan dari Guru 📢"
-
-        Log.d("KirimPengumuman", "Mengirim notifikasi ke orang_tua: $pesan")
+        Log.d("KirimPengumuman", "Blast ke orang_tua: $pesan")
 
         FirebaseHelper.blastNotifikasi(
-            judul      = judulNotif,
+            judul      = "Pesan dari Guru 📢",
             isi        = pesan,
             tipe       = "pengumuman",
             targetRole = "orang_tua",
@@ -103,14 +94,10 @@ class KirimPengumumanFragment : Fragment() {
                 if (_binding == null) return@blastNotifikasi
                 isLoading = false
                 Toast.makeText(requireContext(), "Notifikasi berhasil dikirim ke orang tua! ✅", Toast.LENGTH_SHORT).show()
-
-                // FIX: Pop hanya 1 step ke belakang (kembali ke KontenEdukasi),
-                // jangan sampai pop 2x dan bikin navigasi dobel
+                // FIX #7: pop tepat ke nav_konten_edukasi, hindari dobel pop
                 try {
                     val popped = findNavController().popBackStack(R.id.nav_konten_edukasi, false)
-                    if (!popped) {
-                        requireActivity().onBackPressedDispatcher.onBackPressed()
-                    }
+                    if (!popped) requireActivity().onBackPressedDispatcher.onBackPressed()
                 } catch (e: Exception) {
                     requireActivity().onBackPressedDispatcher.onBackPressed()
                 }
@@ -120,7 +107,7 @@ class KirimPengumumanFragment : Fragment() {
                 isLoading = false
                 binding.btnKirim.isEnabled = true
                 binding.btnKirim.text      = "📤  Kirim ke Orang Tua"
-                Log.e("KirimPengumuman", "Gagal kirim notifikasi: $err")
+                Log.e("KirimPengumuman", "Gagal: $err")
                 Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_LONG).show()
             }
         )

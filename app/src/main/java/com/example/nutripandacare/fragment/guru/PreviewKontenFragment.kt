@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentPreviewKontenBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 
@@ -26,8 +28,15 @@ class PreviewKontenFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Tombol back → pop ke konten edukasi (bukan ke form buat konten)
+        // FIX #8: dari preview back langsung ke daftar konten
         binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+            try {
+                val popped = findNavController().popBackStack(R.id.nav_konten_edukasi, false)
+                if (!popped) requireActivity().onBackPressedDispatcher.onBackPressed()
+            } catch (e: Exception) {
+                requireActivity().onBackPressedDispatcher.onBackPressed()
+            }
         }
 
         val artikelId = arguments?.getString("artikel_id")
@@ -44,11 +53,10 @@ class PreviewKontenFragment : Fragment() {
             .addOnSuccessListener { doc ->
                 if (_binding == null) return@addOnSuccessListener
                 if (doc.exists()) {
-                    binding.tvJudul.text      = doc.getString("judul") ?: "-"
-                    binding.tvKategori.text   = doc.getString("kategori") ?: "-"
-                    binding.tvIsiKonten.text  = doc.getString("isi_konten") ?: "-"
-                    binding.tvWaktuBaca.text  = "${doc.getLong("menit_baca") ?: 0} menit baca"
-
+                    binding.tvJudul.text     = doc.getString("judul")    ?: "-"
+                    binding.tvKategori.text  = doc.getString("kategori") ?: "-"
+                    binding.tvIsiKonten.text = doc.getString("isi_konten") ?: "-"
+                    binding.tvWaktuBaca.text = "${doc.getLong("menit_baca") ?: 0} menit baca"
                     val thumb = doc.getString("thumbnail_url") ?: ""
                     if (thumb.isNotEmpty()) {
                         Glide.with(this).load(thumb).into(binding.ivThumbnail)

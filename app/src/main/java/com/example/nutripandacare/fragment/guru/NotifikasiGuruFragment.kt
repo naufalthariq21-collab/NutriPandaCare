@@ -6,15 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentNotifikasiBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import com.google.firebase.firestore.ListenerRegistration
 
-/**
- * Fragment notifikasi untuk role GURU.
- * Re-use layout fragment_notifikasi dan NotifikasiAdapter dari pengelola.
- */
 class NotifikasiGuruFragment : Fragment() {
 
     private var _binding: FragmentNotifikasiBinding? = null
@@ -38,8 +36,16 @@ class NotifikasiGuruFragment : Fragment() {
         setupRecyclerView()
         observeNotifikasi()
 
-        binding.tvTandaiBaca.setOnClickListener {
-            tandaiSemuaDibaca()
+        binding.tvTandaiBaca.setOnClickListener { tandaiSemuaDibaca() }
+
+        // FIX #5: back dari notifikasi guru → ke home guru
+        binding.toolbar.setNavigationOnClickListener {
+            try {
+                val popped = findNavController().popBackStack(R.id.nav_home, false)
+                if (!popped) requireActivity().onBackPressedDispatcher.onBackPressed()
+            } catch (e: Exception) {
+                requireActivity().onBackPressedDispatcher.onBackPressed()
+            }
         }
     }
 
