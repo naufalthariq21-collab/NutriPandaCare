@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentBuatKontenBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import com.google.firebase.storage.FirebaseStorage
@@ -30,7 +31,6 @@ class BuatKontenFragment : Fragment() {
 
     private val kategoriList = listOf("Pilih kategori...") + FirebaseHelper.KATEGORI_ARTIKEL
 
-    // Launcher untuk galeri
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
@@ -41,7 +41,6 @@ class BuatKontenFragment : Fragment() {
             }
         }
 
-    // Launcher untuk kamera
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success && cameraImageUri != null) {
@@ -73,11 +72,11 @@ class BuatKontenFragment : Fragment() {
         }
 
         if (artikelId != null) {
-            binding.toolbar.title  = "Edit Konten"
+            binding.toolbar.title   = "Edit Konten"
             binding.btnPublish.text = "Simpan Perubahan"
             loadArtikelUntukEdit(artikelId!!)
         } else {
-            binding.toolbar.title  = "Buat Konten Baru"
+            binding.toolbar.title   = "Buat Konten Baru"
             binding.btnPublish.text = "Publish"
         }
     }
@@ -120,15 +119,11 @@ class BuatKontenFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // Tap area upload / thumbnail → tampilkan pilihan kamera atau galeri
         binding.layoutUploadThumbnail.setOnClickListener { showImageSourceDialog() }
         binding.ivThumbnailPreview.setOnClickListener    { showImageSourceDialog() }
         binding.btnPublish.setOnClickListener { publishKonten() }
     }
 
-    /**
-     * Dialog pilihan sumber gambar: Kamera atau Galeri
-     */
     private fun showImageSourceDialog() {
         val options = arrayOf("📷  Ambil dari Kamera", "🖼️  Pilih dari Galeri")
         AlertDialog.Builder(requireContext())
@@ -163,7 +158,8 @@ class BuatKontenFragment : Fragment() {
 
         if (judul.isEmpty()) { binding.etJudul.error = "Judul wajib diisi"; return }
         if (katPos == 0) {
-            Toast.makeText(requireContext(), "Pilih kategori terlebih dahulu", Toast.LENGTH_SHORT).show(); return
+            Toast.makeText(requireContext(), "Pilih kategori terlebih dahulu", Toast.LENGTH_SHORT).show()
+            return
         }
         if (deskripsi.isEmpty()) { binding.etDeskripsiKonten.error = "Deskripsi wajib diisi"; return }
         if (isi.isEmpty()) { binding.etIsiKonten.error = "Isi konten wajib diisi"; return }
@@ -215,18 +211,20 @@ class BuatKontenFragment : Fragment() {
             kategori     = kategori,
             thumbnailUrl = thumbnailUrl ?: "",
             menitBaca    = menit,
-            onSuccess    = { artikelId ->
+            onSuccess    = { newArtikelId ->
                 isLoading = false
                 if (_binding == null) return@tambahArtikel
                 Toast.makeText(requireContext(), "Konten berhasil dipublikasikan! 🎉", Toast.LENGTH_SHORT).show()
-                // Navigasi ke preview konten setelah publish
-                val args = android.os.Bundle().apply {
-                    putString("artikel_id", artikelId)
-                }
+
+                // FIX (#8): Setelah publish, balik ke KontenEdukasi dulu.
+                // User bisa preview dari sana lewat klik item.
+                // Navigasi: pop ke KontenEdukasi, kalau tidak ada langsung popBackStack
                 try {
-                    findNavController().navigate(
-                        com.example.nutripandacare.R.id.nav_preview_konten, args
-                    )
+                    val popped = findNavController().popBackStack(R.id.nav_konten_edukasi, false)
+                    if (!popped) {
+                        // Kalau stack tidak ada KontenEdukasi, navigate ke sana
+                        findNavController().navigate(R.id.nav_konten_edukasi)
+                    }
                 } catch (e: Exception) {
                     requireActivity().onBackPressedDispatcher.onBackPressed()
                 }

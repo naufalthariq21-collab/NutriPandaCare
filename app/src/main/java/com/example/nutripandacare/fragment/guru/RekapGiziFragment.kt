@@ -15,10 +15,7 @@ import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentRekapGiziBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import com.google.firebase.Timestamp
-import kotlin.math.abs
-import kotlin.math.ln
 import kotlin.math.pow
-import kotlin.math.sqrt
 
 class RekapGiziFragment : Fragment() {
 
@@ -32,7 +29,7 @@ class RekapGiziFragment : Fragment() {
     private val statusBerisiko = setOf("gizi kurang", "gizi buruk", "gizi lebih", "obesitas", "stunting")
 
     private var filterAktif = "semua"
-    private var rekapId: String = ""   // ID dokumen rekap gizi milik guru ini
+    private var rekapId: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,8 +48,6 @@ class RekapGiziFragment : Fragment() {
         setupClickListeners()
         loadSemuaSiswa()
     }
-
-    // ─── SETUP ───────────────────────────────────────────────────────────────
 
     private fun setupRecyclerView() {
         adapter = SiswaAdapter(filteredSiswa) { siswaData ->
@@ -81,8 +76,6 @@ class RekapGiziFragment : Fragment() {
         binding.btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-
-        // FAB tambah siswa
         binding.btnTambahSiswa.setOnClickListener {
             showTambahSiswaDialog()
         }
@@ -97,13 +90,12 @@ class RekapGiziFragment : Fragment() {
                 semuaSiswa.clear()
 
                 if (rekapList.isEmpty()) {
-                    // Belum ada data — tampil kosong, siap ditambahkan
                     applyFilter()
                     updateSummaryStats()
                     return@getRekapGizi
                 }
 
-                // Ambil rekapId milik guru ini (pakai yang pertama, atau buat per-uid)
+                // FIX (#10): Pakai rekapId milik guru yang login (field guru_uid)
                 rekapId = rekapList.first().first
 
                 var selesai = 0
@@ -118,6 +110,8 @@ class RekapGiziFragment : Fragment() {
                             if (selesai == rekapList.size) {
                                 applyFilter()
                                 updateSummaryStats()
+                                // FIX (#9): Setelah load, update aggregate di Firestore supaya dashboard sinkron
+                                updateStatistikRekap(rekapId)
                             }
                         },
                         onError = { _ ->
@@ -159,11 +153,10 @@ class RekapGiziFragment : Fragment() {
         adapter.notifyDataSetChanged()
     }
 
-    // Update summary stats (tvTotalSiswa, tvNormalCount, tvResikoCount)
     private fun updateSummaryStats() {
         if (_binding == null) return
-        val total   = semuaSiswa.size
-        val normal  = semuaSiswa.count { (it["status_gizi"] as? String ?: "").lowercase() == "normal" }
+        val total    = semuaSiswa.size
+        val normal   = semuaSiswa.count { (it["status_gizi"] as? String ?: "").lowercase() == "normal" }
         val berisiko = semuaSiswa.count {
             (it["status_gizi"] as? String ?: "").lowercase().trim() in statusBerisiko
         }
@@ -211,9 +204,9 @@ class RekapGiziFragment : Fragment() {
             .setTitle("Tambah Data Siswa")
             .setView(dialogView)
             .setPositiveButton("Simpan") { _, _ ->
-                val nama  = etNama.text.toString().trim()
-                val kelas = etKelas.text.toString().trim()
-                val berat = etBerat.text.toString().toDoubleOrNull() ?: 0.0
+                val nama   = etNama.text.toString().trim()
+                val kelas  = etKelas.text.toString().trim()
+                val berat  = etBerat.text.toString().toDoubleOrNull() ?: 0.0
                 val tinggi = etTinggi.text.toString().toDoubleOrNull() ?: 0.0
                 val usia   = etUsia.text.toString().toIntOrNull() ?: 0
 
@@ -222,7 +215,6 @@ class RekapGiziFragment : Fragment() {
                     return@setPositiveButton
                 }
 
-                // Jika belum dihitung, hitung otomatis sebelum simpan
                 if (statusGiziHasil.isEmpty()) {
                     val result  = hitungStatusGizi(berat, tinggi, usia)
                     statusGiziHasil = result.first
@@ -241,32 +233,37 @@ class RekapGiziFragment : Fragment() {
         statusGizi: String, zScore: Double
     ) {
         val dataSiswa = mapOf(
-            "nama_siswa"  to nama,
-            "kelas"       to kelas,
-            "berat_badan" to berat,
+            "nama_siswa"   to nama,
+            "kelas"        to kelas,
+            "berat_badan"  to berat,
             "tinggi_badan" to tinggi,
-            "usia_bulan"  to usia,
-            "status_gizi" to statusGizi,
-            "z_score"     to zScore,
-            "created_at"  to Timestamp.now()
+            "usia_bulan"   to usia,
+            "status_gizi"  to statusGizi,
+            "z_score"      to zScore,
+            "created_at"   to Timestamp.now()
         )
 
-        // Jika rekapId belum ada, buat dulu dokumen rekap baru
         if (rekapId.isEmpty()) {
+            // FIX (#10): Pakai guru_uid (konsisten dengan FirebaseHelper.getRekapGizi yang query berdasarkan guru_uid)
             val uid = FirebaseHelper.uid
             FirebaseHelper.db.collection("rekap_gizi")
                 .add(mapOf(
-                    "guru_id"     to uid,
+                    "guru_uid"    to uid,   // ← FIX: pakai guru_uid bukan guru_id
                     "created_at"  to Timestamp.now(),
                     "total_siswa" to 0,
-                    "normal"      to 0
+                    "normal"      to 0,
+                    "gizi_kurang" to 0,
+                    "stunting"    to 0,
+                    "obesitas"    to 0
                 ))
                 .addOnSuccessListener { docRef ->
                     rekapId = docRef.id
                     tambahSiswaKeRekap(rekapId, dataSiswa)
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "Gagal buat rekap: ${e.message}", Toast.LENGTH_SHORT).show()
+                    if (_binding != null) {
+                        Toast.makeText(requireContext(), "Gagal buat rekap: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
                 }
         } else {
             tambahSiswaKeRekap(rekapId, dataSiswa)
@@ -281,79 +278,74 @@ class RekapGiziFragment : Fragment() {
             .addOnSuccessListener {
                 if (_binding == null) return@addOnSuccessListener
                 Toast.makeText(requireContext(), "Siswa berhasil ditambahkan ✅", Toast.LENGTH_SHORT).show()
-                // Reload data + update summary + update stats di dashboard
                 semuaSiswa.add(dataSiswa + mapOf("rekap_id" to rId))
                 applyFilter()
                 updateSummaryStats()
+                // FIX (#6 & #9): Update aggregate di Firestore supaya HomeGuru sinkron
                 updateStatistikRekap(rId)
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Gagal simpan: ${e.message}", Toast.LENGTH_SHORT).show()
+                if (_binding != null) {
+                    Toast.makeText(requireContext(), "Gagal simpan: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             }
     }
 
-    // Update aggregate (total_siswa, normal, dll.) di dokumen rekap_gizi
-    // supaya HomeGuruFragment bisa baca statsnya
+    // FIX (#6 & #9): Update aggregate di dokumen rekap_gizi
+    // HomeGuruFragment membaca field ini (total_siswa, normal, gizi_kurang, stunting, obesitas)
     private fun updateStatistikRekap(rId: String) {
-        val total    = semuaSiswa.count { (it["rekap_id"] as? String) == rId }
-        val normal   = semuaSiswa.count {
-            (it["rekap_id"] as? String) == rId &&
-                    (it["status_gizi"] as? String ?: "").lowercase() == "normal"
+        val siswaInRekap = semuaSiswa.filter { (it["rekap_id"] as? String) == rId }
+        val total      = siswaInRekap.size
+        val normal     = siswaInRekap.count { (it["status_gizi"] as? String ?: "").lowercase() == "normal" }
+        val giziKurang = siswaInRekap.count {
+            (it["status_gizi"] as? String ?: "").lowercase() in setOf("gizi kurang", "gizi buruk")
         }
-        val giziKurang = semuaSiswa.count {
-            (it["rekap_id"] as? String) == rId &&
-                    (it["status_gizi"] as? String ?: "").lowercase() in setOf("gizi kurang", "gizi buruk")
+        val stunting   = siswaInRekap.count {
+            (it["status_gizi"] as? String ?: "").lowercase() == "stunting"
         }
-        val stunting = semuaSiswa.count {
-            (it["rekap_id"] as? String) == rId &&
-                    (it["status_gizi"] as? String ?: "").lowercase() == "stunting"
-        }
-        val obesitas = semuaSiswa.count {
-            (it["rekap_id"] as? String) == rId &&
-                    (it["status_gizi"] as? String ?: "").lowercase() in setOf("gizi lebih", "obesitas")
+        val obesitas   = siswaInRekap.count {
+            (it["status_gizi"] as? String ?: "").lowercase() in setOf("gizi lebih", "obesitas")
         }
 
         FirebaseHelper.db.collection("rekap_gizi").document(rId)
             .update(mapOf(
-                "total_siswa"  to total,
-                "normal"       to normal,
-                "gizi_kurang"  to giziKurang,
-                "stunting"     to stunting,
-                "obesitas"     to obesitas
+                "total_siswa" to total,
+                "normal"      to normal,
+                "gizi_kurang" to giziKurang,
+                "stunting"    to stunting,
+                "obesitas"    to obesitas
             ))
     }
 
-    // ─── HITUNG STATUS GIZI (Z-Score WHO BB/U) ───────────────────────────────
+    // ─── HITUNG STATUS GIZI ───────────────────────────────────────────────────
 
     private fun hitungStatusGizi(beratKg: Double, tinggiCm: Double, usiaBulan: Int): Pair<String, Double> {
-        // Pendekatan sederhana: BMI-for-age z-score approximation
-        val bmi    = beratKg / ((tinggiCm / 100.0).pow(2))
-        // Referensi median WHO anak (approx untuk 5–12 tahun)
-        val median = 15.5
-        val sd     = 2.0
-        val zScore = (bmi - median) / sd
+        val zScoreBbu = FirebaseHelper.hitungZScore(beratKg, usiaBulan)
+        val zScoreTbu = FirebaseHelper.hitungZScoreTbu(tinggiCm, usiaBulan)
 
         val status = when {
-            zScore < -3.0 -> "Gizi Buruk"
-            zScore < -2.0 -> "Gizi Kurang"
-            zScore < -2.0 && tinggiCm < (usiaBulan / 12.0 * 5.5 + 70) -> "Stunting"
-            zScore in -2.0..1.0 -> "Normal"
-            zScore in 1.0..2.0  -> "Gizi Lebih"
-            else -> "Obesitas"
+            zScoreTbu < -3.0 && zScoreBbu < -3.0 -> "Stunting - Gizi Buruk"
+            zScoreTbu < -2.0 && zScoreBbu < -2.0 -> "Stunting - Gizi Kurang"
+            zScoreTbu < -2.0                      -> "Stunting"
+            zScoreBbu < -3.0                      -> "Gizi Buruk"
+            zScoreBbu < -2.0                      -> "Gizi Kurang"
+            zScoreBbu <= 1.0                       -> "Normal"
+            zScoreBbu <= 2.0                       -> "Gizi Lebih"
+            else                                   -> "Obesitas"
         }
-        return Pair(status, zScore)
+        return Pair(status, zScoreBbu)
     }
 
     // ─── DIALOG DETAIL SISWA ─────────────────────────────────────────────────
 
     private fun showDetailDialog(siswa: Map<String, Any?>) {
-        val nama       = siswa["nama_siswa"]   as? String ?: "-"
-        val kelas      = siswa["kelas"]        as? String ?: "-"
-        val berat      = (siswa["berat_badan"] as? Number)?.toDouble() ?: 0.0
+        val nama       = siswa["nama_siswa"]    as? String ?: "-"
+        val kelas      = siswa["kelas"]         as? String ?: "-"
+        val berat      = (siswa["berat_badan"]  as? Number)?.toDouble() ?: 0.0
         val tinggi     = (siswa["tinggi_badan"] as? Number)?.toDouble() ?: 0.0
-        val usia       = (siswa["usia_bulan"]  as? Number)?.toInt() ?: 0
-        val statusGizi = siswa["status_gizi"]  as? String ?: "-"
-        val zScore     = (siswa["z_score"]     as? Number)?.toDouble() ?: 0.0
+        val usia       = (siswa["usia_bulan"]   as? Number)?.toInt() ?: 0
+        val statusGizi = siswa["status_gizi"]   as? String ?: "-"
+        val zScore     = (siswa["z_score"]      as? Number)?.toDouble() ?: 0.0
 
         val rekomendasi = rekomendasiMakanan(statusGizi)
 
@@ -373,12 +365,13 @@ class RekapGiziFragment : Fragment() {
     }
 
     private fun rekomendasiMakanan(status: String): String = when (status.lowercase().trim()) {
-        "gizi buruk"  -> "Segera rujuk ke puskesmas. Tingkatkan asupan protein (telur, ikan, daging) dan kalori tinggi."
-        "gizi kurang" -> "Tambah porsi makan, perbanyak protein (tempe, tahu, ikan), sayuran hijau, dan susu."
-        "stunting"    -> "Perbanyak makanan kaya protein dan kalsium. Pantau tinggi badan setiap bulan."
-        "gizi lebih"  -> "Kurangi makanan berlemak dan manis, perbanyak sayur dan buah, rutin olahraga."
-        "obesitas"    -> "Konsultasi ke dokter/ahli gizi. Batasi kalori, perbanyak aktivitas fisik."
-        else          -> "Pertahankan pola makan seimbang: nasi, lauk protein, sayuran, buah, dan susu."
+        "gizi buruk"             -> "Segera rujuk ke puskesmas. Tingkatkan asupan protein (telur, ikan, daging) dan kalori tinggi."
+        "gizi kurang"            -> "Tambah porsi makan, perbanyak protein (tempe, tahu, ikan), sayuran hijau, dan susu."
+        "stunting", "stunting - gizi kurang", "stunting - gizi buruk"
+            -> "Perbanyak makanan kaya protein dan kalsium. Pantau tinggi badan setiap bulan."
+        "gizi lebih"             -> "Kurangi makanan berlemak dan manis, perbanyak sayur dan buah, rutin olahraga."
+        "obesitas"               -> "Konsultasi ke dokter/ahli gizi. Batasi kalori, perbanyak aktivitas fisik."
+        else                     -> "Pertahankan pola makan seimbang: nasi, lauk protein, sayuran, buah, dan susu."
     }
 
     override fun onDestroyView() {
@@ -426,9 +419,11 @@ class RekapGiziFragment : Fragment() {
                 "normal"                 -> Pair(R.color.green_pastel, R.color.green_primary)
                 "gizi kurang",
                 "gizi buruk",
-                "stunting"               -> Pair(R.color.pending_bg,   R.color.pending_text)
-                "gizi lebih", "obesitas" -> Pair(R.color.cream_warm,   R.color.text_secondary)
-                else                     -> Pair(R.color.cream_warm,   R.color.text_secondary)
+                "stunting",
+                "stunting - gizi kurang",
+                "stunting - gizi buruk"  -> Pair(R.color.pending_bg,  R.color.pending_text)
+                "gizi lebih", "obesitas" -> Pair(R.color.cream_warm,  R.color.text_secondary)
+                else                     -> Pair(R.color.cream_warm,  R.color.text_secondary)
             }
 
             holder.tvStatus.setBackgroundResource(bgColor)

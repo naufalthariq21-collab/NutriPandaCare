@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.nutripandacare.databinding.FragmentNotifikasiBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
@@ -19,7 +20,6 @@ class NotifikasiFragment : Fragment() {
     private lateinit var adapter: NotifikasiAdapter
     private val notifList = mutableListOf<Pair<String, Map<String, Any?>>>()
 
-    // Simpan referensi listener agar bisa di-remove → mencegah memory leak
     private var listenerRegistration: ListenerRegistration? = null
 
     override fun onCreateView(
@@ -38,6 +38,15 @@ class NotifikasiFragment : Fragment() {
         binding.tvTandaiBaca.setOnClickListener {
             tandaiSemuaDibaca()
         }
+
+        // FIX: Tombol back di toolbar — navigasi balik ke home sesuai role
+        try {
+            binding.toolbar?.setNavigationOnClickListener {
+                if (!findNavController().navigateUp()) {
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        } catch (_: Exception) {}
     }
 
     private fun setupRecyclerView() {
@@ -70,7 +79,6 @@ class NotifikasiFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        // PENTING: hentikan listener Firestore agar tidak bocor memori
         listenerRegistration?.remove()
         listenerRegistration = null
         super.onDestroyView()

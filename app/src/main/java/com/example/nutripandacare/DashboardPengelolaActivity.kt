@@ -1,11 +1,8 @@
 package com.example.nutripandacare
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.nutripandacare.databinding.ActivityDashboardPengelolaBinding
@@ -13,32 +10,31 @@ import com.example.nutripandacare.databinding.ActivityDashboardPengelolaBinding
 class DashboardPengelolaActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDashboardPengelolaBinding
-    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        
         binding = ActivityDashboardPengelolaBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            // Fix: Gunakan padding bottom agar BottomNavigationView tidak tertutup system bar
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
-        // Setup Navigation
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.fragment_container) as NavHostFragment
-        navController = navHostFragment.navController
+        val navController = navHostFragment.navController
 
-        // Connect Bottom Navigation with NavController
+        // Hubungkan bottom nav dengan navController
+        // Item ID di bottom_nav_pengelola.xml harus sama dengan ID fragment di nav_pengelola.xml
         binding.bottomNavigation.setupWithNavController(navController)
-    }
 
-    override fun onSupportNavigateUp(): Boolean {
-        return navController.navigateUp() || super.onSupportNavigateUp()
+        // Sembunyikan bottom nav di halaman non-top-level (misal TambahMenu)
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val topLevelIds = setOf(
+                R.id.fragment_home_pengelola,
+                R.id.fragment_verifikasi_pengelola,
+                R.id.fragment_aduan_pengelola,
+                R.id.fragment_menu_mbg,
+                R.id.fragment_profil_pengelola
+            )
+            binding.bottomNavigation.visibility =
+                if (destination.id in topLevelIds) View.VISIBLE else View.GONE
+        }
     }
 }

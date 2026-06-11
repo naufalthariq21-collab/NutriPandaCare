@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- activity_kirim_notifikasi.xml — Frame 6: Kirim Notifikasi -->
+<!-- fragment_kirim_pengumuman.xml -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -55,8 +55,7 @@
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -64,7 +63,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Pesan Notifikasi Label -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -74,7 +72,6 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
 
-            <!-- Pesan Input -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -97,7 +94,6 @@
                     android:inputType="textMultiLine"/>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Character Counter -->
             <TextView
                 android:id="@+id/tvCharCount"
                 android:layout_width="match_parent"
@@ -108,7 +104,6 @@
                 android:gravity="end"
                 android:layout_marginBottom="24dp"/>
 
-            <!-- Kirim ke Orang Tua Button -->
             <Button
                 android:id="@+id/btnKirim"
                 android:layout_width="match_parent"
@@ -123,16 +118,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/white"
-        app:itemIconTint="@color/nav_inactive"
-        app:itemTextColor="@color/nav_inactive"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav_guru"
-        app:elevation="8dp"/>
+    <!-- BottomNavigationView DIHAPUS dari sini karena sudah ada di Activity -->
 
 </LinearLayout>
