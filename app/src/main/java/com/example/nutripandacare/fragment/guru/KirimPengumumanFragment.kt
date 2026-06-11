@@ -4,11 +4,13 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentKirimPengumumanBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
@@ -33,7 +35,6 @@ class KirimPengumumanFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Jika masuk dari KontenEdukasiFragment, isi pesan awal otomatis
         arguments?.getString("judul_artikel")?.let { judulArtikel ->
             if (judulArtikel.isNotEmpty()) {
                 binding.etPesanNotif.setText(
@@ -91,7 +92,8 @@ class KirimPengumumanFragment : Fragment() {
 
         val judulNotif = "Pesan dari Guru 📢"
 
-        // Guru kirim notifikasi ke orang_tua saja
+        Log.d("KirimPengumuman", "Mengirim notifikasi ke orang_tua: $pesan")
+
         FirebaseHelper.blastNotifikasi(
             judul      = judulNotif,
             isi        = pesan,
@@ -101,13 +103,24 @@ class KirimPengumumanFragment : Fragment() {
                 if (_binding == null) return@blastNotifikasi
                 isLoading = false
                 Toast.makeText(requireContext(), "Notifikasi berhasil dikirim ke orang tua! ✅", Toast.LENGTH_SHORT).show()
-                requireActivity().onBackPressedDispatcher.onBackPressed()
+
+                // FIX: Pop hanya 1 step ke belakang (kembali ke KontenEdukasi),
+                // jangan sampai pop 2x dan bikin navigasi dobel
+                try {
+                    val popped = findNavController().popBackStack(R.id.nav_konten_edukasi, false)
+                    if (!popped) {
+                        requireActivity().onBackPressedDispatcher.onBackPressed()
+                    }
+                } catch (e: Exception) {
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                }
             },
             onError = { err ->
                 if (_binding == null) return@blastNotifikasi
                 isLoading = false
                 binding.btnKirim.isEnabled = true
                 binding.btnKirim.text      = "📤  Kirim ke Orang Tua"
+                Log.e("KirimPengumuman", "Gagal kirim notifikasi: $err")
                 Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_LONG).show()
             }
         )

@@ -30,22 +30,22 @@ class HomeGuruFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         resetUI()
         loadUserData()
-        loadClassStats()
         setupClickListeners()
     }
 
     override fun onResume() {
         super.onResume()
+        // Reload stats setiap kali kembali ke home
+        // (misal setelah tambah siswa di RekapGizi, angka langsung update)
         loadClassStats()
-        // Badge notifikasi
         loadNotifBadge()
     }
 
     private fun resetUI() {
         binding.tvWelcome.text     = "Memuat..."
-        binding.tvCountSiswa.text  = "-"
-        binding.tvCountNormal.text = "-"
-        binding.tvCountResiko.text = "-"
+        binding.tvCountSiswa.text  = "0"
+        binding.tvCountNormal.text = "0"
+        binding.tvCountResiko.text = "0"
     }
 
     private fun loadUserData() {
@@ -64,32 +64,36 @@ class HomeGuruFragment : Fragment() {
 
     private fun loadClassStats() {
         FirebaseHelper.getRekapGizi(
-            onSuccess = { list ->
+            onSuccess = { rekapList ->
                 _binding?.let { b ->
-                    if (list.isNotEmpty()) {
-                        var totalSiswa  = 0
-                        var totalNormal = 0
-                        var totalResiko = 0
-
-                        list.forEach { (_, data) ->
-                            totalSiswa  += (data["total_siswa"] as? Number)?.toInt() ?: 0
-                            totalNormal += (data["normal"]      as? Number)?.toInt() ?: 0
-                            totalResiko += ((data["gizi_buruk"]  as? Number)?.toInt() ?: 0) +
-                                    ((data["gizi_kurang"] as? Number)?.toInt() ?: 0) +
-                                    ((data["obesitas"]    as? Number)?.toInt() ?: 0)
-                        }
-
-                        b.tvCountSiswa.text  = totalSiswa.toString()
-                        b.tvCountNormal.text = totalNormal.toString()
-                        b.tvCountResiko.text = totalResiko.toString()
-                    } else {
+                    if (rekapList.isEmpty()) {
+                        // Belum ada rekap sama sekali — tampil 0 semua
                         b.tvCountSiswa.text  = "0"
                         b.tvCountNormal.text = "0"
                         b.tvCountResiko.text = "0"
+                        return@getRekapGizi
                     }
+
+                    // Hitung langsung dari aggregate field yang di-update RekapGiziFragment
+                    var totalSiswa   = 0
+                    var totalNormal  = 0
+                    var totalResiko  = 0
+
+                    rekapList.forEach { (_, data) ->
+                        totalSiswa  += (data["total_siswa"] as? Number)?.toInt() ?: 0
+                        totalNormal += (data["normal"]      as? Number)?.toInt() ?: 0
+                        // Jumlah berisiko = gizi_kurang + gizi_buruk + stunting + obesitas
+                        totalResiko += ((data["gizi_kurang"] as? Number)?.toInt() ?: 0) +
+                                ((data["stunting"]    as? Number)?.toInt() ?: 0) +
+                                ((data["obesitas"]    as? Number)?.toInt() ?: 0)
+                    }
+
+                    b.tvCountSiswa.text  = totalSiswa.toString()
+                    b.tvCountNormal.text = totalNormal.toString()
+                    b.tvCountResiko.text = totalResiko.toString()
                 }
             },
-            onError = { }
+            onError = { /* abaikan, tampil 0 */ }
         )
     }
 
@@ -97,29 +101,18 @@ class HomeGuruFragment : Fragment() {
         FirebaseHelper.getJumlahNotifBelumDibaca { count ->
             _binding?.let { b ->
                 try {
-                    // Tampilkan badge jika ada notif yang belum dibaca
-                    // Sesuaikan dengan ID badge di layout kamu
-                    if (count > 0) {
-                        b.btnNotifikasi.text = "🔔 ($count)"
-                    } else {
-                        b.btnNotifikasi.text = "🔔"
-                    }
+                    b.btnNotifikasi.text = if (count > 0) "🔔 ($count)" else "🔔"
                 } catch (_: Exception) {}
             }
         }
     }
 
     private fun setupClickListeners() {
-        binding.btnRekapGizi.setOnClickListener     { navigateSafe(R.id.nav_rekap_gizi) }
+        binding.btnRekapGizi.setOnClickListener       { navigateSafe(R.id.nav_rekap_gizi) }
         binding.btnKirimPengumuman.setOnClickListener { navigateSafe(R.id.nav_buat_pengumuman) }
-        binding.btnAduan.setOnClickListener         { navigateSafe(R.id.nav_aduan) }
-
-        // Notifikasi → nav_notifikasi_guru (sudah ditambahkan di nav_guru.xml)
-        binding.btnNotifikasi.setOnClickListener {
-            navigateSafe(R.id.nav_notifikasi_guru)
-        }
-
-        binding.btnLogout.setOnClickListener { confirmLogout() }
+        binding.btnAduan.setOnClickListener           { navigateSafe(R.id.nav_aduan) }
+        binding.btnNotifikasi.setOnClickListener      { navigateSafe(R.id.nav_notifikasi_guru) }
+        binding.btnLogout.setOnClickListener          { confirmLogout() }
     }
 
     private fun navigateSafe(destinationId: Int) {
