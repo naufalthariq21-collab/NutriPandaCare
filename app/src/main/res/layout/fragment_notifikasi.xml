@@ -6,34 +6,30 @@
     android:orientation="vertical"
     android:background="@color/cream_primary">
 
-    <LinearLayout
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical"
+        android:layout_height="?attr/actionBarSize"
         android:background="@color/white"
-        android:elevation="2dp">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Notifikasi  Profil"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary" />
+        android:elevation="2dp"
+        app:navigationIcon="@drawable/ic_back_arrow"
+        app:title="Notifikasi"
+        app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
+        app:titleTextColor="@color/text_primary">
 
         <TextView
             android:id="@+id/tvTandaiBaca"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginEnd="16dp"
             android:text="Tandai semua"
             android:textSize="12sp"
             android:textColor="@color/green_primary"
             android:clickable="true"
             android:focusable="true" />
-    </LinearLayout>
+
+    </com.google.android.material.appbar.MaterialToolbar>
 
     <TextView
         android:id="@+id/tvEmpty"

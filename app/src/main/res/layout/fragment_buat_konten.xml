@@ -17,7 +17,7 @@
             android:layout_height="?attr/actionBarSize"
             app:title="Buat Konten Baru"
             app:titleTextColor="@color/green_primary"
-            app:navigationIcon="@android:drawable/ic_menu_revert"/>
+            app:navigationIcon="@drawable/ic_back_arrow"/>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -137,12 +137,31 @@
                 android:visibility="gone"
                 android:layout_marginBottom="24dp"/>
 
-            <Button
-                android:id="@+id/btnPublish"
-                style="@style/Widget.NutriPandaCare.Button"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Publikasikan Sekarang" />
+                android:orientation="horizontal"
+                android:layout_marginTop="16dp"
+                android:gap="12dp">
+
+                <Button
+                    android:id="@+id/btnPreview"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Preview"
+                    android:textColor="@color/green_primary"
+                    app:strokeColor="@color/green_primary"/>
+
+                <Button
+                    android:id="@+id/btnPublish"
+                    style="@style/Widget.NutriPandaCare.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Publish" />
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

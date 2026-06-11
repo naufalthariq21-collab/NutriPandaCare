@@ -35,7 +35,7 @@
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@drawable/ic_arrow_back"
+                    android:src="@drawable/ic_back_arrow"
                     android:padding="6dp"
                     app:tint="@color/white"/>
 
@@ -47,47 +47,21 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvNamaKelas"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Rekap Gizi Kelas 5A"
+                        android:text="Rekap Gizi"
                         android:textColor="@color/white"
                         android:textSize="18sp"
                         android:textStyle="bold"/>
 
                     <TextView
+                        android:id="@+id/tvSubHeaderSiswa"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="35 Siswa Terdaftar"
+                        android:text="0 Siswa Terdaftar"
                         android:textColor="@color/green_light"
                         android:textSize="12sp"/>
-                </LinearLayout>
-
-                <!-- Stats badge -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:background="@color/green_medium"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:paddingTop="6dp"
-                    android:paddingBottom="6dp"
-                    android:gravity="center">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Update"
-                        android:textColor="@color/green_pale"
-                        android:textSize="9sp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="15 Mei 2025"
-                        android:textColor="@color/white"
-                        android:textSize="10sp"
-                        android:textStyle="bold"/>
                 </LinearLayout>
             </LinearLayout>
 
@@ -109,9 +83,10 @@
                     android:gravity="center">
 
                     <TextView
+                        android:id="@+id/tvStatNormal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="28"
+                        android:text="0"
                         android:textColor="@color/white"
                         android:textSize="22sp"
                         android:textStyle="bold"/>
@@ -138,9 +113,10 @@
                     android:gravity="center">
 
                     <TextView
+                        android:id="@+id/tvStatResiko"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="4"
+                        android:text="0"
                         android:textColor="@color/white"
                         android:textSize="22sp"
                         android:textStyle="bold"/>
@@ -167,9 +143,10 @@
                     android:gravity="center">
 
                     <TextView
+                        android:id="@+id/tvStatStunting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="3"
+                        android:text="0"
                         android:textColor="@color/white"
                         android:textSize="22sp"
                         android:textStyle="bold"/>
@@ -179,35 +156,6 @@
                         android:layout_height="wrap_content"
                         android:text="Stunting"
                         android:textColor="#EF9A9A"
-                        android:textSize="11sp"/>
-                </LinearLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="36dp"
-                    android:background="@color/green_medium"/>
-
-                <!-- Hadir -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="32/35"
-                        android:textColor="@color/white"
-                        android:textSize="22sp"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Hadir"
-                        android:textColor="@color/green_light"
                         android:textSize="11sp"/>
                 </LinearLayout>
             </LinearLayout>
@@ -330,7 +278,7 @@
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
 
-            <!-- ── Summary Stats (PATCH) ── -->
+            <!-- Summary Stats Info -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -339,149 +287,20 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="8dp">
 
-                <TextView
-                    android:id="@+id/tvTotalSiswa"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
-                    android:text="Total: 0 siswa"/>
-
-                <TextView
-                    android:id="@+id/tvNormalCount"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textSize="13sp"
-                    android:textColor="@color/green_primary"
-                    android:gravity="center"
-                    android:text="Normal: 0"/>
-
-                <TextView
-                    android:id="@+id/tvResikoCount"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textSize="13sp"
-                    android:textColor="@color/pending_text"
-                    android:gravity="end"
-                    android:text="Berisiko: 0"/>
             </LinearLayout>
+
+            <!-- Empty State -->
+            <TextView
+                android:id="@+id/tvEmpty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="40dp"
+                android:text="Belum ada data siswa"
+                android:textColor="@color/text_hint"
+                android:visibility="gone"/>
 
             <!-- LIST SISWA -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingStart="20dp"
-                android:paddingEnd="16dp"
-                android:layout_marginBottom="8dp"
-                android:gravity="center_vertical">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Daftar Siswa"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="35 siswa"
-                    android:textColor="@color/text_hint"
-                    android:textSize="12sp"/>
-            </LinearLayout>
-
-            <!-- SISWA 1: Normal -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardSiswa1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="10dp"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/white">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="14dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:src="@drawable/ic_child_avatar"
-                        android:background="@drawable/bg_circle_green_pastel"
-                        android:padding="2dp"/>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="12dp"
-                        android:orientation="vertical">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Ahmad Rizki"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold"/>
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Laki-laki • 10 tahun"
-                            android:textColor="@color/text_hint"
-                            android:textSize="12sp"
-                            android:layout_marginTop="2dp"/>
-                        <!-- Mini progress -->
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginTop="5dp">
-                            <ImageView
-                                android:layout_width="12dp"
-                                android:layout_height="12dp"
-                                android:src="@drawable/ic_nutrition"
-                                app:tint="@color/green_accent"/>
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:text="Nutrisi 82%"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-                    <!-- Status Badge -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Normal"
-                        android:textColor="@color/green_dark"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:background="@color/green_pale"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="10dp"
-                        android:paddingTop="4dp"
-                        android:paddingBottom="4dp"/>
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginStart="8dp"
-                        android:src="@drawable/ic_arrow_right"
-                        app:tint="@color/green_primary"/>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvDaftarSiswa"
                 android:layout_width="match_parent"
@@ -493,7 +312,7 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- FAB Tambah Siswa (PATCH) -->
+    <!-- FAB Tambah Siswa -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/btnTambahSiswa"
         android:layout_width="wrap_content"
