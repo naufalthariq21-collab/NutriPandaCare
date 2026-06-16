@@ -6,10 +6,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
+import java.util.UUID
 
-// ════════════════════════════════════════════════════════════════
-// OBJECT SINGLETON — Akses database dan autentikasi dari mana saja
-// ════════════════════════════════════════════════════════════════
+/**
+ * FirebaseHelper - Singleton untuk mengelola semua interaksi Firebase.
+ * Berisi logika sentral untuk perhitungan gizi standar WHO.
+ */
 object FirebaseHelper {
 
     val auth = FirebaseAuth.getInstance()
@@ -83,6 +85,12 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil data user") }
     }
 
+    fun updateProfileUser(updates: Map<String, Any>, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        db.collection("users").document(uid).update(updates + mapOf("updated_at" to Timestamp.now()))
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onError(it.message ?: "Gagal update profil") }
+    }
+
     fun simpanRole(uid: String, role: String, isVerified: Boolean, onSuccess: () -> Unit, onError: (String) -> Unit) {
         db.collection("users").document(uid).update(
             "role", role,
@@ -98,7 +106,7 @@ object FirebaseHelper {
     }
 
     // ════════════════════════════════════════════════════════════
-    // [B] ARTIKEL / KONTEN EDUKASI (GURU & ORTU)
+    // [B] ARTIKEL / KONTEN EDUKASI
     // ════════════════════════════════════════════════════════════
 
     val KATEGORI_ARTIKEL = listOf("Stunting", "Resep Sehat", "Gizi", "Tumbuh Kembang")
@@ -106,7 +114,7 @@ object FirebaseHelper {
     fun tambahArtikel(judul: String, deskripsi: String, isiKonten: String, kategori: String, thumbnailUrl: String = "", menitBaca: Int, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
         val data = hashMapOf<String, Any>(
             "judul"         to judul,
-            "description"   to deskripsi,
+            "deskripsi"     to deskripsi,
             "isi_konten"    to isiKonten,
             "kategori"      to kategori,
             "thumbnail_url" to thumbnailUrl,
@@ -144,11 +152,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal muat artikel saya") }
     }
 
-    fun getArtikelById(id: String, onSuccess: (Map<String, Any?>) -> Unit, onError: (String) -> Unit) {
-        db.collection("artikel").document(id).get()
-            .addOnSuccessListener { if (it.exists()) onSuccess(it.data ?: emptyMap()) else onError("Artikel tidak ditemukan") }
-    }
-
     fun updateArtikel(artikelId: String, dataUpdate: Map<String, Any>, onSuccess: () -> Unit, onError: (String) -> Unit) {
         db.collection("artikel").document(artikelId).update(dataUpdate)
             .addOnSuccessListener { onSuccess() }
@@ -162,7 +165,7 @@ object FirebaseHelper {
     }
 
     // ════════════════════════════════════════════════════════════
-    // [C] PENGUMUMAN & NOTIFIKASI (PESAN GURU)
+    // [C] PENGUMUMAN & NOTIFIKASI
     // ════════════════════════════════════════════════════════════
 
     fun kirimPengumuman(judul: String, isi: String, targetRole: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
@@ -179,18 +182,13 @@ object FirebaseHelper {
         }.addOnFailureListener { onError(it.message ?: "Gagal kirim pesan") }
     }
 
-    fun getPengumumanTerbaru(limit: Long = 20, onSuccess: (List<Map<String, Any?>>) -> Unit, onError: (String) -> Unit) {
-        db.collection("pengumuman").whereEqualTo("is_published", true).get()
+    fun getPengumumanTerbaru(limit: Int = 20, onSuccess: (List<Map<String, Any?>>) -> Unit, onError: (String) -> Unit) {
+        db.collection("pengumuman").whereEqualTo("is_published", true)
+            .orderBy("waktu_pengumuman", Query.Direction.DESCENDING)
+            .limit(limit.toLong())
+            .get()
             .addOnSuccessListener { snap ->
-                val list = snap.documents
-                    .map { it.data ?: emptyMap() }
-                    .filter {
-                        val role = it["target_role"] as? String ?: ""
-                        role == "orang_tua" || role == "semua"
-                    }
-                    .sortedByDescending { it["waktu_pengumuman"] as? Timestamp ?: Timestamp.now() }
-                    .take(limit.toInt())
-                onSuccess(list)
+                onSuccess(snap.documents.map { it.data ?: emptyMap() })
             }
             .addOnFailureListener { onError(it.message ?: "Gagal muat pengumuman") }
     }
@@ -245,7 +243,7 @@ object FirebaseHelper {
     // [D] REKAP GIZI & SISWA (GURU)
     // ════════════════════════════════════════════════════════════
 
-    fun simpanRekapGizi(sekolah: String, periode: String, totalSiswa: Int, normal: Int, giziKurang: Int, giziBuruk: Int, giziLebih: Int, obesitas: Int, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+    fun simpanRekapGizi(sekolah: String, periode: String, totalSiswa: Int, normal: Int, giziKurang: Int, giziBuruk: Int, giziLebih: Int, obesitas: Int, stunting: Int, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
         val data = hashMapOf<String, Any>(
             "sekolah"     to sekolah,
             "guru_uid"    to uid,
@@ -256,6 +254,7 @@ object FirebaseHelper {
             "gizi_buruk"  to giziBuruk,
             "gizi_lebih"  to giziLebih,
             "obesitas"    to obesitas,
+            "stunting"    to stunting,
             "created_at"  to Timestamp.now(),
             "updated_at"  to Timestamp.now()
         )
@@ -276,16 +275,54 @@ object FirebaseHelper {
             "tanggal_ukur" to Timestamp.now()
         )
         db.collection("rekap_gizi").document(rekapId).collection("detail_siswa").add(data)
-            .addOnSuccessListener { onSuccess() }
+            .addOnSuccessListener {
+                updateRekapSummary(rekapId, onSuccess, onError)
+            }
             .addOnFailureListener { onError(it.message ?: "Gagal simpan siswa") }
     }
 
-    fun getRekapGizi(onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit, onError: (String) -> Unit) {
-        db.collection("rekap_gizi").whereEqualTo("guru_uid", uid).get()
+    fun updateRekapSummary(rekapId: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
+        db.collection("rekap_gizi").document(rekapId).collection("detail_siswa").get()
             .addOnSuccessListener { snap ->
-                val list = snap.documents.map { Pair(it.id, it.data ?: emptyMap()) }
-                    .sortedByDescending { it.second["created_at"] as? Timestamp ?: Timestamp.now() }
-                onSuccess(list)
+                var total = 0; var normal = 0; var kurang = 0
+                var buruk = 0; var lebih = 0; var obs = 0; var stunting = 0
+
+                snap.documents.forEach { doc ->
+                    total++
+                    val status = (doc.getString("status_gizi") ?: "").lowercase().trim()
+                    if (status.contains("stunting")) stunting++
+                    
+                    when {
+                        status == "normal" -> normal++
+                        status.contains("kurang") -> kurang++
+                        status.contains("buruk")  -> buruk++
+                        status.contains("lebih")  -> lebih++
+                        status == "obesitas"      -> obs++
+                    }
+                }
+
+                db.collection("rekap_gizi").document(rekapId).update(
+                    mapOf(
+                        "total_siswa" to total,
+                        "normal"      to normal,
+                        "gizi_kurang" to kurang,
+                        "gizi_buruk"  to buruk,
+                        "gizi_lebih"  to lebih,
+                        "obesitas"    to obs,
+                        "stunting"    to stunting,
+                        "updated_at"  to Timestamp.now()
+                    )
+                ).addOnSuccessListener { onSuccess() }.addOnFailureListener { onError(it.message ?: "Gagal update summary") }
+            }
+            .addOnFailureListener { onError(it.message ?: "Gagal ambil detail siswa") }
+    }
+
+    fun getRekapGizi(onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit, onError: (String) -> Unit) {
+        db.collection("rekap_gizi").whereEqualTo("guru_uid", uid)
+            .orderBy("created_at", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { snap ->
+                onSuccess(snap.documents.map { Pair(it.id, it.data ?: emptyMap()) })
             }
             .addOnFailureListener { onError(it.message ?: "Gagal muat rekap") }
     }
@@ -327,11 +364,30 @@ object FirebaseHelper {
         return (tinggi - median) / sd
     }
 
+    fun tentukanStatusGizi(zBbu: Double, zTbu: Double): String {
+        val isStunting    = zTbu < -2.0
+        val isSevereStunt = zTbu < -3.0
+
+        return when {
+            isSevereStunt && zBbu < -3.0 -> "Stunting - Gizi Buruk"
+            isSevereStunt                 -> "Stunting Berat"
+            isStunting && zBbu < -2.0    -> "Stunting - Gizi Kurang"
+            isStunting                   -> "Stunting"
+            zBbu < -3.0                  -> "Gizi Buruk"
+            zBbu < -2.0                  -> "Gizi Kurang"
+            zBbu <= 1.0                  -> "Normal"
+            zBbu <= 2.0                  -> "Berisiko Gizi Lebih"
+            zBbu <= 3.0                  -> "Gizi Lebih"
+            else                         -> "Obesitas"
+        }
+    }
+
     fun rekomendasiMakanan(statusGizi: String, usiaBulan: Int): List<String> {
-        return when (statusGizi.lowercase()) {
-            "gizi buruk" -> listOf("🥛 Susu formula/ASI intensif", "🥚 Telur rebus setiap hari", "⚠️ Konsultasi Dokter")
-            "gizi kurang" -> listOf("🍗 Tambah porsi protein", "🥛 Susu setiap hari", "📅 Makan teratur 3x")
-            "stunting" -> listOf("🥩 Protein hewani (ikan/ayam)", "🥦 Sayuran hijau (bayam/brokoli)", "🍼 Susu pertumbuhan")
+        val s = statusGizi.lowercase()
+        return when {
+            s.contains("buruk") || s.contains("berat") -> listOf("🥛 Susu formula/ASI intensif", "🥚 Telur rebus setiap hari", "⚠️ Konsultasi Dokter")
+            s.contains("kurang") || s.contains("stunting") -> listOf("🍗 Protein hewani (ikan/ayam)", "🥦 Sayuran hijau", "🥛 Susu setiap hari")
+            s.contains("lebih") || s == "obesitas" -> listOf("🍎 Perbanyak buah & sayur", "🏃 Aktivitas fisik rutin", "🍚 Kurangi porsi karbo")
             else -> listOf("🍚 Nasi + Lauk bergizi", "🥦 Sayuran berwarna", "✅ Pertahankan pola makan sehat")
         }
     }
@@ -354,17 +410,11 @@ object FirebaseHelper {
         db.collection("users").get()
             .addOnSuccessListener { snap ->
                 val list = snap.documents
-                    .filter {
-                        val role = it.getString("role") ?: ""
-                        val isVerified = it.getBoolean("is_verified") ?: false
-                        val status = it.getString("status_akun") ?: "aktif"
-                        role != "pengelola" && (isVerified || status != "aktif")
-                    }
+                    .filter { (it.getString("role") ?: "") != "pengelola" }
                     .map { Pair(it.id, it.data ?: emptyMap()) }
                     .sortedByDescending { it.second["created_at"] as? Timestamp ?: Timestamp.now() }
                 onSuccess(list)
-            }
-            .addOnFailureListener { onError("Gagal ambil data") }
+            }.addOnFailureListener { onError("Gagal ambil data") }
     }
 
     fun getPendaftarBaru(onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit, onError: (String) -> Unit) {
@@ -374,8 +424,7 @@ object FirebaseHelper {
                     .filter { (it.getString("role") ?: "") != "pengelola" }
                     .map { Pair(it.id, it.data ?: emptyMap()) }
                 onSuccess(list)
-            }
-            .addOnFailureListener { onError("Gagal ambil data") }
+            }.addOnFailureListener { onError("Gagal ambil data") }
     }
 
     fun verifikasiAkun(uid: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
@@ -433,51 +482,26 @@ object FirebaseHelper {
     }
 
     // ════════════════════════════════════════════════════════════
-    // [H] ADUAN GURU & PENGELOLA
+    // [H] ADUAN
     // ════════════════════════════════════════════════════════════
 
     fun kirimAduan(judul: String, isi: String, kategori: String, pengirimNama: String, pengirimRole: String, fotoAduan: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
         val data = hashMapOf<String, Any>(
-            "judul_aduan" to judul,
-            "isi_aduan" to isi,
-            "kategori_aduan" to kategori,
-            "pengirim_nama" to pengirimNama,
-            "pengirim_role" to pengirimRole,
-            "pengirim_uid" to uid,
-            "foto_aduan" to fotoAduan,
-            "status_aduan" to "menunggu",
-            "balasan" to "",
-            "created_at" to Timestamp.now()
+            "judul_aduan" to judul, "isi_aduan" to isi, "kategori_aduan" to kategori, "pengirim_nama" to pengirimNama,
+            "pengirim_role" to pengirimRole, "pengirim_uid" to uid, "foto_aduan" to fotoAduan, "status_aduan" to "menunggu", "balasan" to "", "created_at" to Timestamp.now()
         )
-        db.collection("aduan").add(data).addOnSuccessListener { onSuccess() }.addOnFailureListener { onError(it.message ?: "Gagal kirim aduan") }
-    }
-
-    fun getAduanSaya(onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit, onError: (String) -> Unit) {
-        db.collection("aduan").whereEqualTo("pengirim_uid", uid).get()
-            .addOnSuccessListener { snap ->
-                val list = snap.documents.map { Pair(it.id, it.data ?: emptyMap()) }
-                    .sortedByDescending { it.second["created_at"] as? Timestamp ?: Timestamp.now() }
-                onSuccess(list)
-            }
-            .addOnFailureListener { onError(it.message ?: "Gagal muat aduan") }
+        db.collection("aduan").add(data).addOnSuccessListener { onSuccess() }.addOnFailureListener { onError("Gagal kirim aduan") }
     }
 
     fun getAllAduan(onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit, onError: (String) -> Unit) {
-        db.collection("aduan").get()
-            .addOnSuccessListener { snap ->
-                val list = snap.documents.map { Pair(it.id, it.data ?: emptyMap()) }
-                    .sortedByDescending { it.second["created_at"] as? Timestamp ?: Timestamp.now() }
-                onSuccess(list)
-            }
-            .addOnFailureListener { onError(it.message ?: "Gagal muat semua aduan") }
+        db.collection("aduan").orderBy("created_at", Query.Direction.DESCENDING).get()
+            .addOnSuccessListener { snap -> onSuccess(snap.documents.map { Pair(it.id, it.data ?: emptyMap()) }) }
+            .addOnFailureListener { onError("Gagal muat aduan") }
     }
 
     fun balasAduan(aduanId: String, balasan: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        db.collection("aduan").document(aduanId).update(
-            "balasan", balasan,
-            "status_aduan", "selesai",
-            "dibalas_pada", Timestamp.now()
-        ).addOnSuccessListener { onSuccess() }.addOnFailureListener { onError(it.message ?: "Gagal balas aduan") }
+        db.collection("aduan").document(aduanId).update("balasan", balasan, "status_aduan", "selesai", "dibalas_pada", Timestamp.now())
+            .addOnSuccessListener { onSuccess() }.addOnFailureListener { onError("Gagal balas aduan") }
     }
 
     // ════════════════════════════════════════════════════════════
@@ -488,21 +512,13 @@ object FirebaseHelper {
         db.collection("anak").whereEqualTo("orang_tua_uid", uid).get()
             .addOnSuccessListener { snap ->
                 if (snap.isEmpty) onError("Data anak belum ada")
-                else {
-                    val doc = snap.documents[0]
-                    onSuccess(doc.id, doc.data ?: emptyMap())
-                }
-            }
-            .addOnFailureListener { onError(it.message ?: "Gagal ambil data anak") }
+                else { val doc = snap.documents[0]; onSuccess(doc.id, doc.data ?: emptyMap()) }
+            }.addOnFailureListener { onError("Gagal ambil data anak") }
     }
 
-    fun getRiwayatGizi(anakId: String, limit: Int = 1, onSuccess: (List<Map<String, Any?>>) -> Unit, onError: (String) -> Unit) {
-        db.collection("anak").document(anakId).collection("riwayat_gizi")
-            .orderBy("tanggal_ukur", Query.Direction.DESCENDING)
-            .limit(limit.toLong())
-            .get()
+    fun getRiwayatGizi(anakId: String, limit: Int = 20, onSuccess: (List<Map<String, Any?>>) -> Unit, onError: (String) -> Unit) {
+        db.collection("anak").document(anakId).collection("riwayat_gizi").orderBy("tanggal_ukur", Query.Direction.DESCENDING).limit(limit.toLong()).get()
             .addOnSuccessListener { snap -> onSuccess(snap.documents.map { it.data ?: emptyMap() }) }
-            .addOnFailureListener { onError(it.message ?: "Gagal ambil riwayat") }
     }
 
     fun simpanHasilGizi(anakId: String, berat: Double, tinggi: Double, usiaBulan: Int, zScore: Double, statusGizi: String, persentaseNutrisi: Int, onSuccess: () -> Unit, onError: (String) -> Unit) {
@@ -516,24 +532,31 @@ object FirebaseHelper {
             "tanggal_ukur" to Timestamp.now()
         )
         db.collection("anak").document(anakId).update(data)
-            .addOnSuccessListener {
+            .addOnSuccessListener { 
                 db.collection("anak").document(anakId).collection("riwayat_gizi").add(data)
-                    .addOnSuccessListener { onSuccess() }
-                    .addOnFailureListener { onError("Gagal simpan riwayat") }
+                    .addOnSuccessListener { onSuccess() } 
             }
             .addOnFailureListener { onError("Gagal update data anak") }
+    }
+
+    fun tambahDataAnak(namaAnak: String, usiaAnak: String, usiaBulan: Int, jenisKelamin: String, sekolahAnak: String, kelas: String, fotoAnak: String = "", onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+        val data = hashMapOf<String, Any>("nama_anak" to namaAnak, "usia_anak" to usiaAnak, "usia_bulan" to usiaBulan, "jenis_kelamin" to jenisKelamin, "sekolah_anak" to sekolahAnak, "kelas" to kelas, "foto_anak" to fotoAnak, "orang_tua_uid" to uid, "status_gizi" to "Belum dicek", "created_at" to Timestamp.now(), "updated_at" to Timestamp.now())
+        db.collection("anak").add(data).addOnSuccessListener { onSuccess(it.id) }
+    }
+
+    fun updateDataAnak(anakId: String, updates: Map<String, Any>, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        db.collection("anak").document(anakId).update(updates + mapOf("updated_at" to Timestamp.now())).addOnSuccessListener { onSuccess() }
     }
 
     // ════════════════════════════════════════════════════════════
     // [J] MEDIA / STORAGE
     // ════════════════════════════════════════════════════════════
 
-    fun uploadImage(path: String, uri: Uri, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
-        val ref = FirebaseStorage.getInstance().getReference(path)
-        ref.putFile(uri)
-            .addOnSuccessListener {
-                ref.downloadUrl.addOnSuccessListener { onSuccess(it.toString()) }
-            }
-            .addOnFailureListener { onError(it.message ?: "Gagal upload image") }
+    fun uploadImage(path: String, uri: Uri, context: android.content.Context, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+        val ref = FirebaseStorage.getInstance().getReference(path).child("${UUID.randomUUID()}.jpg")
+        try {
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return onError("Error")
+            ref.putBytes(inputStream.readBytes()).addOnSuccessListener { ref.downloadUrl.addOnSuccessListener { onSuccess(it.toString()) } }
+        } catch (e: Exception) { onError(e.message ?: "Error") }
     }
 }

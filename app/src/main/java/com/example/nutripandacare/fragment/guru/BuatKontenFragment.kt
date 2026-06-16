@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentBuatKontenBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
@@ -32,25 +33,22 @@ class BuatKontenFragment : Fragment() {
 
     private val kategoriList = listOf("Pilih kategori...") + FirebaseHelper.KATEGORI_ARTIKEL
 
-    // FIX: Salin ke cache agar content URI tidak kehilangan permission saat upload Storage
+    // ── Galeri: salin ke cache agar permission tidak expired saat upload ──────
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
                 val cached = copyUriToCache(requireContext(), it, "thumbnail")
                 thumbnailUri = cached ?: it
-                binding.ivThumbnailPreview.setImageURI(thumbnailUri)
-                binding.ivThumbnailPreview.visibility    = View.VISIBLE
-                binding.layoutUploadThumbnail.visibility = View.GONE
+                tampilkanThumbnail(thumbnailUri!!)
             }
         }
 
+    // ── Kamera ───────────────────────────────────────────────────────────────
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success && cameraImageUri != null) {
                 thumbnailUri = cameraImageUri
-                binding.ivThumbnailPreview.setImageURI(cameraImageUri)
-                binding.ivThumbnailPreview.visibility    = View.VISIBLE
-                binding.layoutUploadThumbnail.visibility = View.GONE
+                tampilkanThumbnail(thumbnailUri!!)
             }
         }
 
@@ -66,6 +64,7 @@ class BuatKontenFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         artikelId = arguments?.getString("artikel_id")
         setupSpinner()
+
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
@@ -81,6 +80,17 @@ class BuatKontenFragment : Fragment() {
             binding.toolbar.title   = "Buat Konten Baru"
             binding.btnPublish.text = "Publish"
         }
+    }
+
+    private fun tampilkanThumbnail(uri: Uri) {
+        if (_binding == null) return
+        binding.ivThumbnailPreview.visibility    = View.VISIBLE
+        binding.layoutUploadThumbnail.visibility = View.GONE
+        Glide.with(this)
+            .load(uri)
+            .centerCrop()
+            .placeholder(R.color.green_pastel)
+            .into(binding.ivThumbnailPreview)
     }
 
     private fun setupSpinner() {
@@ -104,7 +114,9 @@ class BuatKontenFragment : Fragment() {
                 if (thumbUrl.isNotEmpty()) {
                     binding.ivThumbnailPreview.visibility    = View.VISIBLE
                     binding.layoutUploadThumbnail.visibility = View.GONE
-                    com.bumptech.glide.Glide.with(this).load(thumbUrl).into(binding.ivThumbnailPreview)
+                    Glide.with(this).load(thumbUrl)
+                        .centerCrop()
+                        .into(binding.ivThumbnailPreview)
                 }
                 binding.btnPublish.isEnabled = true
             },
@@ -120,10 +132,7 @@ class BuatKontenFragment : Fragment() {
         AlertDialog.Builder(requireContext())
             .setTitle("Pilih Sumber Gambar")
             .setItems(arrayOf("📷  Ambil dari Kamera", "🖼️  Pilih dari Galeri")) { _, which ->
-                when (which) {
-                    0 -> openCamera()
-                    1 -> pickImageLauncher.launch("image/*")
-                }
+                if (which == 0) openCamera() else pickImageLauncher.launch("image/*")
             }
             .show()
     }
@@ -164,13 +173,17 @@ class BuatKontenFragment : Fragment() {
         }
     }
 
-    // FIX: Pakai putBytes agar tidak ada SecurityException pada content URI
+    // ── Upload pakai putBytes agar tidak SecurityException pada content URI ──
     private fun uploadThumbnail(uri: Uri, onComplete: (String?) -> Unit) {
         val ref = FirebaseStorage.getInstance().reference
             .child("thumbnail_artikel/${UUID.randomUUID()}.jpg")
         try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
-            if (inputStream == null) { onComplete(null); return }
+            if (inputStream == null) {
+                Toast.makeText(requireContext(), "Tidak bisa membaca file foto", Toast.LENGTH_SHORT).show()
+                onComplete(null)
+                return
+            }
             val bytes = inputStream.readBytes()
             inputStream.close()
 
@@ -182,11 +195,12 @@ class BuatKontenFragment : Fragment() {
                 }
                 .addOnFailureListener { e ->
                     if (_binding != null)
-                        Toast.makeText(requireContext(), "Gagal upload thumbnail, konten tetap disimpan", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Gagal upload thumbnail: ${e.message}", Toast.LENGTH_SHORT).show()
                     onComplete(null)
                 }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Error baca foto: ${e.message}", Toast.LENGTH_SHORT).show()
+            if (_binding != null)
+                Toast.makeText(requireContext(), "Error baca foto: ${e.message}", Toast.LENGTH_SHORT).show()
             onComplete(null)
         }
     }
@@ -195,7 +209,6 @@ class BuatKontenFragment : Fragment() {
         judul: String, kategori: String, deskripsi: String,
         isi: String, menit: Int, thumbnailUrl: String?
     ) {
-        // FIX #3 & #4: tambahkan is_published = true agar muncul di orang tua
         FirebaseHelper.tambahArtikel(
             judul        = judul,
             deskripsi    = deskripsi,
@@ -207,7 +220,6 @@ class BuatKontenFragment : Fragment() {
                 isLoading = false
                 if (_binding == null) return@tambahArtikel
                 Toast.makeText(requireContext(), "Konten berhasil dipublikasikan! 🎉", Toast.LENGTH_SHORT).show()
-                // FIX #8: navigate ke preview, back dari preview ke konten edukasi
                 val args = Bundle().apply { putString("artikel_id", newArtikelId) }
                 try {
                     findNavController().navigate(R.id.nav_preview_konten, args)
@@ -264,6 +276,7 @@ class BuatKontenFragment : Fragment() {
         }
     }
 
+    // ── Salin URI ke cache supaya permission tidak hilang saat dipakai upload ─
     private fun copyUriToCache(context: Context, uri: Uri, prefix: String): Uri? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri) ?: return null
@@ -271,9 +284,7 @@ class BuatKontenFragment : Fragment() {
             FileOutputStream(outFile).use { out -> inputStream.copyTo(out) }
             inputStream.close()
             Uri.fromFile(outFile)
-        } catch (e: Exception) {
-            null
-        }
+        } catch (e: Exception) { null }
     }
 
     override fun onDestroyView() {

@@ -1,5 +1,6 @@
 package com.example.nutripandacare.fragment.guru
 
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -18,6 +19,7 @@ import com.example.nutripandacare.databinding.FragmentAduanMbgBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import com.google.firebase.Timestamp
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -31,25 +33,22 @@ class AduanMbgFragment : Fragment() {
     private var imageUri: Uri? = null
     private var cameraImageUri: Uri? = null
 
-    // Launcher kamera
+    // ── Kamera ───────────────────────────────────────────────────────────────
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success && cameraImageUri != null) {
                 imageUri = cameraImageUri
-                binding.ivAduan.visibility         = View.VISIBLE
-                binding.layoutPlaceholder.visibility = View.GONE
-                binding.ivAduan.setImageURI(imageUri)
+                tampilkanPreviewGambar(imageUri)
             }
         }
 
-    // Launcher galeri
+    // ── Galeri: salin ke cache agar permission tidak hilang saat upload ──────
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                imageUri = it
-                binding.ivAduan.visibility         = View.VISIBLE
-                binding.layoutPlaceholder.visibility = View.GONE
-                binding.ivAduan.setImageURI(it)
+                val cached = copyUriToCache(requireContext(), it, "aduan_foto")
+                imageUri = cached ?: it
+                tampilkanPreviewGambar(imageUri)
             }
         }
 
@@ -63,12 +62,10 @@ class AduanMbgFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupToolbar()
         setupSpinner()
         loadUserData()
         setupClickListeners()
-        // Load riwayat aduan saya
         loadRiwayatAduan()
     }
 
@@ -87,26 +84,45 @@ class AduanMbgFragment : Fragment() {
     private fun loadUserData() {
         val uid = FirebaseHelper.uid
         if (uid.isEmpty()) return
-
         FirebaseHelper.getDataUser(uid,
             onSuccess = { data -> userNama = data["nama"] as? String ?: "Guru" },
             onError   = { }
         )
     }
 
-    private fun setupClickListeners() {
-        binding.cardPilihFoto.setOnClickListener {
-            showImageSourceDialog()
+    // ── Tampilkan / sembunyikan preview gambar ────────────────────────────────
+    private fun tampilkanPreviewGambar(uri: Any?) {
+        if (_binding == null) return
+        if (uri == null) {
+            binding.ivAduan.visibility        = View.GONE
+            binding.layoutPlaceholder.visibility = View.VISIBLE
+            return
         }
+        binding.ivAduan.visibility        = View.VISIBLE
+        binding.layoutPlaceholder.visibility = View.GONE
+        Glide.with(this)
+            .load(uri)
+            .centerCrop()
+            .placeholder(R.color.cream_medium)
+            .into(binding.ivAduan)
+    }
+
+    private fun setupClickListeners() {
+        binding.cardPilihFoto.setOnClickListener { showImageSourceDialog() }
 
         binding.btnKirimAduan.setOnClickListener {
             val judul    = binding.etJudulAduan.text.toString().trim()
             val isi      = binding.etIsiAduan.text.toString().trim()
             val kategori = binding.spinnerKategoriAduan.selectedItem.toString()
 
-            if (judul.isEmpty()) { binding.etJudulAduan.error = "Judul tidak boleh kosong"; return@setOnClickListener }
-            if (isi.isEmpty())   { binding.etIsiAduan.error   = "Isi aduan tidak boleh kosong"; return@setOnClickListener }
-
+            if (judul.isEmpty()) {
+                binding.etJudulAduan.error = "Judul tidak boleh kosong"
+                return@setOnClickListener
+            }
+            if (isi.isEmpty()) {
+                binding.etIsiAduan.error = "Isi aduan tidak boleh kosong"
+                return@setOnClickListener
+            }
             prepareKirimAduan(judul, isi, kategori)
         }
     }
@@ -116,16 +132,12 @@ class AduanMbgFragment : Fragment() {
         AlertDialog.Builder(requireContext())
             .setTitle("Pilih Sumber Foto Bukti")
             .setItems(options) { _, which ->
-                when (which) {
-                    0 -> openCamera()
-                    1 -> pickImageLauncher.launch("image/*")
-                }
-            }
-            .show()
+                if (which == 0) openCamera() else pickImageLauncher.launch("image/*")
+            }.show()
     }
 
     private fun openCamera() {
-        val photoFile = File(requireContext().cacheDir, "aduan_foto_${System.currentTimeMillis()}.jpg")
+        val photoFile = File(requireContext().cacheDir, "aduan_${System.currentTimeMillis()}.jpg")
         cameraImageUri = FileProvider.getUriForFile(
             requireContext(),
             "${requireContext().packageName}.fileprovider",
@@ -137,17 +149,19 @@ class AduanMbgFragment : Fragment() {
     private fun prepareKirimAduan(judul: String, isi: String, kategori: String) {
         if (isLoading) return
         isLoading = true
-        binding.btnKirimAduan.isEnabled = false
-        binding.btnKirimAduan.text      = "Mengirim..."
+        setButtonLoading(true)
 
         if (imageUri != null) {
+            // Pakai FirebaseHelper.uploadImage (putBytes) agar tidak SecurityException
             val fileName = "aduan/${FirebaseHelper.uid}_${System.currentTimeMillis()}.jpg"
-            FirebaseHelper.uploadImage(fileName, imageUri!!,
+            FirebaseHelper.uploadImage(
+                path      = fileName,
+                uri       = imageUri!!,
+                context   = requireContext(),
                 onSuccess = { url -> executeKirimAduan(judul, isi, kategori, url) },
                 onError   = { err ->
                     isLoading = false
-                    binding.btnKirimAduan.isEnabled = true
-                    binding.btnKirimAduan.text      = "Kirim Aduan Sekarang"
+                    setButtonLoading(false)
                     Toast.makeText(requireContext(), "Gagal upload foto: $err", Toast.LENGTH_SHORT).show()
                 }
             )
@@ -171,107 +185,103 @@ class AduanMbgFragment : Fragment() {
                 // Reset form
                 binding.etJudulAduan.text?.clear()
                 binding.etIsiAduan.text?.clear()
-                binding.ivAduan.visibility          = View.GONE
-                binding.layoutPlaceholder.visibility = View.VISIBLE
                 imageUri = null
-                binding.btnKirimAduan.isEnabled = true
-                binding.btnKirimAduan.text      = "Kirim Aduan Sekarang"
-                // Refresh riwayat
+                tampilkanPreviewGambar(null)
+                setButtonLoading(false)
                 loadRiwayatAduan()
             },
             onError = { err ->
                 isLoading = false
                 if (_binding == null) return@kirimAduan
-                binding.btnKirimAduan.isEnabled = true
-                binding.btnKirimAduan.text      = "Kirim Aduan Sekarang"
+                setButtonLoading(false)
                 Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_LONG).show()
             }
         )
     }
 
-    // ─── RIWAYAT ADUAN ───────────────────────────────────────────────────────
+    private fun setButtonLoading(loading: Boolean) {
+        if (_binding == null) return
+        binding.btnKirimAduan.isEnabled = !loading
+        binding.btnKirimAduan.text      = if (loading) "Mengirim..." else "Kirim Aduan Sekarang"
+    }
 
     private fun loadRiwayatAduan() {
         FirebaseHelper.getAduanSaya(
             onSuccess = { list ->
                 if (_binding == null) return@getAduanSaya
                 setupRiwayatRecyclerView(list)
-                binding.tvRiwayatEmpty.visibility =
-                    if (list.isEmpty()) View.VISIBLE else View.GONE
+                binding.tvRiwayatEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
             },
-            onError = { /* abaikan error riwayat */ }
+            onError = { }
         )
     }
 
     private fun setupRiwayatRecyclerView(list: List<Pair<String, Map<String, Any?>>>) {
-        val rv = binding.rvRiwayatAduan
-        rv.layoutManager = LinearLayoutManager(requireContext())
-        rv.adapter = RiwayatAduanAdapter(list)
+        binding.rvRiwayatAduan.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvRiwayatAduan.adapter       = RiwayatAduanAdapter(list)
     }
 
-    // ─── ADAPTER RIWAYAT (inner) ─────────────────────────────────────────────
+    // ── Salin URI ke cache supaya permission tidak hilang saat upload ─────────
+    private fun copyUriToCache(context: Context, uri: Uri, prefix: String): Uri? {
+        return try {
+            val stream  = context.contentResolver.openInputStream(uri) ?: return null
+            val file    = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg")
+            FileOutputStream(file).use { stream.copyTo(it) }
+            Uri.fromFile(file)
+        } catch (e: Exception) { null }
+    }
 
+    // ── Adapter riwayat aduan ─────────────────────────────────────────────────
     inner class RiwayatAduanAdapter(
         private val data: List<Pair<String, Map<String, Any?>>>
     ) : RecyclerView.Adapter<RiwayatAduanAdapter.VH>() {
 
         private val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("id", "ID"))
 
-        inner class VH(view: View) : RecyclerView.ViewHolder(view) {
-            val tvJudul    : TextView  = view.findViewById(R.id.tvRiwayatJudul)
-            val tvKategori : TextView  = view.findViewById(R.id.tvRiwayatKategori)
-            val tvStatus   : TextView  = view.findViewById(R.id.tvRiwayatStatus)
-            val tvBalasan  : TextView  = view.findViewById(R.id.tvRiwayatBalasan)
-            val tvTanggal  : TextView  = view.findViewById(R.id.tvRiwayatTanggal)
-            val ivFoto     : ImageView = view.findViewById(R.id.ivRiwayatFoto)
+        inner class VH(v: View) : RecyclerView.ViewHolder(v) {
+            val tvJudul: TextView    = v.findViewById(R.id.tvRiwayatJudul)
+            val tvKategori: TextView = v.findViewById(R.id.tvRiwayatKategori)
+            val tvStatus: TextView   = v.findViewById(R.id.tvRiwayatStatus)
+            val tvBalasan: TextView  = v.findViewById(R.id.tvRiwayatBalasan)
+            val tvTanggal: TextView  = v.findViewById(R.id.tvRiwayatTanggal)
+            val ivFoto: ImageView    = v.findViewById(R.id.ivRiwayatFoto)
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_riwayat_aduan, parent, false)
-            return VH(view)
-        }
+        override fun onCreateViewHolder(p: ViewGroup, vt: Int) =
+            VH(LayoutInflater.from(p.context).inflate(R.layout.item_riwayat_aduan, p, false))
 
         override fun getItemCount() = data.size
 
-        override fun onBindViewHolder(holder: VH, position: Int) {
-            val (_, item) = data[position]
-
-            holder.tvJudul.text    = item["judul_aduan"]    as? String ?: "-"
-            holder.tvKategori.text = item["kategori_aduan"] as? String ?: "-"
+        override fun onBindViewHolder(h: VH, pos: Int) {
+            val (_, item) = data[pos]
+            h.tvJudul.text    = item["judul_aduan"]    as? String ?: "-"
+            h.tvKategori.text = item["kategori_aduan"] as? String ?: "-"
 
             val status = item["status_aduan"] as? String ?: "menunggu"
-            holder.tvStatus.text = when (status) {
-                "selesai"  -> "✅ Selesai"
-                "menunggu" -> "⏳ Menunggu"
-                else       -> status.replaceFirstChar { it.uppercase() }
-            }
-            holder.tvStatus.setTextColor(
+            h.tvStatus.text = if (status == "selesai") "✅ Selesai" else "⏳ Menunggu"
+            h.tvStatus.setTextColor(
                 requireContext().getColor(
                     if (status == "selesai") R.color.green_primary else R.color.pending_text
                 )
             )
 
             val balasan = item["balasan"] as? String ?: ""
-            if (balasan.isNotEmpty()) {
-                holder.tvBalasan.visibility = View.VISIBLE
-                holder.tvBalasan.text       = "Balasan: $balasan"
-            } else {
-                holder.tvBalasan.visibility = View.GONE
-            }
+            h.tvBalasan.visibility = if (balasan.isNotEmpty()) View.VISIBLE else View.GONE
+            h.tvBalasan.text       = "Balasan: $balasan"
 
             val ts = item["created_at"] as? Timestamp
-            holder.tvTanggal.text = ts?.toDate()?.let { sdf.format(it) } ?: "-"
+            h.tvTanggal.text = ts?.toDate()?.let { sdf.format(it) } ?: "-"
 
-            val fotoUrl = item["foto_aduan"] as? String ?: ""
-            if (fotoUrl.isNotEmpty()) {
-                holder.ivFoto.visibility = View.VISIBLE
-                Glide.with(holder.itemView.context)
-                    .load(fotoUrl)
+            val foto = item["foto_aduan"] as? String ?: ""
+            if (foto.isNotEmpty()) {
+                h.ivFoto.visibility = View.VISIBLE
+                Glide.with(h.itemView.context)
+                    .load(foto)
+                    .centerCrop()
                     .placeholder(R.color.cream_medium)
-                    .into(holder.ivFoto)
+                    .into(h.ivFoto)
             } else {
-                holder.ivFoto.visibility = View.GONE
+                h.ivFoto.visibility = View.GONE
             }
         }
     }

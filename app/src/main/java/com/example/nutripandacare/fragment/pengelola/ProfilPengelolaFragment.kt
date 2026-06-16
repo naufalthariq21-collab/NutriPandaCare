@@ -1,6 +1,6 @@
 package com.example.nutripandacare.fragment.pengelola
 
-import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
@@ -19,6 +20,8 @@ import com.example.nutripandacare.databinding.FragmentProfilPengelolaBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.storage.FirebaseStorage
+import java.io.File
+import java.io.FileOutputStream
 import java.util.UUID
 
 class ProfilPengelolaFragment : Fragment() {
@@ -27,13 +30,26 @@ class ProfilPengelolaFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var fotoUri: Uri? = null
+    private var cameraImageUri: Uri? = null
     private var existingFotoUrl = ""
+    private var isUploading = false
 
+    // Launcher Galeri
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                fotoUri = it
-                binding.ivProfil.setImageURI(it)
+                val cached = copyUriToCache(requireContext(), it, "profil_admin")
+                fotoUri = cached ?: it
+                updatePreview(fotoUri)
+            }
+        }
+
+    // Launcher Kamera
+    private val takePictureLauncher =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success && cameraImageUri != null) {
+                fotoUri = cameraImageUri
+                updatePreview(fotoUri)
             }
         }
 
@@ -60,80 +76,84 @@ class ProfilPengelolaFragment : Fragment() {
                 b.tvNama.text  = data["nama"]  as? String ?: "Admin NutriPanda"
                 b.tvEmail.text = data["email"] as? String ?: ""
                 existingFotoUrl = data["foto_url"] as? String ?: ""
-                if (existingFotoUrl.isNotEmpty()) {
-                    Glide.with(this).load(existingFotoUrl)
-                        .placeholder(R.drawable.ic_placeholder_avatar)
-                        .circleCrop()
-                        .into(b.ivProfil)
+                if (existingFotoUrl.isNotEmpty() && fotoUri == null) {
+                    updatePreview(existingFotoUrl)
                 }
             },
             onError = {}
         )
     }
 
+    private fun updatePreview(source: Any?) {
+        if (_binding == null) return
+        Glide.with(this)
+            .load(source)
+            .placeholder(R.drawable.ic_placeholder_avatar)
+            .circleCrop()
+            .into(binding.ivProfil)
+    }
+
     private fun setupClickListeners() {
-        // FIX #2: Edit profil
         binding.btnEditProfil.setOnClickListener { showEditProfilDialog() }
-
-        // Ganti foto langsung tap avatar
-        binding.ivProfil.setOnClickListener { pickImageLauncher.launch("image/*") }
-
+        binding.ivProfil.setOnClickListener      { showImageSourceDialog() }
         binding.btnNotifikasi.setOnClickListener {
-            val nav = findNavController()
-            if (nav.currentDestination?.id == R.id.fragment_profil_pengelola) {
-                nav.navigate(R.id.action_profil_to_notifikasi)
-            }
+            findNavController().navigate(R.id.action_profil_to_notifikasi)
         }
-
         binding.btnLogout.setOnClickListener { confirmLogout() }
     }
 
-    // ─── EDIT PROFIL ─────────────────────────────────────────────────────────
+    private fun showImageSourceDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Pilih Foto Profil")
+            .setItems(arrayOf("📷  Ambil dari Kamera", "🖼️  Pilih dari Galeri")) { _, which ->
+                if (which == 0) openCamera() else pickImageLauncher.launch("image/*")
+            }.show()
+    }
+
+    private fun openCamera() {
+        val photoFile = File(requireContext().cacheDir, "profil_admin_${System.currentTimeMillis()}.jpg")
+        cameraImageUri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.fileprovider", photoFile)
+        takePictureLauncher.launch(cameraImageUri)
+    }
 
     private fun showEditProfilDialog() {
-        val dialogView = LayoutInflater.from(requireContext())
-            .inflate(R.layout.dialog_edit_profil, null)
-
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_profil, null)
         val etNama = dialogView.findViewById<TextInputEditText>(R.id.etEditNama)
         val etHp   = dialogView.findViewById<TextInputEditText>(R.id.etEditNoHp)
 
-        // Isi dengan data saat ini
         etNama.setText(binding.tvNama.text.toString())
 
         AlertDialog.Builder(requireContext())
             .setTitle("Edit Profil")
             .setView(dialogView)
             .setPositiveButton("Simpan") { _, _ ->
-                val namaBaru = etNama.text.toString().trim()
-                val hpBaru   = etHp.text.toString().trim()
-                if (namaBaru.isEmpty()) {
-                    Toast.makeText(requireContext(), "Nama tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                val nama = etNama.text.toString().trim()
+                val hp   = etHp.text.toString().trim()
+                if (nama.isEmpty()) {
+                    Toast.makeText(requireContext(), "Nama wajib diisi", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-                simpanProfil(namaBaru, hpBaru)
+                prosesSimpan(nama, hp)
             }
             .setNegativeButton("Batal", null)
             .show()
     }
 
-    private fun simpanProfil(nama: String, noHp: String) {
-        val uid = FirebaseHelper.uid
-        if (uid.isEmpty()) return
+    private fun prosesSimpan(nama: String, noHp: String) {
+        if (isUploading) return
+        isUploading = true
+        Toast.makeText(requireContext(), "Menyimpan perubahan...", Toast.LENGTH_SHORT).show()
 
         if (fotoUri != null) {
-            // Upload foto baru dulu
-            val ref = FirebaseStorage.getInstance().reference
-                .child("profil/$uid/${UUID.randomUUID()}.jpg")
-            ref.putFile(fotoUri!!)
-                .addOnSuccessListener {
-                    ref.downloadUrl.addOnSuccessListener { url ->
-                        updateDataUser(nama, noHp, url.toString())
-                    }
-                }
-                .addOnFailureListener {
-                    // Gagal upload foto tapi tetap update nama
+            val path = "profil/${FirebaseHelper.uid}/${UUID.randomUUID()}.jpg"
+            FirebaseHelper.uploadImage(path, fotoUri!!, requireContext(),
+                onSuccess = { url -> updateDataUser(nama, noHp, url) },
+                onError = { 
+                    isUploading = false
+                    Toast.makeText(requireContext(), "Gagal upload foto, mencoba simpan tanpa foto baru", Toast.LENGTH_SHORT).show()
                     updateDataUser(nama, noHp, existingFotoUrl)
                 }
+            )
         } else {
             updateDataUser(nama, noHp, existingFotoUrl)
         }
@@ -141,25 +161,21 @@ class ProfilPengelolaFragment : Fragment() {
 
     private fun updateDataUser(nama: String, noHp: String, fotoUrl: String) {
         val uid = FirebaseHelper.uid
-        val updates = mutableMapOf<String, Any>("nama" to nama)
+        val updates = mutableMapOf<String, Any>("nama" to nama, "foto_url" to fotoUrl)
         if (noHp.isNotEmpty()) updates["no_hp"] = noHp
-        if (fotoUrl.isNotEmpty()) updates["foto_url"] = fotoUrl
 
-        FirebaseHelper.db.collection("users").document(uid)
-            .update(updates)
+        FirebaseHelper.db.collection("users").document(uid).update(updates)
             .addOnSuccessListener {
+                isUploading = false
                 if (_binding == null) return@addOnSuccessListener
-                Toast.makeText(requireContext(), "Profil berhasil diperbarui ✅", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Profil diperbarui ✅", Toast.LENGTH_SHORT).show()
                 binding.tvNama.text = nama
                 existingFotoUrl = fotoUrl
-                if (fotoUrl.isNotEmpty()) {
-                    Glide.with(this).load(fotoUrl).circleCrop().into(binding.ivProfil)
-                }
                 fotoUri = null
             }
-            .addOnFailureListener { e ->
-                if (_binding == null) return@addOnFailureListener
-                Toast.makeText(requireContext(), "Gagal update: ${e.message}", Toast.LENGTH_SHORT).show()
+            .addOnFailureListener {
+                isUploading = false
+                Toast.makeText(requireContext(), "Gagal update: ${it.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -169,14 +185,19 @@ class ProfilPengelolaFragment : Fragment() {
             .setMessage("Yakin ingin keluar?")
             .setPositiveButton("Ya") { _, _ ->
                 FirebaseHelper.logout()
-                startActivity(
-                    Intent(requireContext(), LoginActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    }
-                )
-            }
-            .setNegativeButton("Tidak", null)
-            .show()
+                startActivity(Intent(requireContext(), LoginActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                })
+            }.setNegativeButton("Tidak", null).show()
+    }
+
+    private fun copyUriToCache(context: Context, uri: Uri, prefix: String): Uri? {
+        return try {
+            val stream = context.contentResolver.openInputStream(uri) ?: return null
+            val file = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg")
+            FileOutputStream(file).use { stream.copyTo(it) }
+            Uri.fromFile(file)
+        } catch (e: Exception) { null }
     }
 
     override fun onDestroyView() {

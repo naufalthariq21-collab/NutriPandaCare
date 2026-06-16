@@ -19,7 +19,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentTambahMenuBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
-import com.google.firebase.storage.FirebaseStorage
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -59,7 +58,6 @@ class TambahMenuFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Restore URI agar foto tidak hilang saat rotasi layar atau aplikasi restart
         if (savedInstanceState != null) {
             cameraImageUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 savedInstanceState.getParcelable("camera_uri", Uri::class.java)
@@ -104,27 +102,22 @@ class TambahMenuFragment : Fragment() {
         } else {
             binding.tvTitle.text   = "Tambah Menu MBG"
             binding.btnSimpan.text = "Simpan Menu"
-            // Tampilkan kembali jika ada foto yang sudah dipilih sebelumnya
             imageUri?.let { updateImagePreview(it) }
         }
     }
 
-    /**
-     * Fungsi utama untuk menampilkan preview foto secara stabil
-     */
     private fun updateImagePreview(source: Any?) {
         if (_binding == null) return
-        
+
         if (source == null || (source is String && source.isEmpty())) {
             binding.llPlaceholder.visibility = View.VISIBLE
             binding.ivPreviewMedia.visibility = View.GONE
             return
         }
 
-        // Sembunyikan placeholder, tampilkan Imageview
         binding.llPlaceholder.visibility = View.GONE
         binding.ivPreviewMedia.visibility = View.VISIBLE
-        binding.ivPreviewMedia.bringToFront() 
+        binding.ivPreviewMedia.bringToFront()
 
         Glide.with(this)
             .load(source)
@@ -146,12 +139,12 @@ class TambahMenuFragment : Fragment() {
                 binding.etProtein.setText((data["protein"]  as? Number)?.toInt()?.toString() ?: "")
                 binding.etFat.setText((data["lemak"]        as? Number)?.toInt()?.toString() ?: "")
                 binding.etCarbs.setText((data["karbo"]      as? Number)?.toInt()?.toString() ?: "")
-                
+
                 existingImageUrl = data["foto_menu"] as? String ?: ""
                 if (existingImageUrl.isNotEmpty() && imageUri == null) {
                     updateImagePreview(existingImageUrl)
                 }
-                
+
                 try {
                     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                     sdf.parse(tanggal)?.let { calendar.time = it }
@@ -211,23 +204,25 @@ class TambahMenuFragment : Fragment() {
 
         setLoading(true)
         if (imageUri != null) {
-            uploadImage(imageUri!!) { url ->
-                saveToFirestore(nama, tgl, url ?: existingImageUrl)
-            }
+            val path = "menu_mbg/${UUID.randomUUID()}.jpg"
+            FirebaseHelper.uploadImage(path, imageUri!!, requireContext(),
+                onSuccess = { url -> saveToFirestore(nama, tgl, url) },
+                onError = {
+                    setLoading(false)
+                    AlertDialog.Builder(requireContext())
+                        .setTitle("Upload Gagal")
+                        .setMessage("Gagal upload foto. Simpan tanpa foto?")
+                        .setPositiveButton("Ya") { _, _ ->
+                            setLoading(true)
+                            saveToFirestore(nama, tgl, existingImageUrl)
+                        }
+                        .setNegativeButton("Batal", null)
+                        .show()
+                }
+            )
         } else {
             saveToFirestore(nama, tgl, existingImageUrl)
         }
-    }
-
-    private fun uploadImage(uri: Uri, onComplete: (String?) -> Unit) {
-        val ref = FirebaseStorage.getInstance().reference.child("menu_mbg/${UUID.randomUUID()}.jpg")
-        try {
-            val stream = requireContext().contentResolver.openInputStream(uri) ?: return onComplete(null)
-            ref.putStream(stream)
-                .continueWithTask { it.result.storage.downloadUrl }
-                .addOnSuccessListener { onComplete(it.toString()) }
-                .addOnFailureListener { onComplete(null) }
-        } catch (e: Exception) { onComplete(null) }
     }
 
     private fun saveToFirestore(nama: String, tgl: String, url: String) {

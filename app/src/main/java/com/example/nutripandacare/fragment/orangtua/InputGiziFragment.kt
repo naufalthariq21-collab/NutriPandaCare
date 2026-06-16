@@ -45,11 +45,6 @@ class InputGiziFragment : Fragment() {
         setupActions()
     }
 
-    // GAP-9 FIX: implementasikan body loadAnakData yang sebelumnya kosong
-    // (hanya ada "// ... (kode pengisian data)" — placeholder tanpa implementasi).
-    // Sekarang mengisi usia_bulan default dari data anak ke field input,
-    // dan menggunakan key konsisten: "nama_anak", "usia_bulan" sesuai Firestore schema.
-    // FR-07 & UAT B-6 terpenuhi: form input siap dengan data anak yang sudah ada.
     @SuppressLint("SetTextI18n")
     private fun loadAnakData() {
         binding.btnSimpanGizi.isEnabled = false
@@ -60,7 +55,6 @@ class InputGiziFragment : Fragment() {
                 if (_binding == null) return@getDataAnak
                 anakId = id
 
-                // Isi usia bulan default dari profil anak agar user tidak perlu input ulang
                 val usiaBulan = when (val v = data["usia_bulan"]) {
                     is Long   -> v.toInt()
                     is Int    -> v
@@ -72,28 +66,19 @@ class InputGiziFragment : Fragment() {
                     binding.etUsiaBulanGizi.setText(usiaBulan.toString())
                 }
 
-                // Isi berat & tinggi terakhir dari profil anak sebagai nilai default
                 val beratTerakhir  = (data["berat_badan"]  as? Number)?.toDouble() ?: 0.0
                 val tinggiTerakhir = (data["tinggi_badan"] as? Number)?.toDouble() ?: 0.0
-                if (beratTerakhir  > 0.0) binding.etBeratBadan.setText("${"%.1f".format(beratTerakhir)}")
-                if (tinggiTerakhir > 0.0) binding.etTinggiBadan.setText("${"%.1f".format(tinggiTerakhir)}")
+                if (beratTerakhir  > 0.0) binding.etBeratBadan.setText("%.1f".format(beratTerakhir))
+                if (tinggiTerakhir > 0.0) binding.etTinggiBadan.setText("%.1f".format(tinggiTerakhir))
 
-                // Aktifkan tombol setelah anakId siap
                 binding.btnHitungGizi.isEnabled = true
-                binding.btnSimpanGizi.isEnabled = false // tetap disabled sampai user hitung dulu
             },
             onError = { pesan ->
                 if (_binding == null) return@getDataAnak
                 binding.btnHitungGizi.isEnabled = true
 
-                // UAT B-5: jika profil anak belum diisi, arahkan ke Edit Profil Anak
                 if (pesan.contains("belum ada", true) || pesan.contains("Data anak", true)) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Silakan lengkapi Profil Anak terlebih dahulu",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    // Navigasi ke edit profil anak agar user bisa isi data dulu
+                    Toast.makeText(requireContext(), "Silakan lengkapi Profil Anak terlebih dahulu", Toast.LENGTH_LONG).show()
                     try {
                         findNavController().navigate(R.id.action_home_to_edit_profil_anak)
                     } catch (e: Exception) {
@@ -106,13 +91,11 @@ class InputGiziFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     private fun setupActions() {
-        // UAT B-6: Hitung Status Gizi berdasarkan input berat, tinggi, usia
         binding.btnHitungGizi.setOnClickListener {
             val berat     = binding.etBeratBadan.text.toString().toDoubleOrNull() ?: 0.0
             val tinggi    = binding.etTinggiBadan.text.toString().toDoubleOrNull() ?: 0.0
             val usiaBulan = binding.etUsiaBulanGizi.text.toString().toIntOrNull() ?: 0
 
-            // UAT B-7: validasi field tidak boleh kosong / nol
             if (berat <= 0.0) {
                 binding.etBeratBadan.error = "Masukkan berat badan yang valid"
                 return@setOnClickListener
@@ -126,33 +109,27 @@ class InputGiziFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // Hitung Z-Score WHO (FR-08)
             currentZScore     = FirebaseHelper.hitungZScore(berat, usiaBulan)
             val zScoreTbu     = FirebaseHelper.hitungZScoreTbu(tinggi, usiaBulan)
-            currentStatus     = tentukanStatusGizi(currentZScore, zScoreTbu)
+            currentStatus     = FirebaseHelper.tentukanStatusGizi(currentZScore, zScoreTbu)
             currentPersentase = FirebaseHelper.hitungPersentaseNutrisi(currentZScore)
 
-            // Tampilkan hasil Z-Score dan status gizi
             binding.tvHasilStatusGizi.text  = currentStatus
             binding.tvHasilZscore.text      =
                 "Z-Score BB/U: ${"%.2f".format(currentZScore)}  |  TB/U: ${"%.2f".format(zScoreTbu)}"
             binding.cardHasilGizi.visibility = View.VISIBLE
 
-            // Aktifkan tombol simpan hanya jika ID anak sudah ada
             binding.btnSimpanGizi.isEnabled = anakId.isNotEmpty()
-
-            // FR-09: tampilkan rekomendasi makanan sesuai status gizi (UAT B-6)
             tampilkanRekomendasi(currentStatus, usiaBulan)
         }
 
-        // UAT B-8: simpan data gizi ke riwayat anak
         binding.btnSimpanGizi.setOnClickListener {
             if (anakId.isEmpty()) {
-                Toast.makeText(requireContext(), "Data anak belum siap, silakan tunggu...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Data anak belum siap", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             if (currentStatus.isEmpty()) {
-                Toast.makeText(requireContext(), "Hitung status gizi dulu sebelum menyimpan", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Hitung status gizi dulu", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -186,35 +163,12 @@ class InputGiziFragment : Fragment() {
         }
     }
 
-    // FR-08: Tentukan status gizi berdasarkan Z-Score BB/U dan TB/U (standar WHO)
-    private fun tentukanStatusGizi(zBbu: Double, zTbu: Double): String {
-        val isStunting    = zTbu < -2.0
-        val isSevereStunt = zTbu < -3.0
-
-        return when {
-            isSevereStunt && zBbu < -3.0 -> "Stunting - Gizi Buruk"
-            isSevereStunt                 -> "Stunting Berat"
-            isStunting && zBbu < -2.0    -> "Stunting - Gizi Kurang"
-            isStunting                   -> "Stunting"
-            zBbu < -3.0                  -> "Gizi Buruk"
-            zBbu < -2.0                  -> "Gizi Kurang"
-            zBbu <= 1.0                  -> "Normal"
-            zBbu <= 2.0                  -> "Berisiko Gizi Lebih"
-            zBbu <= 3.0                  -> "Gizi Lebih"
-            else                         -> "Obesitas"
-        }
-    }
-
-    // FR-09: tampilkan rekomendasi makanan berdasarkan status gizi
     @SuppressLint("SetTextI18n")
     private fun tampilkanRekomendasi(statusGizi: String, usiaBulan: Int) {
         val rekomendasi = FirebaseHelper.rekomendasiMakanan(statusGizi, usiaBulan)
 
-        // Coba tampilkan di RecyclerView jika ada
         try {
-            val rv = binding.root.findViewById<RecyclerView>(
-                resources.getIdentifier("rvRekomendasi", "id", requireContext().packageName)
-            )
+            val rv = binding.root.findViewById<RecyclerView>(R.id.rvRekomendasi)
             if (rv != null) {
                 rv.visibility    = View.VISIBLE
                 rv.layoutManager = LinearLayoutManager(requireContext())
@@ -223,11 +177,8 @@ class InputGiziFragment : Fragment() {
             }
         } catch (_: Exception) {}
 
-        // Fallback: tampilkan di TextView jika RecyclerView tidak ada
         try {
-            val tv = binding.root.findViewById<TextView>(
-                resources.getIdentifier("tvRekomendasi", "id", requireContext().packageName)
-            )
+            val tv = binding.root.findViewById<TextView>(R.id.tvRekomendasi)
             tv?.let {
                 it.visibility = View.VISIBLE
                 it.text       = rekomendasi.joinToString("\n")
@@ -240,7 +191,6 @@ class InputGiziFragment : Fragment() {
         _binding = null
     }
 
-    // Adapter sederhana untuk menampilkan daftar rekomendasi makanan
     inner class RekomendasiAdapter(
         private val items: List<String>
     ) : RecyclerView.Adapter<RekomendasiAdapter.VH>() {
