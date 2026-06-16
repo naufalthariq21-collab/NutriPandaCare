@@ -12,7 +12,7 @@ import java.util.*
 
 class NotifikasiAdapter(
     private val notifList: MutableList<Pair<String, Map<String, Any?>>>,
-    private val onItemClick: (String) -> Unit
+    private val onItemClick: (String, Map<String, Any?>) -> Unit
 ) : RecyclerView.Adapter<NotifikasiAdapter.NotifViewHolder>() {
 
     inner class NotifViewHolder(private val binding: ItemNotifikasiBinding) :
@@ -31,7 +31,7 @@ class NotifikasiAdapter(
             binding.root.alpha           = if (isRead) 0.6f else 1.0f
             binding.ivDot.visibility     = if (isRead) View.GONE else View.VISIBLE
 
-            binding.root.setOnClickListener { onItemClick(id) }
+            binding.root.setOnClickListener { onItemClick(id, data) }
         }
     }
 

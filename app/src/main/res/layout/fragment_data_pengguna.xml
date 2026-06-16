@@ -35,7 +35,7 @@
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Menunggu Verifikasi" />
+                android:text="Menunggu" />
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
@@ -46,89 +46,125 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Panel Menunggu Verifikasi -->
-    <FrameLayout
-        android:id="@+id/panelPending"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvPendingList"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="12dp"
-            android:clipToPadding="false" />
-
+        <!-- SEARCH BAR AREA -->
         <LinearLayout
-            android:id="@+id/tvPendingEmpty"
-            android:layout_width="wrap_content"
+            android:id="@+id/searchArea"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:visibility="gone">
+            android:padding="12dp"
+            android:background="@color/white"
+            android:elevation="2dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="✅"
-                android:textSize="40sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tidak ada akun\nmenunggu verifikasi"
-                android:textColor="@color/text_hint"
+            <EditText
+                android:id="@+id/etSearch"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_search_field"
+                android:hint="Cari nama atau email..."
                 android:textSize="14sp"
-                android:gravity="center"
-                android:layout_marginTop="8dp" />
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:drawableStart="@drawable/ic_search"
+                android:drawablePadding="8dp"
+                android:inputType="text"/>
 
+            <ImageButton
+                android:id="@+id/btnFilter"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_filter_btn"
+                android:src="@drawable/ic_filter_list"
+                app:tint="@color/green_primary"
+                android:contentDescription="Filter"/>
         </LinearLayout>
 
-    </FrameLayout>
-
-    <!-- Panel Semua Pengguna (GONE by default, shown via Fragment) -->
-    <FrameLayout
-        android:id="@+id/panelSemua"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvSemuaList"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="12dp"
-            android:clipToPadding="false" />
+            android:layout_height="match_parent">
 
-        <LinearLayout
-            android:id="@+id/tvSemuaEmpty"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:visibility="gone">
+            <!-- Panel Menunggu Verifikasi -->
+            <FrameLayout
+                android:id="@+id/panelPending"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="👥"
-                android:textSize="40sp" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvPendingList"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="8dp"
+                    android:clipToPadding="false" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Belum ada pengguna\nterdaftar"
-                android:textColor="@color/text_hint"
-                android:textSize="14sp"
-                android:gravity="center"
-                android:layout_marginTop="8dp" />
+                <LinearLayout
+                    android:id="@+id/tvPendingEmpty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✅"
+                        android:textSize="40sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tidak ada akun pending"
+                        android:textColor="@color/text_hint"
+                        android:textSize="14sp"
+                        android:layout_marginTop="8dp" />
+                </LinearLayout>
+            </FrameLayout>
 
-        </LinearLayout>
+            <!-- Panel Semua Pengguna -->
+            <FrameLayout
+                android:id="@+id/panelSemua"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
 
-    </FrameLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvSemuaList"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="8dp"
+                    android:clipToPadding="false" />
+
+                <LinearLayout
+                    android:id="@+id/tvSemuaEmpty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👥"
+                        android:textSize="40sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Pengguna tidak ditemukan"
+                        android:textColor="@color/text_hint"
+                        android:textSize="14sp"
+                        android:layout_marginTop="8dp" />
+                </LinearLayout>
+            </FrameLayout>
+        </FrameLayout>
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

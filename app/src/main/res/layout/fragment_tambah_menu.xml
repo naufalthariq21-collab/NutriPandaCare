@@ -144,11 +144,13 @@
                     <FrameLayout
                         android:id="@+id/flUploadMedia"
                         android:layout_width="match_parent"
-                        android:layout_height="120dp"
+                        android:layout_height="180dp"
                         android:background="@drawable/bg_upload_area"
                         android:layout_marginBottom="4dp">
 
+                        <!-- PLACEHOLDER AREA: Hanya muncul jika belum ada foto -->
                         <LinearLayout
+                            android:id="@+id/llPlaceholder"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
@@ -156,11 +158,10 @@
                             android:gravity="center">
 
                             <ImageView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
                                 android:src="@drawable/ic_photo_camera"
                                 android:layout_marginBottom="8dp"
-                                android:contentDescription="upload"
                                 app:tint="@color/green_medium" />
 
                             <TextView
@@ -168,9 +169,10 @@
                                 android:layout_height="wrap_content"
                                 android:text="Tap to upload photo"
                                 android:textColor="@color/text_hint"
-                                android:textSize="13sp"/>
+                                android:textSize="14sp"/>
                         </LinearLayout>
 
+                        <!-- PREVIEW AREA: Muncul menutupi placeholder jika foto ada -->
                         <ImageView
                             android:id="@+id/ivPreviewMedia"
                             android:layout_width="match_parent"
@@ -181,6 +183,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- CARD RINCIAN GIZI -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

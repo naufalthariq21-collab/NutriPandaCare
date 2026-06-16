@@ -42,9 +42,9 @@ class HomeGuruFragment : Fragment() {
 
     private fun resetUI() {
         binding.tvWelcome.text     = "Memuat..."
-        binding.tvCountSiswa.text  = "0"
-        binding.tvCountNormal.text = "0"
-        binding.tvCountResiko.text = "0"
+        binding.tvCountSiswa.text  = "-"
+        binding.tvCountNormal.text = "-"
+        binding.tvCountResiko.text = "-"
     }
 
     private fun loadUserData() {
@@ -62,42 +62,46 @@ class HomeGuruFragment : Fragment() {
     }
 
     /**
-     * Baca aggregate field dari dokumen rekap_gizi:
-     *   total_siswa, normal, gizi_kurang, gizi_buruk, gizi_lebih, obesitas
-     * Field ini di-update setiap kali guru tambah siswa di RekapGiziFragment.
+     * Mengambil statistik dari rekap gizi TERBARU.
+     * Pastikan jumlah di sini sama dengan yang terlihat di RekapGiziFragment.
      */
     private fun loadClassStats() {
         FirebaseHelper.getRekapGizi(
             onSuccess = { rekapList ->
-                _binding?.let { b ->
-                    if (rekapList.isEmpty()) {
-                        b.tvCountSiswa.text  = "0"
-                        b.tvCountNormal.text = "0"
-                        b.tvCountResiko.text = "0"
-                        return@getRekapGizi
-                    }
-
-                    var totalSiswa  = 0
-                    var totalNormal = 0
-                    var totalResiko = 0
-
-                    rekapList.forEach { (_, data) ->
-                        totalSiswa  += (data["total_siswa"] as? Number)?.toInt() ?: 0
-                        totalNormal += (data["normal"]      as? Number)?.toInt() ?: 0
-                        // berisiko = gizi_kurang + gizi_buruk + gizi_lebih + obesitas
-                        totalResiko +=
-                            ((data["gizi_kurang"] as? Number)?.toInt() ?: 0) +
-                                    ((data["gizi_buruk"]  as? Number)?.toInt() ?: 0) +
-                                    ((data["gizi_lebih"]  as? Number)?.toInt() ?: 0) +
-                                    ((data["obesitas"]    as? Number)?.toInt() ?: 0)
-                    }
-
-                    b.tvCountSiswa.text  = totalSiswa.toString()
-                    b.tvCountNormal.text = totalNormal.toString()
-                    b.tvCountResiko.text = totalResiko.toString()
+                if (_binding == null) return@getRekapGizi
+                
+                if (rekapList.isEmpty()) {
+                    binding.tvCountSiswa.text  = "0"
+                    binding.tvCountNormal.text = "0"
+                    binding.tvCountResiko.text = "0"
+                    return@getRekapGizi
                 }
+
+                // Ambil data dari rekap paling baru (indeks 0 karena sorted by created_at DESC)
+                val latestData = rekapList[0].second
+                
+                val total    = (latestData["total_siswa"] as? Number)?.toInt() ?: 0
+                val normal   = (latestData["normal"]      as? Number)?.toInt() ?: 0
+                
+                // Berisiko di Dashboard Home = Semua yang TIDAK Normal (BB Kurang, Buruk, Lebih, Obs, & Stunting)
+                val kurang   = (latestData["gizi_kurang"] as? Number)?.toInt() ?: 0
+                val buruk    = (latestData["gizi_buruk"]  as? Number)?.toInt() ?: 0
+                val lebih    = (latestData["gizi_lebih"]  as? Number)?.toInt() ?: 0
+                val obesitas = (latestData["obesitas"]    as? Number)?.toInt() ?: 0
+                
+                val totalResiko = kurang + buruk + lebih + obesitas
+
+                binding.tvCountSiswa.text  = total.toString()
+                binding.tvCountNormal.text = normal.toString()
+                binding.tvCountResiko.text = totalResiko.toString()
             },
-            onError = {}
+            onError = {
+                if (_binding != null) {
+                    binding.tvCountSiswa.text  = "0"
+                    binding.tvCountNormal.text = "0"
+                    binding.tvCountResiko.text = "0"
+                }
+            }
         )
     }
 

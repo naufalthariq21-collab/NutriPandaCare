@@ -3,6 +3,7 @@ package com.example.nutripandacare.fragment.pengelola
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -48,12 +49,13 @@ class UserAdapter(
             binding.tvRole.text = "$roleLabel  •  $statusLabel"
 
             // Warnai item jika nonaktif/ditolak supaya lebih mudah dibedakan
+            val context = itemView.context
             val bgColor = when (statusAkun) {
                 "nonaktif" -> 0x1FFF4444.toInt() // merah transparan
                 "ditolak"  -> 0x1FFF8800.toInt() // oranye transparan
-                else       -> 0x00000000
+                else       -> ContextCompat.getColor(context, R.color.white)
             }
-            binding.root.setBackgroundColor(bgColor)
+            binding.root.setCardBackgroundColor(bgColor)
 
             // Foto profil
             val fotoUrl = data["foto_url"] as? String ?: ""
@@ -84,15 +86,19 @@ class UserAdapter(
                 when (statusAkun) {
                     "nonaktif" -> {
                         binding.btnTolak.text = "Aktifkan"
-                        binding.btnTolak.setBackgroundColor(
-                            itemView.context.getColor(R.color.green_primary)
-                        )
+                        binding.btnTolak.setTextColor(ContextCompat.getColor(context, R.color.green_primary))
+                        binding.btnTolak.setStrokeColorResource(R.color.green_primary)
+                    }
+                    "ditolak" -> {
+                        // Jika ditolak, pengelola bisa aktifkan kembali (verifikasi ulang manual)
+                        binding.btnTolak.text = "Verifikasi"
+                        binding.btnTolak.setTextColor(ContextCompat.getColor(context, R.color.green_primary))
+                        binding.btnTolak.setStrokeColorResource(R.color.green_primary)
                     }
                     else -> {
                         binding.btnTolak.text = "Nonaktifkan"
-                        binding.btnTolak.setBackgroundColor(
-                            itemView.context.getColor(R.color.badge_red)
-                        )
+                        binding.btnTolak.setTextColor(ContextCompat.getColor(context, R.color.badge_red))
+                        binding.btnTolak.setStrokeColorResource(R.color.badge_red)
                     }
                 }
 

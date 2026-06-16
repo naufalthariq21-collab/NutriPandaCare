@@ -46,10 +46,10 @@ class KirimPengumumanFragment : Fragment() {
         setupCharCounter()
 
         binding.ivBack.setOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+            findNavController().navigateUp()
         }
 
-        binding.btnKirim.setOnClickListener { kirimNotifikasi() }
+        binding.btnKirim.setOnClickListener { kirimPengumumanKeOrtu() }
     }
 
     private fun setupCharCounter() {
@@ -69,7 +69,7 @@ class KirimPengumumanFragment : Fragment() {
     }
 
     @SuppressLint("SetTextI18n")
-    private fun kirimNotifikasi() {
+    private fun kirimPengumumanKeOrtu() {
         if (isLoading) return
 
         val pesan = binding.etPesanNotif.text.toString().trim()
@@ -83,31 +83,22 @@ class KirimPengumumanFragment : Fragment() {
         binding.btnKirim.isEnabled = false
         binding.btnKirim.text      = "Mengirim..."
 
-        Log.d("KirimPengumuman", "Blast ke orang_tua: $pesan")
-
-        FirebaseHelper.blastNotifikasi(
+        // FIX #1: Gunakan kirimPengumuman agar masuk ke list Pengumuman di Orang Tua
+        FirebaseHelper.kirimPengumuman(
             judul      = "Pesan dari Guru 📢",
             isi        = pesan,
-            tipe       = "pengumuman",
             targetRole = "orang_tua",
             onSuccess  = {
-                if (_binding == null) return@blastNotifikasi
+                if (_binding == null) return@kirimPengumuman
                 isLoading = false
-                Toast.makeText(requireContext(), "Notifikasi berhasil dikirim ke orang tua! ✅", Toast.LENGTH_SHORT).show()
-                // FIX #7: pop tepat ke nav_konten_edukasi, hindari dobel pop
-                try {
-                    val popped = findNavController().popBackStack(R.id.nav_konten_edukasi, false)
-                    if (!popped) requireActivity().onBackPressedDispatcher.onBackPressed()
-                } catch (e: Exception) {
-                    requireActivity().onBackPressedDispatcher.onBackPressed()
-                }
+                Toast.makeText(requireContext(), "Berhasil mengirim pesan ke orang tua! ✅", Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack(R.id.nav_konten_edukasi, false)
             },
             onError = { err ->
-                if (_binding == null) return@blastNotifikasi
+                if (_binding == null) return@kirimPengumuman
                 isLoading = false
                 binding.btnKirim.isEnabled = true
                 binding.btnKirim.text      = "📤  Kirim ke Orang Tua"
-                Log.e("KirimPengumuman", "Gagal: $err")
                 Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_LONG).show()
             }
         )

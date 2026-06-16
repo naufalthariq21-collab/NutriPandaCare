@@ -3,6 +3,7 @@ package com.example.nutripandacare.fragment.pengelola
 import android.app.DatePickerDialog
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,8 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.FragmentTambahMenuBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import com.google.firebase.storage.FirebaseStorage
@@ -35,26 +38,49 @@ class TambahMenuFragment : Fragment() {
     private var tanggalEdit: String? = null
     private val isEditMode get() = tanggalEdit != null
 
-    // FIX: Salin file ke cache dulu agar permission tidak hilang saat upload ke Storage
+    // Launcher Galeri
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                // Salin ke file cache supaya Storage bisa baca URI-nya
                 val cached = copyUriToCache(requireContext(), it, "menu_foto")
                 imageUri = cached ?: it
-                binding.ivPreviewMedia.setImageURI(imageUri)
-                binding.ivPreviewMedia.visibility = View.VISIBLE
+                updateImagePreview(imageUri)
             }
         }
 
+    // Launcher Kamera
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success && cameraImageUri != null) {
                 imageUri = cameraImageUri
-                binding.ivPreviewMedia.setImageURI(cameraImageUri)
-                binding.ivPreviewMedia.visibility = View.VISIBLE
+                updateImagePreview(imageUri)
             }
         }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Restore URI agar foto tidak hilang saat rotasi layar atau aplikasi restart
+        if (savedInstanceState != null) {
+            cameraImageUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                savedInstanceState.getParcelable("camera_uri", Uri::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                savedInstanceState.getParcelable("camera_uri")
+            }
+            imageUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                savedInstanceState.getParcelable("image_uri", Uri::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                savedInstanceState.getParcelable("image_uri")
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putParcelable("camera_uri", cameraImageUri)
+        outState.putParcelable("image_uri", imageUri)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -78,10 +104,36 @@ class TambahMenuFragment : Fragment() {
         } else {
             binding.tvTitle.text   = "Tambah Menu MBG"
             binding.btnSimpan.text = "Simpan Menu"
+            // Tampilkan kembali jika ada foto yang sudah dipilih sebelumnya
+            imageUri?.let { updateImagePreview(it) }
         }
     }
 
-    // ─── LOAD (edit mode) ────────────────────────────────────────────────────
+    /**
+     * Fungsi utama untuk menampilkan preview foto secara stabil
+     */
+    private fun updateImagePreview(source: Any?) {
+        if (_binding == null) return
+        
+        if (source == null || (source is String && source.isEmpty())) {
+            binding.llPlaceholder.visibility = View.VISIBLE
+            binding.ivPreviewMedia.visibility = View.GONE
+            return
+        }
+
+        // Sembunyikan placeholder, tampilkan Imageview
+        binding.llPlaceholder.visibility = View.GONE
+        binding.ivPreviewMedia.visibility = View.VISIBLE
+        binding.ivPreviewMedia.bringToFront() 
+
+        Glide.with(this)
+            .load(source)
+            .centerCrop()
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .placeholder(R.drawable.ic_food_plate)
+            .error(R.drawable.ic_photo_camera)
+            .into(binding.ivPreviewMedia)
+    }
 
     private fun loadExistingMenu(tanggal: String) {
         binding.btnSimpan.isEnabled = false
@@ -94,13 +146,12 @@ class TambahMenuFragment : Fragment() {
                 binding.etProtein.setText((data["protein"]  as? Number)?.toInt()?.toString() ?: "")
                 binding.etFat.setText((data["lemak"]        as? Number)?.toInt()?.toString() ?: "")
                 binding.etCarbs.setText((data["karbo"]      as? Number)?.toInt()?.toString() ?: "")
+                
                 existingImageUrl = data["foto_menu"] as? String ?: ""
-                if (existingImageUrl.isNotEmpty()) {
-                    binding.ivPreviewMedia.visibility = View.VISIBLE
-                    Glide.with(this).load(existingImageUrl)
-                        .placeholder(com.example.nutripandacare.R.drawable.ic_food_plate)
-                        .into(binding.ivPreviewMedia)
+                if (existingImageUrl.isNotEmpty() && imageUri == null) {
+                    updateImagePreview(existingImageUrl)
                 }
+                
                 try {
                     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                     sdf.parse(tanggal)?.let { calendar.time = it }
@@ -109,46 +160,30 @@ class TambahMenuFragment : Fragment() {
             },
             onError = {
                 binding.btnSimpan.isEnabled = true
-                Toast.makeText(requireContext(), "Gagal memuat menu: $it", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Gagal: $it", Toast.LENGTH_SHORT).show()
             }
         )
     }
-
-    // ─── DATE PICKER ─────────────────────────────────────────────────────────
 
     private fun setupDatePicker() {
         val listener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
             calendar.set(Calendar.YEAR, year)
             calendar.set(Calendar.MONTH, month)
             calendar.set(Calendar.DAY_OF_MONTH, day)
-            updateDateLabel()
+            binding.etTanggal.setText(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(calendar.time))
         }
         binding.etTanggal.setOnClickListener {
             if (!isEditMode) {
-                DatePickerDialog(
-                    requireContext(), listener,
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH)
+                DatePickerDialog(requireContext(), listener,
+                    calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)
                 ).show()
             }
         }
     }
 
-    private fun updateDateLabel() {
-        binding.etTanggal.setText(
-            SimpleDateFormat("yyyy-MM-dd", Locale.US).format(calendar.time)
-        )
-    }
-
-    // ─── CLICK LISTENERS ─────────────────────────────────────────────────────
-
     private fun setupClickListeners() {
         binding.ivBack.setOnClickListener { findNavController().navigateUp() }
-
-        // FIX: tampilkan pilihan Kamera / Galeri
         binding.flUploadMedia.setOnClickListener { showImageSourceDialog() }
-
         binding.btnSimpan.setOnClickListener { validateAndSave() }
     }
 
@@ -156,135 +191,73 @@ class TambahMenuFragment : Fragment() {
         AlertDialog.Builder(requireContext())
             .setTitle("Pilih Sumber Foto")
             .setItems(arrayOf("📷  Ambil dari Kamera", "🖼️  Pilih dari Galeri")) { _, which ->
-                when (which) {
-                    0 -> openCamera()
-                    1 -> pickImageLauncher.launch("image/*")
-                }
-            }
-            .show()
+                if (which == 0) openCamera() else pickImageLauncher.launch("image/*")
+            }.show()
     }
 
     private fun openCamera() {
-        val photoFile = File(requireContext().cacheDir, "menu_foto_${System.currentTimeMillis()}.jpg")
-        cameraImageUri = FileProvider.getUriForFile(
-            requireContext(),
-            "${requireContext().packageName}.fileprovider",
-            photoFile
-        )
+        val photoFile = File(requireContext().cacheDir, "menu_${System.currentTimeMillis()}.jpg")
+        cameraImageUri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.fileprovider", photoFile)
         takePictureLauncher.launch(cameraImageUri)
     }
 
-    // ─── VALIDASI & SIMPAN ───────────────────────────────────────────────────
-
     private fun validateAndSave() {
-        val nama    = binding.etNamaMenu.text.toString().trim()
-        val tanggal = binding.etTanggal.text.toString().trim()
-        val kalori  = binding.etCalories.text.toString().toIntOrNull() ?: 0
-        val protein = binding.etProtein.text.toString().toIntOrNull() ?: 0
-        val lemak   = binding.etFat.text.toString().toIntOrNull() ?: 0
-        val karbo   = binding.etCarbs.text.toString().toIntOrNull() ?: 0
-
-        if (nama.isEmpty())    { binding.etNamaMenu.error = "Nama menu wajib diisi"; return }
-        if (tanggal.isEmpty()) { binding.etTanggal.error  = "Tanggal wajib dipilih"; return }
+        val nama = binding.etNamaMenu.text.toString().trim()
+        val tgl  = binding.etTanggal.text.toString().trim()
+        if (nama.isEmpty() || tgl.isEmpty()) {
+            Toast.makeText(requireContext(), "Nama dan Tanggal wajib diisi", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         setLoading(true)
-
         if (imageUri != null) {
             uploadImage(imageUri!!) { url ->
-                saveToFirestore(nama, tanggal, kalori, protein, lemak, karbo, url ?: existingImageUrl)
+                saveToFirestore(nama, tgl, url ?: existingImageUrl)
             }
         } else {
-            saveToFirestore(nama, tanggal, kalori, protein, lemak, karbo, existingImageUrl)
+            saveToFirestore(nama, tgl, existingImageUrl)
         }
     }
 
     private fun uploadImage(uri: Uri, onComplete: (String?) -> Unit) {
-        val fileName = UUID.randomUUID().toString()
-        val ref = FirebaseStorage.getInstance().reference.child("menu_mbg/$fileName.jpg")
-
+        val ref = FirebaseStorage.getInstance().reference.child("menu_mbg/${UUID.randomUUID()}.jpg")
         try {
-            // Buka input stream langsung dari URI (lebih andal dari putFile untuk content URI)
-            val inputStream = requireContext().contentResolver.openInputStream(uri)
-            if (inputStream == null) {
-                Toast.makeText(requireContext(), "Gagal membaca file foto", Toast.LENGTH_SHORT).show()
-                onComplete(null)
-                return
-            }
-            val bytes = inputStream.readBytes()
-            inputStream.close()
-
-            ref.putBytes(bytes)
-                .continueWithTask { task ->
-                    if (!task.isSuccessful) throw task.exception!!
-                    ref.downloadUrl
-                }
-                .addOnSuccessListener { url -> onComplete(url.toString()) }
-                .addOnFailureListener { e ->
-                    if (_binding == null) return@addOnFailureListener
-                    Toast.makeText(requireContext(), "Upload foto gagal: ${e.message}", Toast.LENGTH_SHORT).show()
-                    onComplete(null)
-                }
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Error baca foto: ${e.message}", Toast.LENGTH_SHORT).show()
-            onComplete(null)
-        }
+            val stream = requireContext().contentResolver.openInputStream(uri) ?: return onComplete(null)
+            ref.putStream(stream)
+                .continueWithTask { it.result.storage.downloadUrl }
+                .addOnSuccessListener { onComplete(it.toString()) }
+                .addOnFailureListener { onComplete(null) }
+        } catch (e: Exception) { onComplete(null) }
     }
 
-    private fun saveToFirestore(
-        nama: String, tanggal: String,
-        kalori: Int, protein: Int, lemak: Int, karbo: Int,
-        imageUrl: String
-    ) {
-        val tanggalLabel = SimpleDateFormat("dd MMMM yyyy", Locale("id", "ID"))
-            .format(calendar.time)
+    private fun saveToFirestore(nama: String, tgl: String, url: String) {
+        val cal = binding.etCalories.text.toString().toIntOrNull() ?: 0
+        val pro = binding.etProtein.text.toString().toIntOrNull() ?: 0
+        val fat = binding.etFat.text.toString().toIntOrNull() ?: 0
+        val car = binding.etCarbs.text.toString().toIntOrNull() ?: 0
+        val label = SimpleDateFormat("dd MMMM yyyy", Locale("id", "ID")).format(calendar.time)
 
-        FirebaseHelper.simpanMenuMbg(
-            tanggal           = tanggal,
-            tanggalLabel      = tanggalLabel,
-            namaMenu          = nama,
-            deskripsi         = "Menu sehat harian NutriPanda",
-            kalori            = kalori,
-            protein           = protein,
-            karbo             = karbo,
-            lemak             = lemak,
-            serat             = 0,
-            persentaseNutrisi = 100,
-            fotoMenu          = imageUrl,
+        FirebaseHelper.simpanMenuMbg(tgl, label, nama, "Menu NutriPanda", cal, pro, car, fat, 0, 100, url,
             onSuccess = {
-                if (_binding == null) return@simpanMenuMbg
-                val msg = if (isEditMode) "Menu berhasil diperbarui!" else "Menu berhasil disimpan!"
-                Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Menu berhasil disimpan!", Toast.LENGTH_SHORT).show()
                 findNavController().navigateUp()
             },
-            onError = { err ->
-                if (_binding == null) return@simpanMenuMbg
-                setLoading(false)
-                Toast.makeText(requireContext(), "Error: $err", Toast.LENGTH_SHORT).show()
-            }
+            onError = { setLoading(false); Toast.makeText(requireContext(), "Error: $it", Toast.LENGTH_SHORT).show() }
         )
     }
 
     private fun setLoading(loading: Boolean) {
         binding.btnSimpan.isEnabled = !loading
-        binding.btnSimpan.text = when {
-            loading      -> "Menyimpan..."
-            isEditMode   -> "Simpan Perubahan"
-            else         -> "Simpan Menu"
-        }
+        binding.btnSimpan.text = if (loading) "Menyimpan..." else if (isEditMode) "Simpan Perubahan" else "Simpan Menu"
     }
-
-    // ─── HELPER: salin content URI ke cache ─────────────────────────────────
 
     private fun copyUriToCache(context: Context, uri: Uri, prefix: String): Uri? {
         return try {
-            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-            val outFile = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg")
-            FileOutputStream(outFile).use { out -> inputStream.copyTo(out) }
-            inputStream.close()
-            Uri.fromFile(outFile)
-        } catch (e: Exception) {
-            null
-        }
+            val stream = context.contentResolver.openInputStream(uri) ?: return null
+            val file = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg")
+            FileOutputStream(file).use { stream.copyTo(it) }
+            Uri.fromFile(file)
+        } catch (e: Exception) { null }
     }
 
     override fun onDestroyView() {

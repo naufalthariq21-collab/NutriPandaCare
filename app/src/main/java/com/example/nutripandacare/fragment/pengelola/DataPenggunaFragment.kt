@@ -1,6 +1,8 @@
 package com.example.nutripandacare.fragment.pengelola
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,8 +25,11 @@ class DataPenggunaFragment : Fragment() {
     private lateinit var pendingAdapter: UserAdapter
     private lateinit var semuaAdapter: UserAdapter
 
-    private val pendingList = mutableListOf<Pair<String, Map<String, Any?>>>()
-    private val semuaList   = mutableListOf<Pair<String, Map<String, Any?>>>()
+    // Daftar asli untuk menampung data dari Firebase
+    private var fullPendingList = listOf<Pair<String, Map<String, Any?>>>()
+    private var fullSemuaList   = listOf<Pair<String, Map<String, Any?>>>()
+
+    private var currentFilterRole = "Semua"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,22 +43,22 @@ class DataPenggunaFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerViews()
         setupTabs()
-        loadPendingUsers()
-        loadSemuaUsers()
+        setupSearchAndFilter()
+        refreshAllData()
 
         binding.toolbar.setNavigationOnClickListener {
-            if (!findNavController().navigateUp()) {
-                findNavController().navigate(R.id.fragment_home_pengelola)
-            }
+            findNavController().navigateUp()
         }
     }
 
+    private fun refreshAllData() {
+        loadPendingUsers()
+        loadSemuaUsers()
+    }
+
     private fun setupRecyclerViews() {
-        // ── Tab MENUNGGU VERIFIKASI ──────────────────────────────
-        // Tombol "Verifikasi" → verifikasi akun (UAT D-1)
-        // Tombol "Tolak"      → tolak dengan alasan (UAT D-2)
         pendingAdapter = UserAdapter(
-            userList          = pendingList,
+            userList          = mutableListOf(),
             showVerifikasiBtn = true,
             onVerifikasiClick = { uid -> showKonfirmasiVerifikasi(uid) },
             onTolakClick      = { uid -> showTolakDialog(uid) }
@@ -61,10 +66,8 @@ class DataPenggunaFragment : Fragment() {
         binding.rvPendingList.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPendingList.adapter       = pendingAdapter
 
-        // ── Tab SEMUA PENGGUNA ───────────────────────────────────
-        // Tombol "Nonaktifkan" / "Aktifkan" → toggle status (UAT D-3)
         semuaAdapter = UserAdapter(
-            userList          = semuaList,
+            userList          = mutableListOf(),
             showVerifikasiBtn = false,
             onVerifikasiClick = {},
             onTolakClick      = { uid -> showToggleAktifDialog(uid) }
@@ -73,38 +76,77 @@ class DataPenggunaFragment : Fragment() {
         binding.rvSemuaList.adapter       = semuaAdapter
     }
 
-    private fun setupTabs() {
-        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                when (tab?.position) {
-                    0 -> showPanel(pending = true)
-                    1 -> showPanel(pending = false)
-                }
-            }
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
+    private fun setupSearchAndFilter() {
+        // Logika Pencarian Real-time
+        binding.etSearch.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) { applyFilters() }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
-        showPanel(pending = true)
+
+        // Logika Filter Role
+        binding.btnFilter.setOnClickListener {
+            val roles = arrayOf("Semua", "Guru", "Orang Tua")
+            AlertDialog.Builder(requireContext())
+                .setTitle("Filter Peran")
+                .setItems(roles) { _, which ->
+                    currentFilterRole = roles[which]
+                    applyFilters()
+                    Toast.makeText(context, "Filter: $currentFilterRole", Toast.LENGTH_SHORT).show()
+                }
+                .show()
+        }
     }
 
-    private fun showPanel(pending: Boolean) {
-        binding.panelPending.visibility = if (pending) View.VISIBLE else View.GONE
-        binding.panelSemua.visibility   = if (pending) View.GONE   else View.VISIBLE
-    }
+    private fun applyFilters() {
+        val query = binding.etSearch.text.toString().lowercase().trim()
 
-    // ─── LOAD DATA ──────────────────────────────────────────────────────────
+        // Filter untuk Tab Menunggu
+        val filteredPending = fullPendingList.filter { user ->
+            val data  = user.second
+            val nama  = (data["nama"] as? String ?: "").lowercase()
+            val email = (data["email"] as? String ?: "").lowercase()
+            val role  = data["role"] as? String ?: ""
+
+            val matchQuery = nama.contains(query) || email.contains(query)
+            val matchRole  = when(currentFilterRole) {
+                "Guru" -> role == "guru"
+                "Orang Tua" -> role == "orang_tua"
+                else -> true
+            }
+            matchQuery && matchRole
+        }
+        pendingAdapter.updateData(filteredPending)
+        binding.tvPendingEmpty.visibility = if (filteredPending.isEmpty()) View.VISIBLE else View.GONE
+
+        // Filter untuk Tab Semua
+        val filteredSemua = fullSemuaList.filter { user ->
+            val data  = user.second
+            val nama  = (data["nama"] as? String ?: "").lowercase()
+            val email = (data["email"] as? String ?: "").lowercase()
+            val role  = data["role"] as? String ?: ""
+
+            val matchQuery = nama.contains(query) || email.contains(query)
+            val matchRole  = when(currentFilterRole) {
+                "Guru" -> role == "guru"
+                "Orang Tua" -> role == "orang_tua"
+                else -> true
+            }
+            matchQuery && matchRole
+        }
+        semuaAdapter.updateData(filteredSemua)
+        binding.tvSemuaEmpty.visibility = if (filteredSemua.isEmpty()) View.VISIBLE else View.GONE
+    }
 
     private fun loadPendingUsers() {
         FirebaseHelper.getPendaftarBaru(
             onSuccess = { list ->
                 if (_binding == null) return@getPendaftarBaru
-                pendingAdapter.updateData(list)
-                binding.tvPendingEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+                fullPendingList = list
+                applyFilters() // Terapkan pencarian/filter yang mungkin sedang aktif
 
-                // Update badge jumlah di tab label
                 val tab = binding.tabLayout.getTabAt(0)
-                tab?.text = if (list.isEmpty()) "Menunggu Verifikasi"
-                else "Menunggu Verifikasi (${list.size})"
+                tab?.text = if (list.isEmpty()) "Menunggu" else "Menunggu (${list.size})"
             },
             onError = { err ->
                 context?.let { Toast.makeText(it, "Gagal memuat: $err", Toast.LENGTH_SHORT).show() }
@@ -113,12 +155,14 @@ class DataPenggunaFragment : Fragment() {
     }
 
     private fun loadSemuaUsers() {
-        // Ambil semua user yg sudah verified (aktif maupun nonaktif)
         FirebaseHelper.getAllPengguna(
             onSuccess = { list ->
                 if (_binding == null) return@getAllPengguna
-                semuaAdapter.updateData(list)
-                binding.tvSemuaEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+                fullSemuaList = list
+                applyFilters()
+
+                val tab = binding.tabLayout.getTabAt(1)
+                tab?.text = if (list.isEmpty()) "Semua Pengguna" else "Semua (${list.size})"
             },
             onError = { err ->
                 context?.let { Toast.makeText(it, "Gagal memuat: $err", Toast.LENGTH_SHORT).show() }
@@ -126,9 +170,20 @@ class DataPenggunaFragment : Fragment() {
         )
     }
 
-    // ─── UAT D-1: VERIFIKASI AKUN ───────────────────────────────────────────
-    // "Status is_verified akun berubah jadi true; pengguna berpindah ke tab Semua Pengguna"
+    private fun setupTabs() {
+        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                when (tab?.position) {
+                    0 -> binding.panelPending.visibility = View.VISIBLE.also { binding.panelSemua.visibility = View.GONE }
+                    1 -> binding.panelSemua.visibility = View.VISIBLE.also { binding.panelPending.visibility = View.GONE }
+                }
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+    }
 
+    // --- DIALOGS (Verifikasi, Tolak, Toggle) tetap sama seperti sebelumnya ---
     private fun showKonfirmasiVerifikasi(uid: String) {
         AlertDialog.Builder(requireContext())
             .setTitle("Verifikasi Akun")
@@ -136,104 +191,47 @@ class DataPenggunaFragment : Fragment() {
             .setPositiveButton("Verifikasi") { _, _ ->
                 FirebaseHelper.verifikasiAkun(uid,
                     onSuccess = {
-                        if (_binding == null) return@verifikasiAkun
-                        Toast.makeText(requireContext(), "Akun berhasil diverifikasi! ✅", Toast.LENGTH_SHORT).show()
-                        // Reload kedua tab — user pindah dari pending ke semua (UAT D-1)
-                        loadPendingUsers()
-                        loadSemuaUsers()
-                        // Pindah otomatis ke tab Semua Pengguna
-                        binding.tabLayout.getTabAt(1)?.select()
+                        Toast.makeText(requireContext(), "Akun diverifikasi! ✅", Toast.LENGTH_SHORT).show()
+                        refreshAllData()
                     },
-                    onError = { err ->
-                        if (_binding == null) return@verifikasiAkun
-                        Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_SHORT).show()
-                    }
+                    onError = { Toast.makeText(requireContext(), "Gagal: $it", Toast.LENGTH_SHORT).show() }
                 )
             }
-            .setNegativeButton("Batal", null)
-            .show()
+            .setNegativeButton("Batal", null).show()
     }
 
-    // ─── UAT D-2: TOLAK PENDAFTARAN ─────────────────────────────────────────
-    // "Status akun berubah jadi 'ditolak'; pengguna menerima dialog penolakan"
-
     private fun showTolakDialog(uid: String) {
-        val input = EditText(requireContext()).apply {
-            hint = "Alasan penolakan (opsional)"
-            setPadding(48, 24, 48, 24)
-        }
+        val input = EditText(requireContext()).apply { hint = "Alasan (opsional)"; setPadding(48, 32, 48, 32) }
         AlertDialog.Builder(requireContext())
             .setTitle("Tolak Pendaftaran")
-            .setMessage("Yakin ingin menolak akun ini? Tindakan ini tidak dapat dibatalkan.")
             .setView(input)
             .setPositiveButton("Tolak") { _, _ ->
                 val alasan = input.text.toString().trim().ifEmpty { "Tidak memenuhi syarat" }
                 FirebaseHelper.tolakAkun(uid, alasan,
-                    onSuccess = {
-                        if (_binding == null) return@tolakAkun
-                        Toast.makeText(requireContext(), "Akun berhasil ditolak", Toast.LENGTH_SHORT).show()
-                        loadPendingUsers()
-                        loadSemuaUsers()
-                    },
-                    onError = { err ->
-                        if (_binding == null) return@tolakAkun
-                        Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_SHORT).show()
-                    }
+                    onSuccess = { refreshAllData() },
+                    onError = { Toast.makeText(requireContext(), "Gagal: $it", Toast.LENGTH_SHORT).show() }
                 )
             }
-            .setNegativeButton("Batal", null)
-            .show()
+            .setNegativeButton("Batal", null).show()
     }
 
-    // ─── UAT D-3: TOGGLE NONAKTIF / AKTIFKAN ────────────────────────────────
-    // "Status akun berubah jadi 'nonaktif'; pengguna tidak dapat login"
-    // "Aktifkan kembali akun yang nonaktif"
-
     private fun showToggleAktifDialog(uid: String) {
-        val userData   = semuaList.find { it.first == uid }?.second
-        val statusAkun = userData?.get("status_akun") as? String ?: "aktif"
-        val nama       = userData?.get("nama") as? String ?: "pengguna ini"
+        val userData = fullSemuaList.find { it.first == uid }?.second
+        val status   = userData?.get("status_akun") as? String ?: "aktif"
+        val nama     = userData?.get("nama") as? String ?: "Pengguna"
 
-        if (statusAkun == "nonaktif") {
-            // Aktifkan kembali
-            AlertDialog.Builder(requireContext())
-                .setTitle("Aktifkan Akun")
-                .setMessage("Aktifkan kembali akun $nama? Pengguna akan bisa login kembali.")
-                .setPositiveButton("Aktifkan") { _, _ ->
-                    FirebaseHelper.aktifkanAkun(uid,
-                        onSuccess = {
-                            if (_binding == null) return@aktifkanAkun
-                            Toast.makeText(requireContext(), "Akun $nama berhasil diaktifkan ✅", Toast.LENGTH_SHORT).show()
-                            loadSemuaUsers()
-                        },
-                        onError = { err ->
-                            if (_binding == null) return@aktifkanAkun
-                            Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                }
-                .setNegativeButton("Batal", null)
-                .show()
+        if (status == "nonaktif") {
+            AlertDialog.Builder(requireContext()).setTitle("Aktifkan Akun")
+                .setMessage("Aktifkan kembali akun $nama?").setPositiveButton("Aktifkan") { _, _ ->
+                    FirebaseHelper.aktifkanAkun(uid, onSuccess = { refreshAllData() }, onError = {})
+                }.setNegativeButton("Batal", null).show()
+        } else if (status == "aktif") {
+            AlertDialog.Builder(requireContext()).setTitle("Nonaktifkan Akun")
+                .setMessage("Nonaktifkan akun $nama?").setPositiveButton("Nonaktifkan") { _, _ ->
+                    FirebaseHelper.nonaktifkanAkun(uid, onSuccess = { refreshAllData() }, onError = {})
+                }.setNegativeButton("Batal", null).show()
         } else {
-            // Nonaktifkan
-            AlertDialog.Builder(requireContext())
-                .setTitle("Nonaktifkan Akun")
-                .setMessage("Pengguna $nama tidak dapat login setelah dinonaktifkan.\n\nLanjutkan?")
-                .setPositiveButton("Nonaktifkan") { _, _ ->
-                    FirebaseHelper.nonaktifkanAkun(uid,
-                        onSuccess = {
-                            if (_binding == null) return@nonaktifkanAkun
-                            Toast.makeText(requireContext(), "Akun $nama dinonaktifkan", Toast.LENGTH_SHORT).show()
-                            loadSemuaUsers()
-                        },
-                        onError = { err ->
-                            if (_binding == null) return@nonaktifkanAkun
-                            Toast.makeText(requireContext(), "Gagal: $err", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                }
-                .setNegativeButton("Batal", null)
-                .show()
+            showKonfirmasiVerifikasi(uid) // Untuk status 'ditolak'
         }
     }
 

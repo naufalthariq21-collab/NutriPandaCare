@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -37,25 +38,32 @@ class NotifikasiFragment : Fragment() {
 
         binding.tvTandaiBaca.setOnClickListener { tandaiSemuaDibaca() }
 
-        // FIX #5: tombol back di notifikasi → balik ke home pengelola
         binding.toolbar.setNavigationOnClickListener {
-            try {
-                val popped = findNavController().popBackStack(
-                    com.example.nutripandacare.R.id.fragment_home_pengelola, false
-                )
-                if (!popped) requireActivity().onBackPressedDispatcher.onBackPressed()
-            } catch (e: Exception) {
-                requireActivity().onBackPressedDispatcher.onBackPressed()
-            }
+            findNavController().navigateUp()
         }
     }
 
     private fun setupRecyclerView() {
-        adapter = NotifikasiAdapter(notifList) { id ->
+        adapter = NotifikasiAdapter(notifList) { id, data ->
+            // Mark as read in Firestore
             FirebaseHelper.tandaiDibaca(id)
+            
+            // Show detail dialog
+            showNotifDetail(data)
         }
         binding.rvNotifikasi.layoutManager = LinearLayoutManager(requireContext())
         binding.rvNotifikasi.adapter = adapter
+    }
+
+    private fun showNotifDetail(data: Map<String, Any?>) {
+        val judul = data["judul"] as? String ?: "Detail Notifikasi"
+        val isi   = data["isi"] as? String ?: ""
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle(judul)
+            .setMessage(isi)
+            .setPositiveButton("Tutup", null)
+            .show()
     }
 
     private fun observeNotifikasi() {
