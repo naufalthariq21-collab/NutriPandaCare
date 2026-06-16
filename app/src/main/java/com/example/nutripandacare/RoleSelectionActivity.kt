@@ -29,16 +29,23 @@ class RoleSelectionActivity : AppCompatActivity() {
         binding.cardPengelola.setOnClickListener { roleTerpilih = "pengelola"; updateTampilanRole() }
     }
 
+    // GAP-5 FIX: sebelumnya radioGuru dan radioPengelola di-reset ke bg_clock_circle,
+    // sedangkan radioOrangTua ke bg_role_icon — inkonsisten dan rawan visual bug.
+    // Sekarang semua radio di-reset ke bg_clock_circle (drawable default radio state),
+    // lalu hanya yang terpilih yang berubah ke bg_success_circle. UAT #23 terpenuhi:
+    // "visual kartu berubah sesuai peran yang terakhir dipilih; hanya satu peran aktif".
     private fun updateTampilanRole() {
-        // Reset semua ke default
+        // Reset semua kartu ke state default
         binding.cardOrangTua.background  = ContextCompat.getDrawable(this, R.drawable.selector_role_card)
         binding.cardGuru.background      = ContextCompat.getDrawable(this, R.drawable.selector_role_card)
         binding.cardPengelola.background = ContextCompat.getDrawable(this, R.drawable.selector_role_card)
-        binding.radioOrangTua.background = ContextCompat.getDrawable(this, R.drawable.bg_role_icon)
-        binding.radioGuru.background     = ContextCompat.getDrawable(this, R.drawable.bg_clock_circle)
+
+        // Reset semua radio icon ke drawable default (konsisten untuk ketiganya)
+        binding.radioOrangTua.background  = ContextCompat.getDrawable(this, R.drawable.bg_clock_circle)
+        binding.radioGuru.background      = ContextCompat.getDrawable(this, R.drawable.bg_clock_circle)
         binding.radioPengelola.background = ContextCompat.getDrawable(this, R.drawable.bg_clock_circle)
 
-        // Highlight yang dipilih
+        // Highlight hanya kartu & radio yang terpilih
         when (roleTerpilih) {
             "orang_tua" -> {
                 binding.cardOrangTua.background  = ContextCompat.getDrawable(this, R.drawable.bg_role_card_selected)
@@ -57,6 +64,7 @@ class RoleSelectionActivity : AppCompatActivity() {
 
     private fun setupTombolLanjutkan() {
         binding.btnLanjutkan.setOnClickListener {
+            // UAT #19: tombol Lanjutkan tanpa pilih peran → toast peringatan
             if (roleTerpilih.isEmpty()) {
                 Toast.makeText(this, "Pilih peran kamu dulu!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -71,8 +79,8 @@ class RoleSelectionActivity : AppCompatActivity() {
 
             setLoading(true)
 
-            // Pengelola: simpan role + langsung is_verified = true
-            // Guru/OrangTua: simpan role + is_verified = false (menunggu pengelola)
+            // UAT #22: pengelola → langsung dashboard (is_verified = true)
+            // UAT #20/#21: guru/orang_tua → WaitingVerification (is_verified = false)
             FirebaseHelper.simpanRole(
                 uid        = uid,
                 role       = roleTerpilih,
@@ -81,12 +89,10 @@ class RoleSelectionActivity : AppCompatActivity() {
                     setLoading(false)
 
                     if (roleTerpilih == "pengelola") {
-                        // Langsung masuk dashboard pengelola
                         startActivity(Intent(this, DashboardPengelolaActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         })
                     } else {
-                        // Guru / Orang Tua → tunggu verifikasi pengelola
                         startActivity(Intent(this, WaitingVerificationActivity::class.java).apply {
                             putExtra("ROLE",  roleTerpilih)
                             putExtra("NAMA",  nama)

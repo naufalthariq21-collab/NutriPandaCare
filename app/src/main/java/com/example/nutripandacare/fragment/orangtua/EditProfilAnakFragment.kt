@@ -58,9 +58,7 @@ class EditProfilAnakFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         anakId = arguments?.getString("anak_id")
-
         setupClickListeners()
         loadDataAnak()
     }
@@ -69,11 +67,9 @@ class EditProfilAnakFragment : Fragment() {
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-
-        binding.ivFotoAnak.setOnClickListener { showImageSourceDialog() }
+        binding.ivFotoAnak.setOnClickListener  { showImageSourceDialog() }
         binding.btnPilihFoto.setOnClickListener { showImageSourceDialog() }
-
-        binding.btnSimpan.setOnClickListener { simpanProfil() }
+        binding.btnSimpan.setOnClickListener   { simpanProfil() }
     }
 
     private fun showImageSourceDialog() {
@@ -98,6 +94,9 @@ class EditProfilAnakFragment : Fragment() {
         takePictureLauncher.launch(cameraImageUri)
     }
 
+    // GAP-7 FIX: loadDataAnak membaca field sesuai key yang DISIMPAN oleh tambahDataAnak()
+    // di FirebaseHelper, yaitu: "nama_anak", "usia_anak", "sekolah_anak", "foto_anak"
+    // Sebelumnya pakai "nama", "usia", "sekolah", "foto_url" — mismatch!
     private fun loadDataAnak() {
         val uid = FirebaseHelper.uid
         if (uid.isEmpty()) return
@@ -109,17 +108,22 @@ class EditProfilAnakFragment : Fragment() {
             .get()
             .addOnSuccessListener { doc ->
                 if (_binding == null || !doc.exists()) return@addOnSuccessListener
-                binding.etNamaAnak.setText(doc.getString("nama") ?: "")
-                binding.etUsiaAnak.setText(doc.getString("usia") ?: "")
-                binding.etUsiaBulan.setText(doc.getString("usia_bulan") ?: "")
-                binding.etSekolahAnak.setText(doc.getString("sekolah") ?: "")
-                binding.etKelasAnak.setText(doc.getString("kelas") ?: "")
+
+                // Baca dengan key konsisten: "nama_anak", "usia_anak", "sekolah_anak", "foto_anak"
+                binding.etNamaAnak.setText(doc.getString("nama_anak")    ?: "")
+                binding.etUsiaAnak.setText(doc.getString("usia_anak")    ?: "")
+                binding.etUsiaBulan.setText(
+                    (doc.getLong("usia_bulan")?.toString()) ?: (doc.getString("usia_bulan") ?: "")
+                )
+                binding.etSekolahAnak.setText(doc.getString("sekolah_anak") ?: "")
+                binding.etKelasAnak.setText(doc.getString("kelas")         ?: "")
 
                 val jk = doc.getString("jenis_kelamin") ?: ""
-                if (jk.equals("Laki-laki", true)) binding.rbLakiLaki.isChecked = true
+                if (jk.equals("Laki-laki", true))  binding.rbLakiLaki.isChecked  = true
                 else if (jk.equals("Perempuan", true)) binding.rbPerempuan.isChecked = true
 
-                existingFotoUrl = doc.getString("foto_url") ?: ""
+                // Foto anak disimpan dengan key "foto_anak"
+                existingFotoUrl = doc.getString("foto_anak") ?: ""
                 if (existingFotoUrl.isNotEmpty()) {
                     Glide.with(this).load(existingFotoUrl)
                         .placeholder(R.drawable.ic_child_avatar)
@@ -142,9 +146,7 @@ class EditProfilAnakFragment : Fragment() {
         setLoading(true)
 
         if (fotoUri != null) {
-            uploadFoto(fotoUri!!) { url ->
-                updateFirestore(url ?: existingFotoUrl)
-            }
+            uploadFoto(fotoUri!!) { url -> updateFirestore(url ?: existingFotoUrl) }
         } else {
             updateFirestore(existingFotoUrl)
         }
@@ -157,10 +159,7 @@ class EditProfilAnakFragment : Fragment() {
 
         try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
-            if (inputStream == null) {
-                onComplete(null)
-                return
-            }
+            if (inputStream == null) { onComplete(null); return }
             val bytes = inputStream.readBytes()
             inputStream.close()
 
@@ -176,23 +175,29 @@ class EditProfilAnakFragment : Fragment() {
         }
     }
 
+    // GAP-6 & GAP-7 FIX: updateFirestore menyimpan dengan key SAMA seperti
+    // tambahDataAnak() di FirebaseHelper dan yang dibaca HomeOrangTuaFragment:
+    // "nama_anak", "usia_anak", "sekolah_anak", "foto_anak"
+    // Sebelumnya menyimpan "nama", "usia", "sekolah" — mismatch dengan HomeOrangTuaFragment!
     private fun updateFirestore(fotoUrl: String) {
         val uid = FirebaseHelper.uid
         val id  = anakId ?: return
 
-        val jk = if (binding.rbLakiLaki.isChecked) "Laki-laki" 
-                 else if (binding.rbPerempuan.isChecked) "Perempuan" 
-                 else ""
+        val jk = when {
+            binding.rbLakiLaki.isChecked  -> "Laki-laki"
+            binding.rbPerempuan.isChecked -> "Perempuan"
+            else                          -> ""
+        }
 
         val updates = mutableMapOf<String, Any>(
-            "nama" to binding.etNamaAnak.text.toString().trim(),
-            "usia" to binding.etUsiaAnak.text.toString().trim(),
-            "usia_bulan" to binding.etUsiaBulan.text.toString().trim(),
-            "jenis_kelamin" to jk,
-            "sekolah" to binding.etSekolahAnak.text.toString().trim(),
-            "kelas" to binding.etKelasAnak.text.toString().trim()
+            "nama_anak"      to binding.etNamaAnak.text.toString().trim(),
+            "usia_anak"      to binding.etUsiaAnak.text.toString().trim(),
+            "usia_bulan"     to (binding.etUsiaBulan.text.toString().toIntOrNull() ?: 0),
+            "jenis_kelamin"  to jk,
+            "sekolah_anak"   to binding.etSekolahAnak.text.toString().trim(),
+            "kelas"          to binding.etKelasAnak.text.toString().trim()
         )
-        if (fotoUrl.isNotEmpty()) updates["foto_url"] = fotoUrl
+        if (fotoUrl.isNotEmpty()) updates["foto_anak"] = fotoUrl
 
         FirebaseHelper.db
             .collection("users").document(uid)

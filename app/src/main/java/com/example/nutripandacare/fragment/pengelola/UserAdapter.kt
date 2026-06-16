@@ -10,27 +10,52 @@ import com.example.nutripandacare.R
 import com.example.nutripandacare.databinding.ItemPenggunaBinding
 
 /**
- * @param showVerifikasiBtn  true  → tampilkan btn "Verifikasi" (mode pending)
- *                           false → sembunyikan btn verifikasi, tampilkan btn "Nonaktifkan" (mode semua)
+ * @param showVerifikasiBtn  true  → tampilkan btn "Verifikasi" + "Tolak" (mode pending)
+ *                           false → tampilkan btn "Nonaktifkan"/"Aktifkan" saja (mode semua)
  */
 class UserAdapter(
     private val userList: MutableList<Pair<String, Map<String, Any?>>>,
     private val showVerifikasiBtn: Boolean = true,
     private val onVerifikasiClick: (String) -> Unit,
-    private val onTolakClick: (String) -> Unit         // "Tolak" di pending, "Nonaktifkan" di semua
+    private val onTolakClick: (String) -> Unit
 ) : RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
     inner class UserViewHolder(private val binding: ItemPenggunaBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(uid: String, data: Map<String, Any?>) {
-            binding.tvNama.text  = data["nama"] as? String ?: "No Name"
-            binding.tvEmail.text = data["email"] as? String ?: "No Email"
-
-            val role       = data["role"] as? String ?: "-"
+            val nama       = data["nama"]        as? String ?: "No Name"
+            val email      = data["email"]       as? String ?: "No Email"
+            val role       = data["role"]        as? String ?: "-"
             val statusAkun = data["status_akun"] as? String ?: "aktif"
-            binding.tvRole.text = "Role: $role  •  Status: $statusAkun"
 
+            binding.tvNama.text  = nama
+            binding.tvEmail.text = email
+
+            // Tampilkan role + status dengan warna sesuai kondisi
+            val roleLabel = when (role) {
+                "guru"       -> "Guru"
+                "orang_tua"  -> "Orang Tua"
+                "pengelola"  -> "Pengelola"
+                else         -> role.replaceFirstChar { it.uppercase() }
+            }
+            val statusLabel = when (statusAkun) {
+                "aktif"    -> "✅ Aktif"
+                "nonaktif" -> "🔴 Nonaktif"
+                "ditolak"  -> "❌ Ditolak"
+                else       -> statusAkun.replaceFirstChar { it.uppercase() }
+            }
+            binding.tvRole.text = "$roleLabel  •  $statusLabel"
+
+            // Warnai item jika nonaktif/ditolak supaya lebih mudah dibedakan
+            val bgColor = when (statusAkun) {
+                "nonaktif" -> 0x1FFF4444.toInt() // merah transparan
+                "ditolak"  -> 0x1FFF8800.toInt() // oranye transparan
+                else       -> 0x00000000
+            }
+            binding.root.setBackgroundColor(bgColor)
+
+            // Foto profil
             val fotoUrl = data["foto_url"] as? String ?: ""
             if (fotoUrl.isNotEmpty()) {
                 Glide.with(itemView.context)
@@ -43,7 +68,7 @@ class UserAdapter(
             }
 
             if (showVerifikasiBtn) {
-                // ── Mode pending: Verifikasi + Tolak ──────────────────────
+                // ── Mode PENDING: Verifikasi + Tolak ────────────────────
                 binding.btnVerifikasi.visibility = View.VISIBLE
                 binding.btnVerifikasi.text       = "Verifikasi"
                 binding.btnTolak.visibility      = View.VISIBLE
@@ -52,10 +77,25 @@ class UserAdapter(
                 binding.btnVerifikasi.setOnClickListener { onVerifikasiClick(uid) }
                 binding.btnTolak.setOnClickListener      { onTolakClick(uid) }
             } else {
-                // ── Mode semua pengguna: hanya Nonaktifkan ─────────────────
+                // ── Mode SEMUA PENGGUNA: hanya toggle aktif/nonaktif ────
                 binding.btnVerifikasi.visibility = View.GONE
                 binding.btnTolak.visibility      = View.VISIBLE
-                binding.btnTolak.text            = if (statusAkun == "nonaktif") "Aktifkan" else "Nonaktifkan"
+
+                when (statusAkun) {
+                    "nonaktif" -> {
+                        binding.btnTolak.text = "Aktifkan"
+                        binding.btnTolak.setBackgroundColor(
+                            itemView.context.getColor(R.color.green_primary)
+                        )
+                    }
+                    else -> {
+                        binding.btnTolak.text = "Nonaktifkan"
+                        binding.btnTolak.setBackgroundColor(
+                            itemView.context.getColor(R.color.badge_red)
+                        )
+                    }
+                }
+
                 binding.btnTolak.setOnClickListener { onTolakClick(uid) }
             }
         }

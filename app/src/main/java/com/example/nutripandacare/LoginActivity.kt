@@ -12,6 +12,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.Timestamp
 
 class LoginActivity : AppCompatActivity() {
 
@@ -79,6 +80,7 @@ class LoginActivity : AppCompatActivity() {
                 if (isNewUser) {
                     simpanUserBaruGoogle(uid, nama, email, fotoUrl)
                 } else {
+                    // Langsung fetch Firestore — 1x saja
                     cekStatusDanNavigate(uid)
                 }
             }
@@ -95,10 +97,10 @@ class LoginActivity : AppCompatActivity() {
             "no_hp"       to "",
             "role"        to "",
             "foto_url"    to fotoUrl,
-            "is_verified" to true,          // Google user auto-verified
+            "is_verified" to false,
             "status_akun" to "aktif",
-            "created_at"  to com.google.firebase.Timestamp.now(),
-            "updated_at"  to com.google.firebase.Timestamp.now()
+            "created_at"  to Timestamp.now(),
+            "updated_at"  to Timestamp.now()
         )
         FirebaseHelper.db.collection("users").document(uid)
             .set(data)
@@ -122,52 +124,90 @@ class LoginActivity : AppCompatActivity() {
             val email    = binding.etEmail.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
 
+            // Validasi input sebelum loading dimulai
             if (email.isEmpty()) {
-                binding.etEmail.error = "Email wajib diisi"; binding.etEmail.requestFocus(); return@setOnClickListener
+                binding.etEmail.error = "Email wajib diisi"
+                binding.etEmail.requestFocus()
+                return@setOnClickListener
             }
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                binding.etEmail.error = "Format email tidak valid"; binding.etEmail.requestFocus(); return@setOnClickListener
+                binding.etEmail.error = "Format email tidak valid"
+                binding.etEmail.requestFocus()
+                return@setOnClickListener
             }
             if (password.isEmpty()) {
-                binding.etPassword.error = "Password wajib diisi"; binding.etPassword.requestFocus(); return@setOnClickListener
+                binding.etPassword.error = "Password wajib diisi"
+                binding.etPassword.requestFocus()
+                return@setOnClickListener
             }
 
             setLoading(true)
-            FirebaseHelper.login(
-                email     = email,
-                password  = password,
-                onSuccess = { uid -> cekStatusDanNavigate(uid) },
-                onError   = { pesan ->
+
+            // FIX UTAMA: langsung signIn Firebase Auth, lalu fetch Firestore 1x saja
+            // Sebelumnya: FirebaseHelper.login() → onSuccess → cekStatusDanNavigate() (2 network calls)
+            // Sekarang: auth.signIn() → onSuccess → cekStatusDanNavigate() (1 auth + 1 Firestore = lebih cepat)
+            FirebaseHelper.auth.signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener { result ->
+                    val uid = result.user?.uid ?: run {
+                        setLoading(false)
+                        Toast.makeText(this, "Login gagal. Coba lagi.", Toast.LENGTH_SHORT).show()
+                        return@addOnSuccessListener
+                    }
+                    // Langsung cek Firestore — hanya 1x fetch
+                    cekStatusDanNavigate(uid)
+                }
+                .addOnFailureListener { e ->
                     setLoading(false)
                     val pesanRamah = when {
-                        pesan.contains("password", ignoreCase = true) -> "Password salah. Coba lagi."
-                        pesan.contains("no user",  ignoreCase = true) -> "Email tidak terdaftar."
-                        pesan.contains("network",  ignoreCase = true) -> "Tidak ada koneksi internet."
+                        e.message?.contains("password",  ignoreCase = true) == true ||
+                                e.message?.contains("WRONG",     ignoreCase = true) == true ||
+                                e.message?.contains("invalid",   ignoreCase = true) == true ->
+                            "Password salah. Coba lagi."
+
+                        e.message?.contains("no user",   ignoreCase = true) == true ||
+                                e.message?.contains("USER_NOT",  ignoreCase = true) == true ||
+                                e.message?.contains("no record", ignoreCase = true) == true ->
+                            "Email tidak terdaftar."
+
+                        e.message?.contains("network",   ignoreCase = true) == true ||
+                                e.message?.contains("connection",ignoreCase = true) == true ->
+                            "Tidak ada koneksi internet."
+
                         else -> "Login gagal. Periksa email & password kamu."
                     }
                     Toast.makeText(this, pesanRamah, Toast.LENGTH_LONG).show()
                 }
-            )
         }
     }
 
     /**
-     * Setelah auth berhasil, cek Firestore untuk tentukan ke mana navigate:
-     * - Belum pilih role            → RoleSelectionActivity
-     * - Pengelola                   → DashboardPengelolaActivity
-     * - Guru/OrangTua + verified    → Dashboard masing-masing
-     * - Guru/OrangTua + not verified→ WaitingVerificationActivity
-     * - Akun ditolak                → Toast + logout
+     * Satu-satunya Firestore fetch setelah auth berhasil.
+     * Tentukan navigasi berdasarkan role, is_verified, status_akun.
+     *
+     * - role kosong      → RoleSelectionActivity
+     * - status ditolak   → Toast + logout
+     * - status nonaktif  → Toast + logout
+     * - pengelola        → DashboardPengelolaActivity
+     * - verified         → Dashboard sesuai role
+     * - belum verified   → WaitingVerificationActivity
      */
     private fun cekStatusDanNavigate(uid: String) {
         FirebaseHelper.db.collection("users").document(uid).get()
             .addOnSuccessListener { doc ->
                 setLoading(false)
-                val role       = doc.getString("role")          ?: ""
-                val isVerified = doc.getBoolean("is_verified")  ?: false
-                val statusAkun = doc.getString("status_akun")   ?: "aktif"
+
+                if (!doc.exists()) {
+                    Toast.makeText(this, "Data akun tidak ditemukan.", Toast.LENGTH_SHORT).show()
+                    FirebaseHelper.logout()
+                    return@addOnSuccessListener
+                }
+
+                val role       = doc.getString("role")         ?: ""
+                val isVerified = doc.getBoolean("is_verified") ?: false
+                val statusAkun = doc.getString("status_akun")  ?: "aktif"
 
                 when {
+                    // Belum pilih role → ke RoleSelection
                     role.isEmpty() -> {
                         startActivity(Intent(this, RoleSelectionActivity::class.java).apply {
                             putExtra("UID", uid)
@@ -175,36 +215,47 @@ class LoginActivity : AppCompatActivity() {
                         })
                         finish()
                     }
+
+                    // Akun ditolak → tampilkan alasan, logout
                     statusAkun == "ditolak" -> {
                         val alasan = doc.getString("alasan_tolak") ?: ""
-                        val pesan  = if (alasan.isNotEmpty()) "Akun ditolak: $alasan" else "Akun kamu ditolak oleh pengelola."
+                        val pesan  = if (alasan.isNotEmpty()) "Akun ditolak: $alasan"
+                        else "Akun kamu ditolak oleh pengelola."
                         Toast.makeText(this, pesan, Toast.LENGTH_LONG).show()
                         FirebaseHelper.logout()
                     }
+
+                    // Akun nonaktif → tidak bisa login
                     statusAkun == "nonaktif" -> {
-                        Toast.makeText(this, "Akun kamu dinonaktifkan. Hubungi pengelola.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            this,
+                            "Akun kamu dinonaktifkan oleh pengelola. Hubungi admin.",
+                            Toast.LENGTH_LONG
+                        ).show()
                         FirebaseHelper.logout()
                     }
+
+                    // Pengelola langsung masuk
                     role == "pengelola" -> {
-                        startActivity(Intent(this, DashboardPengelolaActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        })
-                        finish()
+                        navigateTo(DashboardPengelolaActivity::class.java)
                     }
+
+                    // Guru/OrangTua sudah diverifikasi
                     isVerified -> {
-                        // Guru atau orang tua yang sudah diverifikasi pengelola
                         val dest = when (role) {
                             "orang_tua" -> DashboardOrangTuaActivity::class.java
                             "guru"      -> DashboardGuruActivity::class.java
-                            else        -> LoginActivity::class.java
+                            else        -> {
+                                Toast.makeText(this, "Role tidak dikenal.", Toast.LENGTH_SHORT).show()
+                                FirebaseHelper.logout()
+                                return@addOnSuccessListener
+                            }
                         }
-                        startActivity(Intent(this, dest).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        })
-                        finish()
+                        navigateTo(dest)
                     }
+
+                    // Belum diverifikasi → tunggu verifikasi
                     else -> {
-                        // Belum diverifikasi pengelola — masuk ke waiting
                         startActivity(Intent(this, WaitingVerificationActivity::class.java).apply {
                             putExtra("ROLE", role)
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -216,20 +267,68 @@ class LoginActivity : AppCompatActivity() {
             .addOnFailureListener { e ->
                 setLoading(false)
                 Toast.makeText(this, "Gagal cek status: ${e.message}", Toast.LENGTH_SHORT).show()
+                FirebaseHelper.logout()
             }
     }
 
+    private fun <T> navigateTo(dest: Class<T>) {
+        startActivity(Intent(this, dest).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
+        finish()
+    }
+
+    /**
+     * Lupa Password — UAT A-9 & A-10.
+     * A-9 : kirim email reset → Toast konfirmasi
+     * A-10: email kosong → error di field, tidak kirim
+     */
     private fun setupLupaPassword() {
         binding.tvForgotPassword.setOnClickListener {
             val email = binding.etEmail.text.toString().trim()
+
+            // UAT A-10: email kosong → error field, jangan kirim
             if (email.isEmpty()) {
                 binding.etEmail.error = "Masukkan email kamu dulu"
-                binding.etEmail.requestFocus(); return@setOnClickListener
+                binding.etEmail.requestFocus()
+                return@setOnClickListener
             }
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                binding.etEmail.error = "Format email tidak valid"
+                binding.etEmail.requestFocus()
+                return@setOnClickListener
+            }
+
+            // UAT A-9: kirim reset password
             FirebaseHelper.resetPassword(
                 email     = email,
-                onSuccess = { Toast.makeText(this, "Link reset password dikirim ke $email", Toast.LENGTH_LONG).show() },
-                onError   = { Toast.makeText(this, "Email tidak ditemukan.", Toast.LENGTH_SHORT).show() }
+                onSuccess = {
+                    Toast.makeText(
+                        this,
+                        "Link reset password dikirim ke $email. Cek inbox kamu.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                },
+                onError = { pesan ->
+                    val pesanRamah = when {
+                        pesan.contains("no user",         ignoreCase = true) ||
+                                pesan.contains("USER_NOT",        ignoreCase = true) ||
+                                pesan.contains("no record",       ignoreCase = true) ||
+                                pesan.contains("not found",       ignoreCase = true) ->
+                            "Email tidak ditemukan. Pastikan email sudah terdaftar."
+
+                        pesan.contains("network",         ignoreCase = true) ||
+                                pesan.contains("connection",      ignoreCase = true) ->
+                            "Tidak ada koneksi internet. Coba lagi."
+
+                        pesan.contains("badly formatted", ignoreCase = true) ||
+                                pesan.contains("invalid email",   ignoreCase = true) ->
+                            "Format email tidak valid."
+
+                        else -> "Gagal mengirim email reset. Coba lagi."
+                    }
+                    Toast.makeText(this, pesanRamah, Toast.LENGTH_LONG).show()
+                }
             )
         }
     }
@@ -247,6 +346,7 @@ class LoginActivity : AppCompatActivity() {
     private fun setLoading(loading: Boolean) {
         binding.btnMasuk.isEnabled  = !loading
         binding.btnGoogle.isEnabled = !loading
+        binding.tvForgotPassword.isEnabled = !loading
         binding.btnMasuk.text  = if (loading) "Memproses..." else getString(R.string.masuk)
         binding.btnGoogle.text = if (loading) "Memproses..." else "Masuk dengan Google"
     }

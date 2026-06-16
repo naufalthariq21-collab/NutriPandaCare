@@ -29,9 +29,48 @@ object FirebaseHelper {
         auth.signInWithEmailAndPassword(email, password)
             .addOnSuccessListener { result ->
                 val user = result.user ?: return@addOnSuccessListener
-                onSuccess(user.uid)
+                // Cek status akun setelah login berhasil (UAT: nonaktif tidak bisa login)
+                checkStatusAkun(user.uid,
+                    onAktif  = { onSuccess(user.uid) },
+                    onNonAktif = {
+                        auth.signOut()
+                        onError("Akun kamu dinonaktifkan oleh pengelola. Hubungi admin.")
+                    },
+                    onDitolak = {
+                        auth.signOut()
+                        onError("Pendaftaran akun kamu ditolak oleh pengelola.")
+                    },
+                    onError = { onError(it) }
+                )
             }
             .addOnFailureListener { onError(it.message ?: "Login gagal") }
+    }
+
+    /**
+     * Cek status akun user dari Firestore.
+     * Dipakai setelah login berhasil untuk cegah user nonaktif/ditolak masuk.
+     * UAT D-3: "pengguna tidak dapat login" setelah dinonaktifkan.
+     */
+    fun checkStatusAkun(
+        uid: String,
+        onAktif: () -> Unit,
+        onNonAktif: () -> Unit,
+        onDitolak: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        db.collection("users").document(uid).get()
+            .addOnSuccessListener { doc ->
+                val statusAkun  = doc.getString("status_akun") ?: "aktif"
+                val isVerified  = doc.getBoolean("is_verified") ?: false
+                val role        = doc.getString("role") ?: ""
+
+                when {
+                    statusAkun == "nonaktif" -> onNonAktif()
+                    statusAkun == "ditolak"  -> onDitolak()
+                    else -> onAktif()
+                }
+            }
+            .addOnFailureListener { onError(it.message ?: "Gagal cek status akun") }
     }
 
     fun register(
@@ -96,12 +135,20 @@ object FirebaseHelper {
 
     fun logout() = auth.signOut()
 
+    /**
+     * Reset password via email — UAT A-9: email reset terkirim ke inbox.
+     * UAT A-10: tanpa email → tidak ada email terkirim (handled di UI).
+     */
     fun resetPassword(
         email: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        auth.sendPasswordResetEmail(email)
+        if (email.isBlank()) {
+            onError("Email tidak boleh kosong")
+            return
+        }
+        auth.sendPasswordResetEmail(email.trim())
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onError(it.message ?: "Gagal kirim reset password") }
     }
@@ -127,7 +174,7 @@ object FirebaseHelper {
                         "no_hp"       to "",
                         "foto_url"    to (user.photoUrl?.toString() ?: ""),
                         "role"        to "",
-                        "is_verified" to false,  // Tetap false, harus pilih role dulu
+                        "is_verified" to false,
                         "status_akun" to "aktif",
                         "created_at"  to Timestamp.now(),
                         "updated_at"  to Timestamp.now()
@@ -136,7 +183,19 @@ object FirebaseHelper {
                         .addOnSuccessListener { onSuccess(user.uid, true) }
                         .addOnFailureListener { onError(it.message ?: "Gagal simpan data Google") }
                 } else {
-                    onSuccess(user.uid, false)
+                    // User lama — cek status akun dulu
+                    checkStatusAkun(user.uid,
+                        onAktif    = { onSuccess(user.uid, false) },
+                        onNonAktif = {
+                            auth.signOut()
+                            onError("Akun kamu dinonaktifkan oleh pengelola. Hubungi admin.")
+                        },
+                        onDitolak  = {
+                            auth.signOut()
+                            onError("Pendaftaran akun kamu ditolak oleh pengelola.")
+                        },
+                        onError    = { onError(it) }
+                    )
                 }
             }
             .addOnFailureListener { onError(it.message ?: "Google Sign-In gagal") }
@@ -226,10 +285,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal tambah data anak") }
     }
 
-    /**
-     * Simpan hasil pengecekan gizi anak.
-     * Sekaligus update dokumen anak & tambah riwayat.
-     */
     fun simpanHasilGizi(
         anakId: String,
         berat: Double,
@@ -373,10 +428,8 @@ object FirebaseHelper {
 
     // ════════════════════════════════════════════════════════════
     // [E] ARTIKEL EDUKASI — Guru (CRUD) & Orang Tua (Read)
-    // Kategori valid: "Stunting", "Resep Sehat", "Gizi", "Tumbuh Kembang"
     // ════════════════════════════════════════════════════════════
 
-    /** Kategori artikel yang valid — harus konsisten antara guru (input) & orang tua (filter) */
     val KATEGORI_ARTIKEL = listOf("Stunting", "Resep Sehat", "Gizi", "Tumbuh Kembang")
 
     fun tambahArtikel(
@@ -429,9 +482,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal ambil artikel") }
     }
 
-    /**
-     * Ambil artikel milik guru yang sedang login (untuk CRUD di dashboard guru)
-     */
     fun getArtikelSaya(
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
         onError: (String) -> Unit
@@ -484,13 +534,13 @@ object FirebaseHelper {
     }
 
     // ════════════════════════════════════════════════════════════
-    // [F] PENGUMUMAN — Pengelola (CRUD)
+    // [F] PENGUMUMAN
     // ════════════════════════════════════════════════════════════
 
     fun kirimPengumuman(
         judul: String,
         isi: String,
-        targetRole: String,  // "orang_tua", "guru", atau "semua"
+        targetRole: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -504,7 +554,6 @@ object FirebaseHelper {
         )
         db.collection("pengumuman").add(data)
             .addOnSuccessListener {
-                // Blast notifikasi ke semua user dengan role yang dituju
                 blastNotifikasi(
                     judul      = judul,
                     isi        = isi,
@@ -535,7 +584,7 @@ object FirebaseHelper {
     }
 
     // ════════════════════════════════════════════════════════════
-    // [G] NOTIFIKASI — Semua Role
+    // [G] NOTIFIKASI & STORAGE
     // ════════════════════════════════════════════════════════════
 
     val storage = com.google.firebase.storage.FirebaseStorage.getInstance()
@@ -575,10 +624,6 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal kirim notifikasi") }
     }
 
-    /**
-     * Blast notifikasi ke semua user berdasarkan role.
-     * targetRole: "orang_tua", "guru", "pengelola", atau "semua"
-     */
     fun blastNotifikasi(
         judul: String,
         isi: String,
@@ -654,7 +699,7 @@ object FirebaseHelper {
     }
 
     // ════════════════════════════════════════════════════════════
-    // [H] ADUAN — Orang Tua & Guru (Create + Read)
+    // [H] ADUAN
     // ════════════════════════════════════════════════════════════
 
     fun kirimAduan(
@@ -827,11 +872,18 @@ object FirebaseHelper {
     // [J] DATA PENGGUNA — Khusus Pengelola
     // ════════════════════════════════════════════════════════════
 
+    /**
+     * Ambil SEMUA pengguna yang sudah terverifikasi (aktif DAN nonaktif).
+     * Fix dari versi lama yang hanya ambil yg aktif — sehingga pengelola
+     * bisa melihat & mengaktifkan kembali akun yang sudah dinonaktifkan (UAT D-3).
+     */
     fun getAllPengguna(
         role: String = "semua",
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
         onError: (String) -> Unit
     ) {
+        // Ambil user verified, tanpa filter status_akun
+        // agar pengelola bisa lihat nonaktif juga (untuk diaktifkan kembali)
         val query = if (role == "semua") {
             db.collection("users")
                 .whereEqualTo("is_verified", true)
@@ -844,26 +896,28 @@ object FirebaseHelper {
         }
         query.get()
             .addOnSuccessListener { snapshot ->
-                val list = snapshot.documents.map { Pair(it.id, it.data ?: emptyMap()) }
+                // Filter exclude pengelola dari list (tidak perlu ditampilkan)
+                val list = snapshot.documents
+                    .filter { (it.getString("role") ?: "") != "pengelola" }
+                    .map { Pair(it.id, it.data ?: emptyMap()) }
                 onSuccess(list)
             }
             .addOnFailureListener { onError(it.message ?: "Gagal ambil data pengguna") }
     }
 
     /**
-     * Pendaftar baru = user dengan is_verified=false DAN status_akun != "ditolak"
+     * Pendaftar baru = user dengan is_verified=false DAN status_akun = "aktif"
+     * (bukan ditolak, bukan pengelola)
      */
     fun getPendaftarBaru(
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
         onError: (String) -> Unit
     ) {
-        // Query sederhana tanpa orderBy di level Firestore untuk menghindari kebutuhan composite index yang kompleks
         db.collection("users")
             .whereEqualTo("is_verified", false)
             .whereEqualTo("status_akun", "aktif")
             .get()
             .addOnSuccessListener { snapshot ->
-                // Filter role dan urutkan secara manual di memori
                 val list = snapshot.documents
                     .filter { doc ->
                         val role = doc.getString("role") ?: ""
@@ -871,12 +925,15 @@ object FirebaseHelper {
                     }
                     .map { Pair(it.id, it.data ?: emptyMap()) }
                     .sortedByDescending { (it.second["created_at"] as? Timestamp) ?: Timestamp.now() }
-
                 onSuccess(list)
             }
             .addOnFailureListener { onError(it.message ?: "Gagal ambil pendaftar baru") }
     }
 
+    /**
+     * Verifikasi akun — UAT D-1.
+     * Set is_verified=true, status_akun="aktif", kirim notifikasi ke user.
+     */
     fun verifikasiAkun(
         targetUid: String,
         onSuccess: () -> Unit,
@@ -900,6 +957,10 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal verifikasi akun") }
     }
 
+    /**
+     * Tolak akun — UAT D-2.
+     * Set status_akun="ditolak", kirim notifikasi beserta alasan.
+     */
     fun tolakAkun(
         targetUid: String,
         alasan: String,
@@ -925,25 +986,56 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal tolak akun") }
     }
 
+    /**
+     * Nonaktifkan akun — UAT D-3.
+     * Pengguna tidak bisa login setelah dinonaktifkan.
+     * (login() di atas sudah cek status_akun dan block jika nonaktif)
+     */
     fun nonaktifkanAkun(
         targetUid: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         db.collection("users").document(targetUid)
-            .update("status_akun", "nonaktif", "updated_at", Timestamp.now())
-            .addOnSuccessListener { onSuccess() }
+            .update(
+                "status_akun", "nonaktif",
+                "updated_at",  Timestamp.now()
+            )
+            .addOnSuccessListener {
+                // Kirim notifikasi ke user yang dinonaktifkan
+                kirimNotifikasi(
+                    targetUid = targetUid,
+                    judul     = "Akun Dinonaktifkan",
+                    isi       = "Akun kamu telah dinonaktifkan oleh pengelola. Hubungi admin untuk informasi lebih lanjut.",
+                    tipe      = "akun"
+                )
+                onSuccess()
+            }
             .addOnFailureListener { onError(it.message ?: "Gagal nonaktifkan akun") }
     }
 
+    /**
+     * Aktifkan kembali akun — UAT D-3 (reverse).
+     */
     fun aktifkanAkun(
         targetUid: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         db.collection("users").document(targetUid)
-            .update("status_akun", "aktif", "updated_at", Timestamp.now())
-            .addOnSuccessListener { onSuccess() }
+            .update(
+                "status_akun", "aktif",
+                "updated_at",  Timestamp.now()
+            )
+            .addOnSuccessListener {
+                kirimNotifikasi(
+                    targetUid = targetUid,
+                    judul     = "Akun Diaktifkan Kembali ✅",
+                    isi       = "Akun kamu telah diaktifkan kembali oleh pengelola. Silakan login sekarang.",
+                    tipe      = "akun"
+                )
+                onSuccess()
+            }
             .addOnFailureListener { onError(it.message ?: "Gagal aktifkan akun") }
     }
 
@@ -951,14 +1043,7 @@ object FirebaseHelper {
     // [K] KALKULASI GIZI — WHO Standard
     // ════════════════════════════════════════════════════════════
 
-    /**
-     * Hitung Z-Score WHO berdasarkan BB/U (Weight-for-Age).
-     * Menggunakan tabel median & SD WHO untuk anak 0–60 bulan.
-     * Rumus: Z = (X - Median) / SD
-     */
     fun hitungZScore(berat: Double, usiaBulan: Int): Double {
-        // Tabel WHO BB/U: Pair(median, SD) berdasarkan usia bulan
-        // Data diambil dari WHO Child Growth Standards (unisex simplified)
         val (median, sd) = when {
             usiaBulan <= 1  -> Pair(4.5,  0.60)
             usiaBulan <= 2  -> Pair(5.6,  0.70)
@@ -989,19 +1074,15 @@ object FirebaseHelper {
         return (berat - median) / sd
     }
 
-    /**
-     * Hitung Z-Score TB/U (Height-for-Age) WHO.
-     * Untuk deteksi stunting (pendek kronik).
-     */
     fun hitungZScoreTbu(tinggi: Double, usiaBulan: Int): Double {
         val (median, sd) = when {
-            usiaBulan <= 3  -> Pair(59.8, 2.2)
-            usiaBulan <= 6  -> Pair(67.6, 2.4)
-            usiaBulan <= 9  -> Pair(72.0, 2.6)
-            usiaBulan <= 12 -> Pair(75.7, 2.7)
-            usiaBulan <= 18 -> Pair(82.3, 2.9)
-            usiaBulan <= 24 -> Pair(87.8, 3.1)
-            usiaBulan <= 36 -> Pair(96.1, 3.5)
+            usiaBulan <= 3  -> Pair(59.8,  2.2)
+            usiaBulan <= 6  -> Pair(67.6,  2.4)
+            usiaBulan <= 9  -> Pair(72.0,  2.6)
+            usiaBulan <= 12 -> Pair(75.7,  2.7)
+            usiaBulan <= 18 -> Pair(82.3,  2.9)
+            usiaBulan <= 24 -> Pair(87.8,  3.1)
+            usiaBulan <= 36 -> Pair(96.1,  3.5)
             usiaBulan <= 48 -> Pair(103.3, 3.8)
             usiaBulan <= 60 -> Pair(110.0, 4.0)
             else            -> Pair(116.0, 4.2)
@@ -1009,9 +1090,6 @@ object FirebaseHelper {
         return (tinggi - median) / sd
     }
 
-    /**
-     * Klasifikasi status gizi berdasarkan Z-Score BB/U (WHO).
-     */
     fun kategoriGizi(zScore: Double): String = when {
         zScore < -3.0 -> "Gizi Buruk"
         zScore < -2.0 -> "Gizi Kurang"
@@ -1021,26 +1099,16 @@ object FirebaseHelper {
         else          -> "Obesitas"
     }
 
-    /**
-     * Hitung persentase kecukupan nutrisi (simplified).
-     * Normal = 100%, makin jauh dari normal makin rendah.
-     */
-    fun hitungPersentaseNutrisi(zScore: Double): Int {
-        return when {
-            zScore < -3.0 -> 30
-            zScore < -2.0 -> 55
-            zScore < -1.0 -> 75
-            zScore <= 1.0 -> 100
-            zScore <= 2.0 -> 85
-            zScore <= 3.0 -> 70
-            else          -> 60
-        }
+    fun hitungPersentaseNutrisi(zScore: Double): Int = when {
+        zScore < -3.0 -> 30
+        zScore < -2.0 -> 55
+        zScore < -1.0 -> 75
+        zScore <= 1.0 -> 100
+        zScore <= 2.0 -> 85
+        zScore <= 3.0 -> 70
+        else          -> 60
     }
 
-    /**
-     * Rekomendasi makanan berdasarkan status gizi & usia anak.
-     * Mengikuti pedoman Kemenkes & WHO.
-     */
     fun rekomendasiMakanan(statusGizi: String, usiaBulan: Int): List<String> {
         val isBalita = usiaBulan <= 60
         return when (statusGizi.lowercase()) {
@@ -1094,7 +1162,7 @@ object FirebaseHelper {
                 "⚠️ Wajib konsultasi dokter anak dan ahli gizi",
                 "📊 Pantau berat badan setiap 2 minggu"
             )
-            else -> listOf( // Normal
+            else -> listOf(
                 "🍚 Nasi + lauk-pauk bergizi 3 porsi per hari",
                 "🥩 Protein hewani: ayam, ikan, telur, daging sapi",
                 "🌱 Protein nabati: tempe, tahu, kacang-kacangan",
