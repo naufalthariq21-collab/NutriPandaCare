@@ -116,7 +116,8 @@ class RekapGiziFragment : Fragment() {
     }
 
     private fun simpanRekap(sekolah: String, periode: String) {
-        FirebaseHelper.simpanRekapGizi(sekolah, periode, 0, 0, 0, 0, 0, 0,
+        // totalSiswa, normal, giziKurang, giziBuruk, giziLebih, obesitas, stunting
+        FirebaseHelper.simpanRekapGizi(sekolah, periode, 0, 0, 0, 0, 0, 0, 0,
             onSuccess = { id ->
                 rekapId = id
                 binding.progressBar.visibility = View.GONE
@@ -170,7 +171,7 @@ class RekapGiziFragment : Fragment() {
             }
             currentZScore = FirebaseHelper.hitungZScore(berat, usia)
             val zTbu      = FirebaseHelper.hitungZScoreTbu(tinggi, usia)
-            currentStatus = tentukanStatus(currentZScore, zTbu)
+            currentStatus = FirebaseHelper.tentukanStatusGizi(currentZScore, zTbu)
 
             tvHasil.visibility = View.VISIBLE
             tvHasil.text = "Hasil: $currentStatus\nZ-Score BB/U: ${"%.2f".format(currentZScore)} | TB/U: ${"%.2f".format(zTbu)}"
@@ -193,7 +194,7 @@ class RekapGiziFragment : Fragment() {
 
                 if (currentStatus.isEmpty()) {
                     currentZScore = FirebaseHelper.hitungZScore(berat, usia)
-                    currentStatus = tentukanStatus(currentZScore, FirebaseHelper.hitungZScoreTbu(tinggi, usia))
+                    currentStatus = FirebaseHelper.tentukanStatusGizi(currentZScore, FirebaseHelper.hitungZScoreTbu(tinggi, usia))
                 }
 
                 FirebaseHelper.tambahDetailSiswa(idRekap, nama, kelas, berat, tinggi, usia, currentZScore, currentStatus,
@@ -206,20 +207,6 @@ class RekapGiziFragment : Fragment() {
             }
             .setNegativeButton("Batal", null)
             .show()
-    }
-
-    private fun tentukanStatus(zBbu: Double, zTbu: Double): String {
-        val isStunting = zTbu < -2.0
-        return when {
-            zTbu < -3.0 -> if (zBbu < -3.0) "Stunting - Gizi Buruk" else "Stunting Berat"
-            isStunting  -> if (zBbu < -2.0) "Stunting - Gizi Kurang" else "Stunting"
-            zBbu < -3.0 -> "Gizi Buruk"
-            zBbu < -2.0 -> "Gizi Kurang"
-            zBbu <= 1.0 -> "Normal"
-            zBbu <= 2.0 -> "Berisiko Gizi Lebih"
-            zBbu <= 3.0 -> "Gizi Lebih"
-            else        -> "Obesitas"
-        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -273,37 +260,45 @@ class RekapGiziFragment : Fragment() {
             .show()
     }
 
-    inner class SiswaAdapter(private val data: List<Map<String, Any?>>, private val onClick: (Map<String, Any?>) -> Unit) : RecyclerView.Adapter<SiswaAdapter.VH>() {
-        inner class VH(v: View) : RecyclerView.ViewHolder(v) {
-            val tvInisial: TextView = v.findViewById(R.id.tvInisialSiswa)
-            val tvNama: TextView    = v.findViewById(R.id.tvNamaSiswa)
-            val tvInfo: TextView    = v.findViewById(R.id.tvInfoSiswa)
-            val tvStatus: TextView  = v.findViewById(R.id.tvStatusGiziSiswa)
-        }
-        override fun onCreateViewHolder(p: ViewGroup, vt: Int) = VH(LayoutInflater.from(p.context).inflate(R.layout.item_siswa, p, false))
-        override fun getItemCount() = data.size
-        override fun onBindViewHolder(h: VH, pos: Int) {
-            val s = data[pos]
-            val n = s["nama_siswa"] as? String ?: "-"
-            val status = s["status_gizi"] as? String ?: "Normal"
-            h.tvInisial.text = n.split(" ").take(2).joinToString("") { it.take(1) }.uppercase()
-            h.tvNama.text = n
-            h.tvInfo.text = "${s["kelas"]} • Z: ${"%.1f".format((s["z_score"] as? Number)?.toDouble() ?: 0.0)}"
-            h.tvStatus.text = status
+    private class SiswaAdapter(
+        private val list: List<Map<String, Any?>>,
+        private val onClick: (Map<String, Any?>) -> Unit
+    ) : RecyclerView.Adapter<SiswaAdapter.ViewHolder>() {
 
-            val colorRes = when (status.lowercase().trim()) {
-                "normal" -> R.color.green_primary
-                "gizi buruk", "stunting berat" -> R.color.pending_text
+        class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val tvInisial: TextView = view.findViewById(R.id.tvInisialSiswa)
+            val tvNama: TextView = view.findViewById(R.id.tvNamaSiswa)
+            val tvKet: TextView  = view.findViewById(R.id.tvInfoSiswa)
+            val tvStatus: TextView = view.findViewById(R.id.tvStatusGiziSiswa)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val v = LayoutInflater.from(parent.context).inflate(R.layout.item_siswa, parent, false)
+            return ViewHolder(v)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val s = list[position]
+            val nama = s["nama_siswa"] as? String ?: "-"
+            holder.tvNama.text = nama
+            holder.tvKet.text  = "Kelas ${s["kelas"]} • ${s["usia_bulan"]} Bln • ${s["berat_badan"]} Kg"
+            
+            holder.tvInisial.text = if (nama.length >= 2) nama.substring(0, 2).uppercase() else nama.take(1).uppercase()
+
+            val status = (s["status_gizi"] as? String ?: "Normal").trim()
+            holder.tvStatus.text = status
+            
+            val color = when {
+                status.lowercase() == "normal" -> R.color.green_primary
+                status.lowercase().contains("stunting") -> R.color.badge_red
                 else -> R.color.pending_text
             }
-            val bgRes = when (status.lowercase().trim()) {
-                "normal" -> R.color.green_pastel
-                else -> R.color.pending_bg
-            }
-            h.tvStatus.setTextColor(ContextCompat.getColor(requireContext(), colorRes))
-            h.tvStatus.setBackgroundResource(bgRes)
-            h.itemView.setOnClickListener { onClick(s) }
+            holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.context, color))
+            
+            holder.itemView.setOnClickListener { onClick(s) }
         }
+
+        override fun getItemCount() = list.size
     }
 
     override fun onDestroyView() {

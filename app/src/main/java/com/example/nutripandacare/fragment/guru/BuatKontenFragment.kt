@@ -102,7 +102,7 @@ class BuatKontenFragment : Fragment() {
     private fun loadArtikelUntukEdit(id: String) {
         binding.btnPublish.isEnabled = false
         FirebaseHelper.getArtikelById(id,
-            onSuccess = { data ->
+            onSuccess = { data: Map<String, Any?> ->
                 if (_binding == null) return@getArtikelById
                 binding.etJudul.setText(data["judul"] as? String ?: "")
                 binding.etDeskripsiKonten.setText(data["deskripsi"] as? String ?: "")
@@ -120,7 +120,7 @@ class BuatKontenFragment : Fragment() {
                 }
                 binding.btnPublish.isEnabled = true
             },
-            onError = { err ->
+            onError = { err: String ->
                 if (_binding == null) return@getArtikelById
                 Toast.makeText(requireContext(), "Gagal memuat artikel: $err", Toast.LENGTH_SHORT).show()
                 binding.btnPublish.isEnabled = true
@@ -216,7 +216,7 @@ class BuatKontenFragment : Fragment() {
             kategori     = kategori,
             thumbnailUrl = thumbnailUrl ?: "",
             menitBaca    = menit,
-            onSuccess    = { newArtikelId ->
+            onSuccess    = { newArtikelId: String ->
                 isLoading = false
                 if (_binding == null) return@tambahArtikel
                 Toast.makeText(requireContext(), "Konten berhasil dipublikasikan! 🎉", Toast.LENGTH_SHORT).show()
@@ -227,7 +227,7 @@ class BuatKontenFragment : Fragment() {
                     findNavController().popBackStack(R.id.nav_konten_edukasi, false)
                 }
             },
-            onError = { err ->
+            onError = { err: String ->
                 isLoading = false
                 if (_binding == null) return@tambahArtikel
                 setLoading(false)
@@ -258,7 +258,7 @@ class BuatKontenFragment : Fragment() {
                 Toast.makeText(requireContext(), "Konten berhasil diperbarui! ✅", Toast.LENGTH_SHORT).show()
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             },
-            onError = { err ->
+            onError = { err: String ->
                 isLoading = false
                 if (_binding == null) return@updateArtikel
                 setLoading(false)
@@ -280,11 +280,16 @@ class BuatKontenFragment : Fragment() {
     private fun copyUriToCache(context: Context, uri: Uri, prefix: String): Uri? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-            val outFile = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg")
-            FileOutputStream(outFile).use { out -> inputStream.copyTo(out) }
+            val outputFile = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg")
+            val outputStream = FileOutputStream(outputFile)
+            inputStream.copyTo(outputStream)
             inputStream.close()
-            Uri.fromFile(outFile)
-        } catch (e: Exception) { null }
+            outputStream.close()
+            Uri.fromFile(outputFile)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     override fun onDestroyView() {

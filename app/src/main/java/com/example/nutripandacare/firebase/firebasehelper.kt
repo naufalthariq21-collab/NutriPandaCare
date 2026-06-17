@@ -152,6 +152,18 @@ object FirebaseHelper {
             .addOnFailureListener { onError(it.message ?: "Gagal muat artikel saya") }
     }
 
+    fun getArtikelById(artikelId: String, onSuccess: (Map<String, Any?>) -> Unit, onError: (String) -> Unit) {
+        db.collection("artikel").document(artikelId).get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists()) {
+                    onSuccess(doc.data ?: emptyMap())
+                } else {
+                    onError("Artikel tidak ditemukan")
+                }
+            }
+            .addOnFailureListener { onError(it.message ?: "Gagal ambil data artikel") }
+    }
+
     fun updateArtikel(artikelId: String, dataUpdate: Map<String, Any>, onSuccess: () -> Unit, onError: (String) -> Unit) {
         db.collection("artikel").document(artikelId).update(dataUpdate)
             .addOnSuccessListener { onSuccess() }
@@ -497,6 +509,14 @@ object FirebaseHelper {
         db.collection("aduan").orderBy("created_at", Query.Direction.DESCENDING).get()
             .addOnSuccessListener { snap -> onSuccess(snap.documents.map { Pair(it.id, it.data ?: emptyMap()) }) }
             .addOnFailureListener { onError("Gagal muat aduan") }
+    }
+
+    fun getAduanSaya(onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit, onError: (String) -> Unit) {
+        db.collection("aduan").whereEqualTo("pengirim_uid", uid)
+            .orderBy("created_at", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { snap -> onSuccess(snap.documents.map { Pair(it.id, it.data ?: emptyMap()) }) }
+            .addOnFailureListener { onError("Gagal muat aduan saya") }
     }
 
     fun balasAduan(aduanId: String, balasan: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
