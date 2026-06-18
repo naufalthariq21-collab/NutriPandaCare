@@ -167,23 +167,18 @@ class InputGiziFragment : Fragment() {
     private fun tampilkanRekomendasi(statusGizi: String, usiaBulan: Int) {
         val rekomendasi = FirebaseHelper.rekomendasiMakanan(statusGizi, usiaBulan)
 
-        try {
-            val rv = binding.root.findViewById<RecyclerView>(R.id.rvRekomendasi)
-            if (rv != null) {
-                rv.visibility    = View.VISIBLE
-                rv.layoutManager = LinearLayoutManager(requireContext())
-                rv.adapter       = RekomendasiAdapter(rekomendasi)
-                return
-            }
-        } catch (_: Exception) {}
+        // Menggunakan ViewBinding untuk menghindari masalah 'Unresolved reference' pada R.id
+        binding.rvRekomendasi.apply {
+            visibility = View.VISIBLE
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = RekomendasiAdapter(rekomendasi)
+        }
 
-        try {
-            val tv = binding.root.findViewById<TextView>(R.id.tvRekomendasi)
-            tv?.let {
-                it.visibility = View.VISIBLE
-                it.text       = rekomendasi.joinToString("\n")
-            }
-        } catch (_: Exception) {}
+        binding.tvRekomendasi.apply {
+            text = rekomendasi.joinToString("\n")
+            // Sembunyikan TextView jika RecyclerView sudah ditampilkan
+            visibility = View.GONE 
+        }
     }
 
     override fun onDestroyView() {
