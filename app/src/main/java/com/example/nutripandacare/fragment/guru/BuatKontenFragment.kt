@@ -14,12 +14,11 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.nutripandacare.R
+import com.example.nutripandacare.supabase.SupabaseHelper
 import com.example.nutripandacare.databinding.FragmentBuatKontenBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
-import com.google.firebase.storage.FirebaseStorage
 import java.io.File
 import java.io.FileOutputStream
-import java.util.UUID
 
 class BuatKontenFragment : Fragment() {
 
@@ -33,7 +32,6 @@ class BuatKontenFragment : Fragment() {
 
     private val kategoriList = listOf("Pilih kategori...") + FirebaseHelper.KATEGORI_ARTIKEL
 
-    // ── Galeri: salin ke cache agar permission tidak expired saat upload ──────
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
@@ -43,7 +41,6 @@ class BuatKontenFragment : Fragment() {
             }
         }
 
-    // ── Kamera ───────────────────────────────────────────────────────────────
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success && cameraImageUri != null) {
@@ -173,36 +170,23 @@ class BuatKontenFragment : Fragment() {
         }
     }
 
-    // ── Upload pakai putBytes agar tidak SecurityException pada content URI ──
+    /**
+     * [GANTI] Sebelumnya pakai FirebaseHelper.uploadImage() ke Firebase Storage.
+     * Sekarang pakai SupabaseHelper.uploadImage() — gratis, tidak butuh billing plan.
+     */
     private fun uploadThumbnail(uri: Uri, onComplete: (String?) -> Unit) {
-        val ref = FirebaseStorage.getInstance().reference
-            .child("thumbnail_artikel/${UUID.randomUUID()}.jpg")
-        try {
-            val inputStream = requireContext().contentResolver.openInputStream(uri)
-            if (inputStream == null) {
-                Toast.makeText(requireContext(), "Tidak bisa membaca file foto", Toast.LENGTH_SHORT).show()
+        SupabaseHelper.uploadImage(
+            uri       = uri,
+            context   = requireContext(),
+            folder    = "thumbnail_artikel",
+            onSuccess = { url -> onComplete(url) },
+            onError   = { err ->
+                if (_binding != null) {
+                    Toast.makeText(requireContext(), "Gagal upload thumbnail: $err", Toast.LENGTH_SHORT).show()
+                }
                 onComplete(null)
-                return
             }
-            val bytes = inputStream.readBytes()
-            inputStream.close()
-
-            ref.putBytes(bytes)
-                .addOnSuccessListener {
-                    ref.downloadUrl
-                        .addOnSuccessListener { url -> onComplete(url.toString()) }
-                        .addOnFailureListener { onComplete(null) }
-                }
-                .addOnFailureListener { e ->
-                    if (_binding != null)
-                        Toast.makeText(requireContext(), "Gagal upload thumbnail: ${e.message}", Toast.LENGTH_SHORT).show()
-                    onComplete(null)
-                }
-        } catch (e: Exception) {
-            if (_binding != null)
-                Toast.makeText(requireContext(), "Error baca foto: ${e.message}", Toast.LENGTH_SHORT).show()
-            onComplete(null)
-        }
+        )
     }
 
     private fun simpanArtikel(
@@ -276,11 +260,10 @@ class BuatKontenFragment : Fragment() {
         }
     }
 
-    // ── Salin URI ke cache supaya permission tidak hilang saat dipakai upload ─
     private fun copyUriToCache(context: Context, uri: Uri, prefix: String): Uri? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-            val outFile = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg")
+            val outFile     = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg")
             FileOutputStream(outFile).use { out -> inputStream.copyTo(out) }
             inputStream.close()
             Uri.fromFile(outFile)

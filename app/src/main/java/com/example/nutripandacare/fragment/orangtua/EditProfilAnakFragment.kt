@@ -14,12 +14,11 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.nutripandacare.R
+import com.example.nutripandacare.supabase.SupabaseHelper
 import com.example.nutripandacare.databinding.FragmentEditProfilAnakBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
-import com.google.firebase.storage.FirebaseStorage
 import java.io.File
 import java.io.FileOutputStream
-import java.util.UUID
 
 class EditProfilAnakFragment : Fragment() {
 
@@ -33,7 +32,6 @@ class EditProfilAnakFragment : Fragment() {
     private var anakId: String? = null
     private var isAnakBaru = false
 
-    // ── Galeri: salin ke cache agar permission tidak expired saat upload ──────
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
@@ -43,7 +41,6 @@ class EditProfilAnakFragment : Fragment() {
             }
         }
 
-    // ── Kamera ───────────────────────────────────────────────────────────────
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success && cameraImageUri != null) {
@@ -79,9 +76,9 @@ class EditProfilAnakFragment : Fragment() {
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        binding.ivFotoAnak.setOnClickListener    { showImageSourceDialog() }
-        binding.btnPilihFoto.setOnClickListener  { showImageSourceDialog() }
-        binding.btnSimpan.setOnClickListener     { simpanProfil() }
+        binding.ivFotoAnak.setOnClickListener   { showImageSourceDialog() }
+        binding.btnPilihFoto.setOnClickListener { showImageSourceDialog() }
+        binding.btnSimpan.setOnClickListener    { simpanProfil() }
     }
 
     private fun showImageSourceDialog() {
@@ -110,8 +107,8 @@ class EditProfilAnakFragment : Fragment() {
                 anakId     = id
                 isAnakBaru = false
 
-                binding.etNamaAnak.setText(data["nama_anak"]     as? String ?: "")
-                binding.etUsiaAnak.setText(data["usia_anak"]     as? String ?: "")
+                binding.etNamaAnak.setText(data["nama_anak"] as? String ?: "")
+                binding.etUsiaAnak.setText(data["usia_anak"] as? String ?: "")
                 binding.etUsiaBulan.setText(
                     when (val v = data["usia_bulan"]) {
                         is Long, is Int, is Number -> (v as Number).toInt().let { if (it > 0) it.toString() else "" }
@@ -120,10 +117,10 @@ class EditProfilAnakFragment : Fragment() {
                     }
                 )
                 binding.etSekolahAnak.setText(data["sekolah_anak"] as? String ?: "")
-                binding.etKelasAnak.setText(data["kelas"]          as? String ?: "")
+                binding.etKelasAnak.setText(data["kelas"] as? String ?: "")
 
                 val jk = data["jenis_kelamin"] as? String ?: ""
-                if (jk.equals("Laki-laki", true))  binding.rbLakiLaki.isChecked  = true
+                if (jk.equals("Laki-laki", true)) binding.rbLakiLaki.isChecked = true
                 else if (jk.equals("Perempuan", true)) binding.rbPerempuan.isChecked = true
 
                 existingFotoUrl = data["foto_anak"] as? String ?: ""
@@ -133,7 +130,6 @@ class EditProfilAnakFragment : Fragment() {
             },
             onError = {
                 if (_binding == null) return@getDataAnak
-                // Belum ada data anak → mode tambah baru
                 isAnakBaru = true
                 binding.btnSimpan.text = "Simpan Data Anak"
             }
@@ -149,50 +145,31 @@ class EditProfilAnakFragment : Fragment() {
         setLoading(true)
 
         if (fotoUri != null) {
-            // Upload foto baru, lalu simpan ke Firestore
             uploadFoto(fotoUri!!) { url ->
                 simpanKeFirestore(url ?: existingFotoUrl)
             }
         } else {
-            // Tidak ada foto baru, simpan dengan foto lama (atau kosong)
             simpanKeFirestore(existingFotoUrl)
         }
     }
 
-    // ── Upload foto pakai putBytes — hindari SecurityException content URI ────
+    /**
+     * [GANTI] Sebelumnya FirebaseHelper.uploadImage() ke Firebase Storage.
+     * Sekarang SupabaseHelper.uploadImage() — gratis tanpa billing plan.
+     */
     private fun uploadFoto(uri: Uri, onComplete: (String?) -> Unit) {
-        val uid = FirebaseHelper.uid
-        val ref = FirebaseStorage.getInstance().reference
-            .child("foto_anak/$uid/${UUID.randomUUID()}.jpg")
-        try {
-            val inputStream = requireContext().contentResolver.openInputStream(uri)
-            if (inputStream == null) {
-                Toast.makeText(requireContext(), "Tidak bisa membaca file foto", Toast.LENGTH_SHORT).show()
+        SupabaseHelper.uploadImage(
+            uri       = uri,
+            context   = requireContext(),
+            folder    = "foto_anak",
+            onSuccess = { url -> onComplete(url) },
+            onError   = { err ->
+                if (_binding != null) {
+                    Toast.makeText(requireContext(), "Gagal upload foto: $err", Toast.LENGTH_SHORT).show()
+                }
                 onComplete(null)
-                return
             }
-            val bytes = inputStream.readBytes()
-            inputStream.close()
-
-            ref.putBytes(bytes)
-                .addOnSuccessListener {
-                    ref.downloadUrl
-                        .addOnSuccessListener { downloadUri ->
-                            onComplete(downloadUri.toString())
-                        }
-                        .addOnFailureListener {
-                            Toast.makeText(requireContext(), "Gagal ambil URL foto", Toast.LENGTH_SHORT).show()
-                            onComplete(null)
-                        }
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "Gagal upload foto: ${e.message}", Toast.LENGTH_SHORT).show()
-                    onComplete(null)
-                }
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Error baca foto: ${e.message}", Toast.LENGTH_SHORT).show()
-            onComplete(null)
-        }
+        )
     }
 
     private fun simpanKeFirestore(fotoUrl: String) {
@@ -218,7 +195,7 @@ class EditProfilAnakFragment : Fragment() {
                 usiaAnak     = updates["usia_anak"]     as String,
                 usiaBulan    = updates["usia_bulan"]    as Int,
                 jenisKelamin = jk,
-                sekolahAnak  = updates["sekolah_anak"] as String,
+                sekolahAnak  = updates["sekolah_anak"]  as String,
                 kelas        = updates["kelas"]         as String,
                 fotoAnak     = fotoUrl,
                 onSuccess    = { newId ->
@@ -226,7 +203,6 @@ class EditProfilAnakFragment : Fragment() {
                     anakId     = newId
                     isAnakBaru = false
                     setLoading(false)
-                    // Jika ada foto yang di-upload, update preview dengan URL
                     if (fotoUrl.isNotEmpty()) tampilkanPreviewFoto(fotoUrl)
                     Toast.makeText(requireContext(), "Data anak berhasil disimpan ✅", Toast.LENGTH_SHORT).show()
                     findNavController().popBackStack()
@@ -249,7 +225,6 @@ class EditProfilAnakFragment : Fragment() {
                 onSuccess = {
                     if (_binding == null) return@updateDataAnak
                     setLoading(false)
-                    // Update foto profil di UI jika ada foto baru
                     if (fotoUrl.isNotEmpty()) {
                         existingFotoUrl = fotoUrl
                         tampilkanPreviewFoto(fotoUrl)
@@ -276,7 +251,6 @@ class EditProfilAnakFragment : Fragment() {
         }
     }
 
-    // ── Salin URI ke cache supaya permission tidak hilang saat upload ─────────
     private fun copyUriToCache(context: Context, uri: Uri, prefix: String): Uri? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri) ?: return null

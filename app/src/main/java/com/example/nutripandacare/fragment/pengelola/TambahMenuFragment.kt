@@ -17,6 +17,7 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.nutripandacare.R
+import com.example.nutripandacare.supabase.SupabaseHelper
 import com.example.nutripandacare.databinding.FragmentTambahMenuBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import java.io.File
@@ -204,8 +205,10 @@ class TambahMenuFragment : Fragment() {
 
         setLoading(true)
         if (imageUri != null) {
-            val path = "menu_mbg/${UUID.randomUUID()}.jpg"
-            FirebaseHelper.uploadImage(path, imageUri!!, requireContext(),
+            SupabaseHelper.uploadImage(
+                uri       = imageUri!!,
+                context   = requireContext(),
+                folder    = "menu_mbg",
                 onSuccess = { url -> saveToFirestore(nama, tgl, url) },
                 onError = {
                     setLoading(false)

@@ -3,6 +3,8 @@ package com.example.nutripandacare.fragment.guru
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.nutripandacare.R
+import com.example.nutripandacare.supabase.SupabaseHelper
 import com.example.nutripandacare.databinding.FragmentAduanMbgBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import com.google.firebase.Timestamp
@@ -33,7 +36,6 @@ class AduanMbgFragment : Fragment() {
     private var imageUri: Uri? = null
     private var cameraImageUri: Uri? = null
 
-    // ── Kamera ───────────────────────────────────────────────────────────────
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success && cameraImageUri != null) {
@@ -42,7 +44,6 @@ class AduanMbgFragment : Fragment() {
             }
         }
 
-    // ── Galeri: salin ke cache agar permission tidak hilang saat upload ──────
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
@@ -69,6 +70,12 @@ class AduanMbgFragment : Fragment() {
         loadRiwayatAduan()
     }
 
+    // [FIX] Reload riwayat setiap kali fragment kembali ke foreground
+    override fun onResume() {
+        super.onResume()
+        loadRiwayatAduan()
+    }
+
     private fun setupToolbar() {
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
@@ -90,15 +97,14 @@ class AduanMbgFragment : Fragment() {
         )
     }
 
-    // ── Tampilkan / sembunyikan preview gambar ────────────────────────────────
     private fun tampilkanPreviewGambar(uri: Any?) {
         if (_binding == null) return
         if (uri == null) {
-            binding.ivAduan.visibility        = View.GONE
+            binding.ivAduan.visibility           = View.GONE
             binding.layoutPlaceholder.visibility = View.VISIBLE
             return
         }
-        binding.ivAduan.visibility        = View.VISIBLE
+        binding.ivAduan.visibility           = View.VISIBLE
         binding.layoutPlaceholder.visibility = View.GONE
         Glide.with(this)
             .load(uri)
@@ -152,12 +158,10 @@ class AduanMbgFragment : Fragment() {
         setButtonLoading(true)
 
         if (imageUri != null) {
-            // Pakai FirebaseHelper.uploadImage (putBytes) agar tidak SecurityException
-            val fileName = "aduan/${FirebaseHelper.uid}_${System.currentTimeMillis()}.jpg"
-            FirebaseHelper.uploadImage(
-                path      = fileName,
+            SupabaseHelper.uploadImage(
                 uri       = imageUri!!,
                 context   = requireContext(),
+                folder    = "aduan",
                 onSuccess = { url -> executeKirimAduan(judul, isi, kategori, url) },
                 onError   = { err ->
                     isLoading = false
@@ -188,7 +192,11 @@ class AduanMbgFragment : Fragment() {
                 imageUri = null
                 tampilkanPreviewGambar(null)
                 setButtonLoading(false)
-                loadRiwayatAduan()
+
+                // [FIX] Delay 800ms supaya Firestore selesai commit sebelum query
+                Handler(Looper.getMainLooper()).postDelayed({
+                    if (_binding != null) loadRiwayatAduan()
+                }, 800)
             },
             onError = { err ->
                 isLoading = false
@@ -206,13 +214,23 @@ class AduanMbgFragment : Fragment() {
     }
 
     private fun loadRiwayatAduan() {
+        if (_binding == null) return
+        // [FIX] Tampilkan loading saat fetch riwayat
+        binding.tvRiwayatEmpty.visibility = View.GONE
+
         FirebaseHelper.getAduanSaya(
             onSuccess = { list ->
                 if (_binding == null) return@getAduanSaya
                 setupRiwayatRecyclerView(list)
                 binding.tvRiwayatEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
             },
-            onError = { }
+            // [FIX] onError sebelumnya kosong {} — sekarang tampilkan pesan error
+            onError = { err ->
+                if (_binding == null) return@getAduanSaya
+                android.util.Log.e("AduanMbg", "Gagal muat riwayat: $err")
+                Toast.makeText(requireContext(), "Gagal muat riwayat: $err", Toast.LENGTH_SHORT).show()
+                binding.tvRiwayatEmpty.visibility = View.VISIBLE
+            }
         )
     }
 
@@ -221,17 +239,15 @@ class AduanMbgFragment : Fragment() {
         binding.rvRiwayatAduan.adapter       = RiwayatAduanAdapter(list)
     }
 
-    // ── Salin URI ke cache supaya permission tidak hilang saat upload ─────────
     private fun copyUriToCache(context: Context, uri: Uri, prefix: String): Uri? {
         return try {
-            val stream  = context.contentResolver.openInputStream(uri) ?: return null
-            val file    = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg")
+            val stream = context.contentResolver.openInputStream(uri) ?: return null
+            val file   = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg")
             FileOutputStream(file).use { stream.copyTo(it) }
             Uri.fromFile(file)
         } catch (e: Exception) { null }
     }
 
-    // ── Adapter riwayat aduan ─────────────────────────────────────────────────
     inner class RiwayatAduanAdapter(
         private val data: List<Pair<String, Map<String, Any?>>>
     ) : RecyclerView.Adapter<RiwayatAduanAdapter.VH>() {
@@ -279,6 +295,7 @@ class AduanMbgFragment : Fragment() {
                     .load(foto)
                     .centerCrop()
                     .placeholder(R.color.cream_medium)
+                    .error(R.drawable.ic_photo_camera)
                     .into(h.ivFoto)
             } else {
                 h.ivFoto.visibility = View.GONE

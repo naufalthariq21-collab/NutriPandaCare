@@ -39,6 +39,9 @@ class RekapGiziFragment : Fragment() {
     private var filterAktif = "semua"
     private var rekapId: String? = null
 
+    // [FIX] Flag untuk tracking apakah sedang loading rekapId
+    private var isLoadingRekap = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -79,18 +82,38 @@ class RekapGiziFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.btnBack.setOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
+
         binding.btnTambahSiswa.setOnClickListener {
-            rekapId?.let { showTambahSiswaDialog(it) } ?: Toast.makeText(requireContext(), "Memuat data rekap...", Toast.LENGTH_SHORT).show()
+            when {
+                // [FIX] Cek isLoadingRekap dulu, bukan hanya rekapId
+                isLoadingRekap -> {
+                    Toast.makeText(requireContext(), "Masih memuat data, harap tunggu...", Toast.LENGTH_SHORT).show()
+                }
+                rekapId != null -> {
+                    showTambahSiswaDialog(rekapId!!)
+                }
+                else -> {
+                    // rekapId null tapi tidak loading → coba load ulang
+                    Toast.makeText(requireContext(), "Memuat ulang data rekap...", Toast.LENGTH_SHORT).show()
+                    loadAtauBuatRekap()
+                }
+            }
         }
     }
 
     private fun loadAtauBuatRekap() {
+        // [FIX] Set flag loading dan nonaktifkan tombol selama proses
+        isLoadingRekap = true
+        binding.btnTambahSiswa.isEnabled = false
         binding.progressBar.visibility = View.VISIBLE
+
         FirebaseHelper.getRekapGizi(
             onSuccess = { list ->
                 if (_binding == null) return@getRekapGizi
                 if (list.isNotEmpty()) {
                     rekapId = list[0].first
+                    isLoadingRekap = false
+                    binding.btnTambahSiswa.isEnabled = true
                     loadDetailSiswa(rekapId!!)
                 } else {
                     buatRekapBaru()
@@ -98,6 +121,8 @@ class RekapGiziFragment : Fragment() {
             },
             onError = {
                 if (_binding == null) return@getRekapGizi
+                isLoadingRekap = false
+                binding.btnTambahSiswa.isEnabled = true
                 binding.progressBar.visibility = View.GONE
                 Toast.makeText(requireContext(), "Gagal memuat: $it", Toast.LENGTH_SHORT).show()
             }
@@ -118,11 +143,17 @@ class RekapGiziFragment : Fragment() {
     private fun simpanRekap(sekolah: String, periode: String) {
         FirebaseHelper.simpanRekapGizi(sekolah, periode, 0, 0, 0, 0, 0, 0,
             onSuccess = { id ->
+                if (_binding == null) return@simpanRekapGizi
                 rekapId = id
+                isLoadingRekap = false
+                binding.btnTambahSiswa.isEnabled = true
                 binding.progressBar.visibility = View.GONE
                 updateSummaryUI()
             },
-            onError = { 
+            onError = {
+                if (_binding == null) return@simpanRekapGizi
+                isLoadingRekap = false
+                binding.btnTambahSiswa.isEnabled = true
                 binding.progressBar.visibility = View.GONE
                 Toast.makeText(requireContext(), "Gagal membuat rekap baru", Toast.LENGTH_SHORT).show()
             }
@@ -159,53 +190,87 @@ class RekapGiziFragment : Fragment() {
 
         var currentStatus = ""
         var currentZScore = 0.0
+        var currentZTbu   = 0.0
 
         btnHitung.setOnClickListener {
             val berat  = etBerat.text.toString().toDoubleOrNull() ?: 0.0
             val tinggi = etTinggi.text.toString().toDoubleOrNull() ?: 0.0
             val usia   = etUsia.text.toString().toIntOrNull() ?: 0
+
             if (berat <= 0 || tinggi <= 0 || usia <= 0) {
                 Toast.makeText(requireContext(), "Lengkapi Berat, Tinggi, dan Usia!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             currentZScore = FirebaseHelper.hitungZScore(berat, usia)
-            val zTbu      = FirebaseHelper.hitungZScoreTbu(tinggi, usia)
-            currentStatus = tentukanStatus(currentZScore, zTbu)
+            currentZTbu   = FirebaseHelper.hitungZScoreTbu(tinggi, usia)
+            currentStatus = tentukanStatus(currentZScore, currentZTbu)
 
             tvHasil.visibility = View.VISIBLE
-            tvHasil.text = "Hasil: $currentStatus\nZ-Score BB/U: ${"%.2f".format(currentZScore)} | TB/U: ${"%.2f".format(zTbu)}"
+            tvHasil.text = "Hasil: $currentStatus\nZ-Score BB/U: ${"%.2f".format(currentZScore)} | TB/U: ${"%.2f".format(currentZTbu)}"
         }
 
-        AlertDialog.Builder(requireContext())
+        val dialog = AlertDialog.Builder(requireContext())
             .setTitle("Tambah Data Siswa")
             .setView(dialogView)
-            .setPositiveButton("Simpan") { _, _ ->
+            .setPositiveButton("Simpan", null) // null dulu, di-override di bawah
+            .setNegativeButton("Batal", null)
+            .create()
+
+        dialog.setOnShowListener {
+            // [FIX] Override positiveButton agar dialog tidak langsung tutup
+            // saat validasi gagal
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val nama   = etNama.text.toString().trim()
                 val kelas  = etKelas.text.toString().trim()
                 val berat  = etBerat.text.toString().toDoubleOrNull() ?: 0.0
                 val tinggi = etTinggi.text.toString().toDoubleOrNull() ?: 0.0
                 val usia   = etUsia.text.toString().toIntOrNull() ?: 0
 
-                if (nama.isEmpty() || kelas.isEmpty() || berat <= 0 || usia <= 0) {
-                    Toast.makeText(requireContext(), "Harap isi semua kolom wajib!", Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
+                if (nama.isEmpty()) {
+                    etNama.error = "Nama wajib diisi"; return@setOnClickListener
+                }
+                if (kelas.isEmpty()) {
+                    etKelas.error = "Kelas wajib diisi"; return@setOnClickListener
+                }
+                if (berat <= 0) {
+                    etBerat.error = "Berat wajib diisi"; return@setOnClickListener
+                }
+                if (usia <= 0) {
+                    etUsia.error = "Usia wajib diisi"; return@setOnClickListener
                 }
 
+                // [FIX] Hitung otomatis jika belum dihitung manual
                 if (currentStatus.isEmpty()) {
                     currentZScore = FirebaseHelper.hitungZScore(berat, usia)
-                    currentStatus = tentukanStatus(currentZScore, FirebaseHelper.hitungZScoreTbu(tinggi, usia))
+                    currentZTbu   = FirebaseHelper.hitungZScoreTbu(tinggi, usia)
+                    currentStatus = tentukanStatus(currentZScore, currentZTbu)
                 }
 
-                FirebaseHelper.tambahDetailSiswa(idRekap, nama, kelas, berat, tinggi, usia, currentZScore, currentStatus,
+                // Disable tombol supaya tidak double-submit
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).text = "Menyimpan..."
+
+                FirebaseHelper.tambahDetailSiswa(
+                    idRekap, nama, kelas, berat, tinggi, usia,
+                    currentZScore, currentStatus,
                     onSuccess = {
+                        if (_binding == null) { dialog.dismiss(); return@tambahDetailSiswa }
                         Toast.makeText(requireContext(), "$nama berhasil ditambahkan ✅", Toast.LENGTH_SHORT).show()
-                        loadDetailSiswa(idRekap) // Refresh list
+                        dialog.dismiss()
+                        loadDetailSiswa(idRekap)
                     },
-                    onError = { Toast.makeText(requireContext(), "Gagal simpan: $it", Toast.LENGTH_SHORT).show() }
+                    onError = { err ->
+                        if (_binding == null) { dialog.dismiss(); return@tambahDetailSiswa }
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).text = "Simpan"
+                        Toast.makeText(requireContext(), "Gagal simpan: $err", Toast.LENGTH_SHORT).show()
+                    }
                 )
             }
-            .setNegativeButton("Batal", null)
-            .show()
+        }
+
+        dialog.show()
     }
 
     private fun tentukanStatus(zBbu: Double, zTbu: Double): String {
@@ -267,38 +332,46 @@ class RekapGiziFragment : Fragment() {
         val usia   = (siswa["usia_bulan"] as? Number)?.toInt() ?: 0
         AlertDialog.Builder(requireContext())
             .setTitle(siswa["nama_siswa"] as? String ?: "Detail Siswa")
-            .setMessage("Kelas: ${siswa["kelas"]}\nUsia: $usia bulan\nBerat: ${siswa["berat_badan"]} kg\nTinggi: ${siswa["tinggi_badan"]} cm\nStatus: $status\n\n" +
-                    "Rekomendasi:\n${FirebaseHelper.rekomendasiMakanan(status, usia).joinToString("\n")}")
+            .setMessage(
+                "Kelas: ${siswa["kelas"]}\nUsia: $usia bulan\n" +
+                        "Berat: ${siswa["berat_badan"]} kg\nTinggi: ${siswa["tinggi_badan"]} cm\n" +
+                        "Status: $status\n\nRekomendasi:\n" +
+                        FirebaseHelper.rekomendasiMakanan(status, usia).joinToString("\n")
+            )
             .setPositiveButton("Tutup", null)
             .show()
     }
 
-    inner class SiswaAdapter(private val data: List<Map<String, Any?>>, private val onClick: (Map<String, Any?>) -> Unit) : RecyclerView.Adapter<SiswaAdapter.VH>() {
+    inner class SiswaAdapter(
+        private val data: List<Map<String, Any?>>,
+        private val onClick: (Map<String, Any?>) -> Unit
+    ) : RecyclerView.Adapter<SiswaAdapter.VH>() {
+
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
             val tvInisial: TextView = v.findViewById(R.id.tvInisialSiswa)
             val tvNama: TextView    = v.findViewById(R.id.tvNamaSiswa)
             val tvInfo: TextView    = v.findViewById(R.id.tvInfoSiswa)
             val tvStatus: TextView  = v.findViewById(R.id.tvStatusGiziSiswa)
         }
-        override fun onCreateViewHolder(p: ViewGroup, vt: Int) = VH(LayoutInflater.from(p.context).inflate(R.layout.item_siswa, p, false))
-        override fun getItemCount() = data.size
-        override fun onBindViewHolder(h: VH, pos: Int) {
-            val s = data[pos]
-            val n = s["nama_siswa"] as? String ?: "-"
-            val status = s["status_gizi"] as? String ?: "Normal"
-            h.tvInisial.text = n.split(" ").take(2).joinToString("") { it.take(1) }.uppercase()
-            h.tvNama.text = n
-            h.tvInfo.text = "${s["kelas"]} • Z: ${"%.1f".format((s["z_score"] as? Number)?.toDouble() ?: 0.0)}"
-            h.tvStatus.text = status
 
-            val colorRes = when (status.lowercase().trim()) {
-                "normal" -> R.color.green_primary
-                "gizi buruk", "stunting berat" -> R.color.pending_text
-                else -> R.color.pending_text
-            }
-            val bgRes = when (status.lowercase().trim()) {
-                "normal" -> R.color.green_pastel
-                else -> R.color.pending_bg
+        override fun onCreateViewHolder(p: ViewGroup, vt: Int) =
+            VH(LayoutInflater.from(p.context).inflate(R.layout.item_siswa, p, false))
+
+        override fun getItemCount() = data.size
+
+        override fun onBindViewHolder(h: VH, pos: Int) {
+            val s      = data[pos]
+            val n      = s["nama_siswa"] as? String ?: "-"
+            val status = s["status_gizi"] as? String ?: "Normal"
+
+            h.tvInisial.text = n.split(" ").take(2).joinToString("") { it.take(1) }.uppercase()
+            h.tvNama.text    = n
+            h.tvInfo.text    = "${s["kelas"]} • Z: ${"%.1f".format((s["z_score"] as? Number)?.toDouble() ?: 0.0)}"
+            h.tvStatus.text  = status
+
+            val (colorRes, bgRes) = when (status.lowercase().trim()) {
+                "normal" -> Pair(R.color.green_primary, R.color.green_pastel)
+                else     -> Pair(R.color.pending_text, R.color.pending_bg)
             }
             h.tvStatus.setTextColor(ContextCompat.getColor(requireContext(), colorRes))
             h.tvStatus.setBackgroundResource(bgRes)

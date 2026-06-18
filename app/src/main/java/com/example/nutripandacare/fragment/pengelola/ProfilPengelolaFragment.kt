@@ -16,13 +16,12 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.nutripandacare.LoginActivity
 import com.example.nutripandacare.R
+import com.example.nutripandacare.supabase.SupabaseHelper
 import com.example.nutripandacare.databinding.FragmentProfilPengelolaBinding
 import com.example.nutripandacare.firebase.FirebaseHelper
 import com.google.android.material.textfield.TextInputEditText
-import com.google.firebase.storage.FirebaseStorage
 import java.io.File
 import java.io.FileOutputStream
-import java.util.UUID
 
 class ProfilPengelolaFragment : Fragment() {
 
@@ -145,10 +144,12 @@ class ProfilPengelolaFragment : Fragment() {
         Toast.makeText(requireContext(), "Menyimpan perubahan...", Toast.LENGTH_SHORT).show()
 
         if (fotoUri != null) {
-            val path = "profil/${FirebaseHelper.uid}/${UUID.randomUUID()}.jpg"
-            FirebaseHelper.uploadImage(path, fotoUri!!, requireContext(),
+            SupabaseHelper.uploadImage(
+                uri       = fotoUri!!,
+                context   = requireContext(),
+                folder    = "profil_pengelola",
                 onSuccess = { url -> updateDataUser(nama, noHp, url) },
-                onError = { 
+                onError = {
                     isUploading = false
                     Toast.makeText(requireContext(), "Gagal upload foto, mencoba simpan tanpa foto baru", Toast.LENGTH_SHORT).show()
                     updateDataUser(nama, noHp, existingFotoUrl)

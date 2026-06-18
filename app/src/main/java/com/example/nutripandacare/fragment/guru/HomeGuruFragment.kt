@@ -106,11 +106,11 @@ class HomeGuruFragment : Fragment() {
     }
 
     private fun loadNotifBadge() {
-        FirebaseHelper.getJumlahNotifBelumDibaca { count ->
+        FirebaseHelper.getJumlahNotifBelumDibaca { count: Int ->
             _binding?.let { b ->
                 try {
                     b.btnNotifikasi.text = if (count > 0) "🔔 ($count)" else "🔔"
-                } catch (_: Exception) {}
+                } catch (e: Exception) {}
             }
         }
     }
