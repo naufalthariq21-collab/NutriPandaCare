@@ -38,8 +38,13 @@ class AduanGuruFragment : Fragment() {
         }
     }
 
+    // [FIX] Reload setiap kali halaman kembali aktif
+    override fun onResume() {
+        super.onResume()
+        loadAllAduan()
+    }
+
     private fun setupRecyclerView() {
-        // Callback kini terima 3 param: id, judul, balasanLama
         adapter = AduanAdapter(aduanList) { id, judul, balasanLama ->
             showBalasDialog(id, judul, balasanLama)
         }
@@ -48,7 +53,10 @@ class AduanGuruFragment : Fragment() {
     }
 
     private fun loadAllAduan() {
+        if (_binding == null) return
         binding.progressBar.visibility = View.VISIBLE
+        binding.tvEmpty.visibility = View.GONE
+
         FirebaseHelper.getAllAduan(
             onSuccess = { list ->
                 if (_binding == null) return@getAllAduan
@@ -59,20 +67,18 @@ class AduanGuruFragment : Fragment() {
             onError = { err ->
                 if (_binding == null) return@getAllAduan
                 binding.progressBar.visibility = View.GONE
-                Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show()
+                // [FIX] Tampilkan error detail supaya mudah debug
+                Toast.makeText(requireContext(), "Gagal muat aduan: $err", Toast.LENGTH_SHORT).show()
+                binding.tvEmpty.visibility = View.VISIBLE
             }
         )
     }
 
-    /**
-     * Dialog balas aduan. Jika sudah ada balasan lama, isi field dengan teks tersebut
-     * sehingga pengelola bisa mengeditnya, bukan mengetik ulang dari awal.
-     */
     private fun showBalasDialog(aduanId: String, judul: String, balasanLama: String) {
         val input = EditText(requireContext()).apply {
-            hint    = "Tulis balasan di sini..."
+            hint = "Tulis balasan di sini..."
             setText(balasanLama)
-            setSelection(balasanLama.length) // cursor ke akhir
+            setSelection(balasanLama.length)
         }
 
         AlertDialog.Builder(requireContext())
@@ -92,7 +98,7 @@ class AduanGuruFragment : Fragment() {
         FirebaseHelper.balasAduan(aduanId, balasan,
             onSuccess = {
                 if (_binding == null) return@balasAduan
-                Toast.makeText(requireContext(), "Balasan terkirim!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Balasan terkirim! ✅", Toast.LENGTH_SHORT).show()
                 loadAllAduan()
             },
             onError = { err ->

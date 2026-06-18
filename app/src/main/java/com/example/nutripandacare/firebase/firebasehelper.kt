@@ -793,9 +793,12 @@ object FirebaseHelper {
         onSuccess: (List<Pair<String, Map<String, Any?>>>) -> Unit,
         onError: (String) -> Unit
     ) {
-        db.collection("aduan").orderBy("created_at", Query.Direction.DESCENDING).get()
+        db.collection("aduan").get()
             .addOnSuccessListener { snap ->
-                onSuccess(snap.documents.map { Pair(it.id, it.data ?: emptyMap()) })
+                val list = snap.documents
+                    .map { Pair(it.id, it.data ?: emptyMap<String, Any?>()) }
+                    .sortedByDescending { it.second["created_at"] as? Timestamp ?: Timestamp.now() }
+                onSuccess(list)
             }
             .addOnFailureListener { onError("Gagal muat aduan") }
     }
