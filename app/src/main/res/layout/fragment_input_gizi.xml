@@ -192,13 +192,13 @@
                         android:gravity="start" />
 
                     <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvRekomendasi"
+                        android:id="@+id/rvRekomendasiNutrisi"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:visibility="gone" />
 
                     <TextView
-                        android:id="@+id/tvRekomendasi"
+                        android:id="@+id/tvRekomendasiNutrisi"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@color/text_secondary"

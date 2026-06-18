@@ -276,12 +276,16 @@ object FirebaseHelper {
         onSuccess: (List<Map<String, Any?>>) -> Unit,
         onError: (String) -> Unit
     ) {
+        // [FIX] Hapus orderBy untuk hindari composite index requirement.
+        // Sort & limit dilakukan di client side.
         db.collection("pengumuman").whereEqualTo("is_published", true)
-            .orderBy("waktu_pengumuman", Query.Direction.DESCENDING)
-            .limit(limit.toLong())
             .get()
             .addOnSuccessListener { snap ->
-                onSuccess(snap.documents.map { it.data ?: emptyMap() })
+                val list = snap.documents
+                    .map { it.data ?: emptyMap<String, Any?>() }
+                    .sortedByDescending { it["waktu_pengumuman"] as? Timestamp ?: Timestamp.now() }
+                    .take(limit)
+                onSuccess(list)
             }
             .addOnFailureListener { onError(it.message ?: "Gagal muat pengumuman") }
     }
